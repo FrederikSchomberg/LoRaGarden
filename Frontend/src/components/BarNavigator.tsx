@@ -1,6 +1,8 @@
+import type { BedName } from "../api";
+
 type BarNavigatorProps = {
-    activeTab: string;
-    onTabChange: (tab: string) => void;
+    activeTab: BedName;
+    onTabChange: (tab: BedName) => void;
 };
 
 export function BarNavigator({
@@ -8,7 +10,7 @@ export function BarNavigator({
     onTabChange,
 }: BarNavigatorProps) {
 
-    const tabs = ["Alle", "Beet1", "Beet2", "Beet3"];
+    const tabs = ["Alle", "Beet1", "Beet2", "Beet3"] as const;
 
     return (
         <div className="bar-navigator">

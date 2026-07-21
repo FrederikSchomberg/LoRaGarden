@@ -16,7 +16,7 @@ export function DashboardHeader({
       <div>
         <p className="dashboard-label">Smart Gardening Dashboard</p>
         <h1>{beetName}</h1>
-        <p>Mockup Beet.</p>
+        {/* <p>Mockup Beet.</p> */}
       </div>
 
       {/* letzte messung oben rechts */}

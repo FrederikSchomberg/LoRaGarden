@@ -111,6 +111,35 @@ def update_dashboard(topic: str, value):
         dashboard_data["Beet1"]["temperatur_differenz"] = value
         dashboard_data["Beet1"]["updated_at"] = timestamp # type: ignore
 
+# def update_dashboard(topic: str, value):
+
+#     parts = topic.split("/")
+
+#     if len(parts) != 4:
+#         return
+
+#     _, beet, sensor, value_type = parts
+
+#     if beet not in dashboard_data:
+#         return
+
+
+#     timestamp = now_iso()
+
+
+#     if sensor == "Temperatur":
+
+#         if value_type == "Ist":
+#             dashboard_data[beet]["temperatur_ist"] = value
+
+#         elif value_type == "Soll":
+#             dashboard_data[beet]["temperatur_soll"] = value
+
+#         elif value_type == "Differenz":
+#             dashboard_data[beet]["temperatur_differenz"] = value
+
+
+#         dashboard_data[beet]["updated_at"] = timestamp
 
 # wenn mqtt verbindet
 def on_connect(client, userdata, flags, rc):

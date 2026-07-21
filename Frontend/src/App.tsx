@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import { mockData, mlMockData } from "./data/mockData";
+import { mockBeds, mlMockData } from "./data/mockData";
 import { WateringDecisionCard } from "./components/WateringDecisionCard";
 import { WeatherCard } from "./components/WeatherCard";
 import { MlPreviewCard } from "./components/MlPreviewCard";
@@ -8,7 +8,7 @@ import { SystemStatusCard } from "./components/SystemStatusCard";
 import { DashboardHeader } from "./components/DashboardHeader";
 import { SensorOverview } from "./components/SensorOverview";
 import { ExtraLiveCards } from "./components/ExtraLiveCards";
-import { fetchDashboardData, type DashboardResponse } from "./api";
+import { fetchDashboardData, type DashboardResponse, type BedName } from "./api";
 import { BarNavigator } from "./components/BarNavigator";
 
 function App() {
@@ -19,7 +19,7 @@ function App() {
   const [apiError, setApiError] = useState<string | null>(null);
 
   // welcher tab ist ausgewählt
-  const [selectedBed, setSelectedBed] = useState("Alle");
+  const [selectedBed, setSelectedBed] = useState<BedName>("Alle");
 
   async function loadDashboard() {
     try {
@@ -45,23 +45,34 @@ function App() {
 
   }, [selectedBed]);
 
+  const selectedBedKey: Exclude<BedName, "Alle"> | null =
+    selectedBed === "Alle" ? null : selectedBed;
+  const selectedData = selectedBedKey
+    ? getSelectedBedData(dashboard, selectedBedKey)
+    : null;
+  
+  const mockBedData =
+  selectedBed === "Alle"
+    ? mockBeds.Beet1
+    : mockBeds[selectedBed];
+
   // erstmal mock temperatur nehmen
-  let temperature: number | null = mockData.sensors.temperature;
+  let temperature: number | null = selectedData?.temperatur_ist ?? mockBedData.sensors.temperature;
 
   // wenn live temperatur da ist dann die nehmen
   if (
     dashboard &&
-    dashboard.data["Beet1"].temperatur_ist !== null &&
-    dashboard.data["Beet1"].temperatur_ist !== undefined
+    selectedBedKey &&
+    selectedData?.temperatur_ist != null
   ) {
-    temperature = dashboard.data["Beet1"].temperatur_ist;
+    temperature = selectedData.temperatur_ist;
   }
 
   // luftfeuchte (mock)
-  const humidity: number | null = mockData.sensors.humidity;
+  const humidity: number | null = mockBedData.sensors.humidity;
 
   // letzte messungszeit (mock)
-  let lastMeasurement = mockData.lastMeasurement;
+  let lastMeasurement = selectedData?.updated_at ?? mockBedData.lastMeasurement;
 
   // wenn mqtt zeit da ist dann die nehmen
   if (dashboard && dashboard.mqtt.last_message_at) {
@@ -73,7 +84,7 @@ function App() {
   }
 
   // mqtt status mit mock starten
-  let mqttStatus = mockData.systemStatus.mqtt;
+  let mqttStatus = mockBedData.systemStatus.mqtt;
 
   // wenn api nicht geht oflline setzen
   if (apiError) {
@@ -83,7 +94,7 @@ function App() {
   }
 
   // api status startet mi den mockdaten
-  let apiStatus = mockData.systemStatus.api;
+  let apiStatus = mockBedData.systemStatus.api;
 
   // wenn api fehler hat dann offline setzen
   if (apiError) {
@@ -100,19 +111,25 @@ function App() {
   }> = [];
 
   // soll temperatur anzeigen wenn wert da ist
-  if (dashboard && hasValue(dashboard.data["Beet1"].temperatur_soll)) {
+  if (
+    selectedData &&
+    hasValue(selectedData.temperatur_soll)
+  ) {
     extraLiveCards.push({
       title: "Temperatur Soll",
-      value: formatSensorValue(dashboard.data["Beet1"].temperatur_soll, "°C"),
+      value: formatSensorValue(selectedData.temperatur_soll, "°C"),
       description: "Livewert aus S7",
     });
   }
 
   // differenz anzeigen wenn da ist
-  if (dashboard && hasValue(dashboard.data["Beet1"].temperatur_differenz)) {
+  if (
+    selectedData &&
+    hasValue(selectedData.temperatur_differenz)
+  ) {
     extraLiveCards.push({
       title: "Temperatur Differenz",
-      value: formatSensorValue(dashboard.data["Beet1"].temperatur_differenz, "°C"),
+      value: formatSensorValue(selectedData.temperatur_differenz, "°C"),
       description: "Livewert aus S7",
     });
   }
@@ -127,11 +144,9 @@ function App() {
 
       {/* header oben */}
       <DashboardHeader
-        beetName={mockData.beetName}
+        beetName={mockBedData.beetName}
         lastMeasurement={lastMeasurement}
       />
-
-
 
       {/* fehler anzeigen wenn backend nicht geht */}
       {apiError && <div className="api-warning">{apiError}</div>}
@@ -140,6 +155,11 @@ function App() {
       <SensorOverview
         temperature={formatSensorValue(temperature, "°C")}
         humidity={formatSensorValue(humidity, "%")}
+
+        soilMoisture={mockBedData.sensors.soilMoisture}
+        waterLevel={mockBedData.sensors.waterLevel}
+        lightLux={mockBedData.sensors.lightLux}
+        uvIndex={mockBedData.sensors.uvIndex}
       />
 
       {/* extra live karten */}
@@ -149,20 +169,20 @@ function App() {
       <section className="content-grid">
         {/* bewässerung ist mock */}
         <WateringDecisionCard
-          shouldWater={mockData.wateringDecision.shouldWater}
-          title={mockData.wateringDecision.title}
-          reason={mockData.wateringDecision.reason}
-          mode={mockData.wateringDecision.mode}
-          urgency={mockData.wateringDecision.urgency}
-          triggeredRule={mockData.wateringDecision.triggeredRule}
-          nextCheck={mockData.wateringDecision.nextCheck}
+          shouldWater={mockBedData.wateringDecision.shouldWater}
+          title={mockBedData.wateringDecision.title}
+          reason={mockBedData.wateringDecision.reason}
+          mode={mockBedData.wateringDecision.mode}
+          urgency={mockBedData.wateringDecision.urgency}
+          triggeredRule={mockBedData.wateringDecision.triggeredRule}
+          nextCheck={mockBedData.wateringDecision.nextCheck}
         />
 
         {/* wetter ist mock */}
         <WeatherCard
-          rainProbability={mockData.weather.rainProbability}
-          forecast={mockData.weather.forecast}
-          outsideTemperature={mockData.weather.outsideTemperature}
+          rainProbability={mockBedData.weather.rainProbability}
+          forecast={mockBedData.weather.forecast}
+          outsideTemperature={mockBedData.weather.outsideTemperature}
         />
 
         {/* ml ist mock */}
@@ -178,9 +198,9 @@ function App() {
         {/* mqtt und api sind live rest mock */}
         <SystemStatusCard
           mqtt={mqttStatus}
-          influxdb={mockData.systemStatus.influxdb}
+          influxdb={mockBedData.systemStatus.influxdb}
           api={apiStatus}
-          grafana={mockData.systemStatus.grafana}
+          grafana={mockBedData.systemStatus.grafana}
           mqttIsLive={true}
           apiIsLive={true}
         />
@@ -239,4 +259,15 @@ function formatDate(value?: string | null) {
   });
 }
 
+function getSelectedBedData(
+  dashboard: DashboardResponse | null,
+  bed: Exclude<BedName, "Alle">
+) {
+
+  if (!dashboard) {
+    return null;
+  }
+
+  return dashboard.data[bed] ?? null;
+}
 export default App;

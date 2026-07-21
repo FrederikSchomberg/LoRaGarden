@@ -4,8 +4,10 @@ import json
 import os
 import threading
 
+
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi import Query
 from fastapi.middleware.cors import CORSMiddleware
 import paho.mqtt.client as mqtt
 
@@ -39,7 +41,19 @@ mqtt_status = {
 
 # daten fürs dashboard
 dashboard_data = {
-    "s7": {
+    "Beet1": {
+        "temperatur_ist": None,
+        "temperatur_soll": None,
+        "temperatur_differenz": None,
+        "updated_at": None,
+    },
+    "Beet2": {
+        "temperatur_ist": None,
+        "temperatur_soll": None,
+        "temperatur_differenz": None,
+        "updated_at": None,
+    },
+    "Beet3": {
         "temperatur_ist": None,
         "temperatur_soll": None,
         "temperatur_differenz": None,
@@ -84,18 +98,18 @@ def update_dashboard(topic: str, value):
 
     # temperatur ist speichern
     if topic == "S7_1500/Temperatur/Ist":
-        dashboard_data["s7"]["temperatur_ist"] = value
-        dashboard_data["s7"]["updated_at"] = timestamp
+        dashboard_data["Beet1"]["temperatur_ist"] = value
+        dashboard_data["Beet1"]["updated_at"] = timestamp # type: ignore
 
     # temperatur soll speichern
     elif topic == "S7_1500/Temperatur/Soll":
-        dashboard_data["s7"]["temperatur_soll"] = value
-        dashboard_data["s7"]["updated_at"] = timestamp
+        dashboard_data["Beet1"]["temperatur_soll"] = value
+        dashboard_data["Beet1"]["updated_at"] = timestamp # type: ignore
 
     # temperatur differenz speichern
     elif topic == "S7_1500/Temperatur/Differenz":
-        dashboard_data["s7"]["temperatur_differenz"] = value
-        dashboard_data["s7"]["updated_at"] = timestamp
+        dashboard_data["Beet1"]["temperatur_differenz"] = value
+        dashboard_data["Beet1"]["updated_at"] = timestamp # type: ignore
 
 
 # wenn mqtt verbindet
@@ -140,7 +154,7 @@ def on_message(client, userdata, msg):
 
     # daten speichern
     with lock:
-        mqtt_status["last_message_at"] = now_iso()
+        mqtt_status["last_message_at"] = now_iso() # type: ignore
         update_dashboard(topic, value)
 
     # im terminal anzeigen
@@ -187,12 +201,18 @@ def shutdown_event():
 def root():
     return {"message": "Smart Gardening API läuft"}
 
-
-# route fürs dashboard
 @app.get("/api/dashboard")
-def get_dashboard():
+def get_dashboard(beet: str = Query("Alle")):
     with lock:
+        if beet == "Alle":
+            data = deepcopy(dashboard_data)
+        elif beet in dashboard_data:
+            data = {
+                beet: deepcopy(dashboard_data[beet])
+            }
+        else:
+            data = {}
         return {
             "mqtt": deepcopy(mqtt_status),
-            "data": deepcopy(dashboard_data),
+            "data": data,
         }

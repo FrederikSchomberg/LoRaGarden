@@ -1,3 +1,6 @@
+
+// DashboardHeader component is responsible for displaying the header section of the dashboard.
+
 type DashboardHeaderProps = {
   beetName: string;
   lastMeasurement: string;

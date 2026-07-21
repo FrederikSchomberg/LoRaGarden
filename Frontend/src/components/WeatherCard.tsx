@@ -1,3 +1,6 @@
+
+// WeatherCard component is used to display weather information in a card format.
+
 type WeatherCardProps = {
     rainProbability: number;
     forecast: string;

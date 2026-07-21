@@ -1,5 +1,5 @@
 export const mockData = {
-    beetName: "Beet 1",
+    beetName: "Beet1",
     lastMeasurement: "vor 2min",
 
 

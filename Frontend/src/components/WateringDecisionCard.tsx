@@ -1,3 +1,7 @@
+
+// WateringDecisionCard component is used to display the decision regarding watering in a card format.
+// Same Structure as the MlPreviewCard.tsx
+
 type WateringDecisionCardProps = {
     shouldWater: boolean,
     title: string;

@@ -1,3 +1,6 @@
+// SystemStatusCard component is responsible for displaying the status of various system components 
+// (MQTT, InfluxDB, API, Grafana) in a card format.
+
 type SystemStatusCardProps = {
   mqtt: string;
   influxdb: string;

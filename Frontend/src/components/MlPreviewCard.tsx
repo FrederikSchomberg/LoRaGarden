@@ -1,3 +1,6 @@
+// Machine Learning Preview Card component is used to display the results 
+// of a machine learning model's prediction in a card format.
+
 type MlPreviewCardProps = {
     title: string;
     reason: string;

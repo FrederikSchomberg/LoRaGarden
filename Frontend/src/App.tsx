@@ -9,6 +9,7 @@ import { DashboardHeader } from "./components/DashboardHeader";
 import { SensorOverview } from "./components/SensorOverview";
 import { ExtraLiveCards } from "./components/ExtraLiveCards";
 import { fetchDashboardData, type DashboardResponse } from "./api";
+import { BarNavigator } from "./components/BarNavigator";
 
 function App() {
   // hier kommen die daten vom backend rein
@@ -17,21 +18,17 @@ function App() {
   // checken ob die api kaputt ist
   const [apiError, setApiError] = useState<string | null>(null);
 
+  // welcher tab ist ausgewählt
+  const [selectedBed, setSelectedBed] = useState("Alle");
+
   async function loadDashboard() {
     try {
-      // daten vom backend holen
-      const data = await fetchDashboardData();
+      const data = await fetchDashboardData(selectedBed);
 
-      // daten speichern
       setDashboard(data);
-
-      // alten fehler wegmachen
       setApiError(null);
     } catch {
-      // wenn backend nicht geht daten löschen
       setDashboard(null);
-
-      // fehler anzeigen
       setApiError("Backend nicht erreichbar");
     }
   }
@@ -40,14 +37,13 @@ function App() {
 
     loadDashboard();
 
-    // alle 5sek seite neu laden
     const interval = window.setInterval(() => {
       loadDashboard();
-    }, 5000); // all 5sek aktuell
+    }, 5000);
 
-    // interval wieder stoppen
     return () => window.clearInterval(interval);
-  }, []);
+
+  }, [selectedBed]);
 
   // erstmal mock temperatur nehmen
   let temperature: number | null = mockData.sensors.temperature;
@@ -55,10 +51,10 @@ function App() {
   // wenn live temperatur da ist dann die nehmen
   if (
     dashboard &&
-    dashboard.data.s7.temperatur_ist !== null &&
-    dashboard.data.s7.temperatur_ist !== undefined
+    dashboard.data["Beet1"].temperatur_ist !== null &&
+    dashboard.data["Beet1"].temperatur_ist !== undefined
   ) {
-    temperature = dashboard.data.s7.temperatur_ist;
+    temperature = dashboard.data["Beet1"].temperatur_ist;
   }
 
   // luftfeuchte (mock)
@@ -104,30 +100,38 @@ function App() {
   }> = [];
 
   // soll temperatur anzeigen wenn wert da ist
-  if (dashboard && hasValue(dashboard.data.s7.temperatur_soll)) {
+  if (dashboard && hasValue(dashboard.data["Beet1"].temperatur_soll)) {
     extraLiveCards.push({
       title: "Temperatur Soll",
-      value: formatSensorValue(dashboard.data.s7.temperatur_soll, "°C"),
+      value: formatSensorValue(dashboard.data["Beet1"].temperatur_soll, "°C"),
       description: "Livewert aus S7",
     });
   }
 
   // differenz anzeigen wenn da ist
-  if (dashboard && hasValue(dashboard.data.s7.temperatur_differenz)) {
+  if (dashboard && hasValue(dashboard.data["Beet1"].temperatur_differenz)) {
     extraLiveCards.push({
       title: "Temperatur Differenz",
-      value: formatSensorValue(dashboard.data.s7.temperatur_differenz, "°C"),
+      value: formatSensorValue(dashboard.data["Beet1"].temperatur_differenz, "°C"),
       description: "Livewert aus S7",
     });
   }
 
   return (
     <main className="app">
+      {/* tab bar */}
+      <BarNavigator
+          activeTab={selectedBed}
+          onTabChange={setSelectedBed}
+      />
+
       {/* header oben */}
       <DashboardHeader
         beetName={mockData.beetName}
         lastMeasurement={lastMeasurement}
       />
+
+
 
       {/* fehler anzeigen wenn backend nicht geht */}
       {apiError && <div className="api-warning">{apiError}</div>}

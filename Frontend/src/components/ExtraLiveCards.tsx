@@ -1,5 +1,9 @@
 import { SensorCard } from "./SensorCard";
 
+// SensorCard component is used to display individual sensor information in a card format. 
+// The ExtraLiveCards component takes an array of ExtraLiveCard objects and renders them as a grid of SensorCards.
+//  If there are no cards to display, it returns null, effectively rendering nothing.
+
 type ExtraLiveCard = {
   title: string;
   value: string;

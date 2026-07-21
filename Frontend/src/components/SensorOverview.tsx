@@ -1,6 +1,10 @@
 import { mockData } from "../data/mockData";
 import { SensorCard } from "./SensorCard";
 
+// SensorOverview component is responsible for displaying an overview of 
+// various sensor readings in a grid format. Using the SensorCard.tsx component, 
+// it presents information such as soil moisture, temperature, humidity, water level, light intensity, and UV index.
+
 type SensorOverviewProps = {
   temperature: string;
   humidity: string;

@@ -1,3 +1,5 @@
+// SensorCard component is used to display individual sensor information in a card format.
+
 type SensorCardProps = {
     title: string;
     value: string;

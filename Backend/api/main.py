@@ -1,198 +1,194 @@
-from datetime import datetime, timezone
-from copy import deepcopy
-import json
-import os
-import threading
+from contextlib import asynccontextmanager
 
-from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import paho.mqtt.client as mqtt
 
-# dotenv laden
-load_dotenv()
+from db_connector import DBConnector
 
-# mqtt daten aus dotenv holen
-MQTT_HOST = os.getenv("MQTT_HOST", "")
-MQTT_PORT = int(os.getenv("MQTT_PORT") or "1883")
-MQTT_USER = os.getenv("MQTT_USER", "")
-MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "")
 
-app = FastAPI()
+# die ids bleiben metadaten, die influx-abfrage läuft über tag "name"
+SENSORS = {
+    "0060294A": {
+        "city": "Bochum",
+        "area": "RUB",
+        "place": "Botanischer Garten",
+        "bed": "Ilse",
+        "bed_position": "Oben",
+    },
+    "0060294B": {
+        "city": "Bochum",
+        "area": "RUB",
+        "place": "Botanischer Garten",
+        "bed": "Berta",
+        "bed_position": "Unten",
+    },
+    "00612B28": {
+        "city": "Bochum",
+        "area": "RUB",
+        "place": "Botanischer Garten",
+        "bed": "Berta",
+        "bed_position": "Oben",
+    },
+    "0060294C": {
+        "city": "Bochum",
+        "area": "RUB",
+        "place": "Botanischer Garten",
+        "bed": "Carla",
+        "bed_position": "Unten",
+    },
+    "00612B1F": {
+        "city": "Bochum",
+        "area": "RUB",
+        "place": "Botanischer Garten",
+        "bed": "Carla",
+        "bed_position": "Oben",
+    },
+}
 
-# cors damit frontend backend abfragen kann
+
+# hier stehen nur infos, die nicht als messwert aus influx kommen
+BEDS = {
+    "Carla": {
+        "substrate": "10 % Pflanzenkohle",
+        "sensor_ids": ["0060294C", "00612B1F"],
+    },
+    "Berta": {
+        "substrate": "5 % Pflanzenkohle",
+        "sensor_ids": ["0060294B", "00612B28"],
+    },
+    "Ilse": {
+        "substrate": "Sand",
+        "sensor_ids": ["0060294A"],
+    },
+}
+
+BED_NAMES = list(BEDS)
+BED_NAMES_BY_LOWERCASE = {
+    name.lower(): name for name in BED_NAMES
+}
+
+db_connector = DBConnector()
+
+
+@asynccontextmanager
+async def lifespan(_app):
+    # testet beim start einmal die db, beendet die api bei einem fehler aber nicht
+    if db_connector.check_connection():
+        print("influxdb ist verbunden")
+    else:
+        print("api läuft, aber influxdb ist noch nicht erreichbar")
+
+    yield
+
+
+app = FastAPI(
+    title="Smart Gardening API",
+    version="2.0.0",
+    lifespan=lifespan,
+)
+
+
+# cors erlaubt dem getrennt gestarteten frontend die api-abfragen
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# lock damit nicht alles gleichzeitig passiert
-lock = threading.Lock()
 
-# mqtt status merken
-mqtt_status = {
-    "connected": False,
-}
-
-# daten fürs dashboard
-dashboard_data = {
-    "s7": {
-        "temperatur_ist": None,
-        "temperatur_soll": None,
-        "temperatur_differenz": None,
-        "updated_at": None,
-    }
-}
-
-
-# aktuelle zeit holen
-def now_iso():
-    return datetime.now(timezone.utc).isoformat()
-
-
-# mqtt payload umwandeln
-def parse_payload(payload_text: str):
-    # leerzeichen wegmachen
-    payload_text = payload_text.strip()
-
-    # leere nachrichten raus
-    if payload_text == "":
-        return None
-
-    # erstmal json probieren
+def read_beds_from_database(bed_names):
+    # fängt db-fehler an einer stelle ab und gibt der api einen sauberen statuscode
     try:
-        return json.loads(payload_text)
-    except Exception:
-        pass
-
-    # danach zahl probieren
-    try:
-        return float(payload_text)
-    except Exception:
-        pass
-
-    # sonst einfach text nehmen
-    return payload_text
-
-
-# daten je nach topic speichern
-def update_dashboard(topic: str, value):
-    timestamp = now_iso()
-
-    # temperatur ist speichern
-    if topic == "S7_1500/Temperatur/Ist":
-        dashboard_data["s7"]["temperatur_ist"] = value
-        dashboard_data["s7"]["updated_at"] = timestamp
-
-    # temperatur soll speichern
-    elif topic == "S7_1500/Temperatur/Soll":
-        dashboard_data["s7"]["temperatur_soll"] = value
-        dashboard_data["s7"]["updated_at"] = timestamp
-
-    # temperatur differenz speichern
-    elif topic == "S7_1500/Temperatur/Differenz":
-        dashboard_data["s7"]["temperatur_differenz"] = value
-        dashboard_data["s7"]["updated_at"] = timestamp
-
-
-# wenn mqtt verbindet
-def on_connect(client, userdata, flags, rc):
-    if rc == 0:
-        print("MQTT verbunden")
-
-        with lock:
-            mqtt_status["connected"] = True
-    else:
-        print(f"MQTT Fehler: {rc}")
-
-        with lock:
-            mqtt_status["connected"] = False
-
-        return
-
-    # s7 temperatur topic erstmal ##########
-    topic = "S7_1500/Temperatur/#"
-    client.subscribe(topic)
-    print(f"Subscribed: {topic}\n")
-
-
-# wenn mqtt trennt
-def on_disconnect(client, userdata, rc):
-    print("MQTT getrennt")
-
-    with lock:
-        mqtt_status["connected"] = False
-
-
-# wenn mqtt nachricht kommt
-def on_message(client, userdata, msg):
-    # topic holen
-    topic = msg.topic
-
-    # payload als text lesen
-    payload_text = msg.payload.decode("utf-8", errors="replace")
-
-    # payload umwandeln
-    value = parse_payload(payload_text)
-
-    # daten speichern
-    with lock:
-        mqtt_status["last_message_at"] = now_iso()
-        update_dashboard(topic, value)
-
-    # im terminal anzeigen
-    print(f"{topic}: {value}")
-
-
-# mqtt client bauen
-mqtt_client = mqtt.Client(client_id="smart-gardening-api")
-
-# mqtt callbacks setzen
-mqtt_client.on_connect = on_connect
-mqtt_client.on_disconnect = on_disconnect
-mqtt_client.on_message = on_message
-
-# login setzen
-if MQTT_USER:
-    mqtt_client.username_pw_set(MQTT_USER, MQTT_PASSWORD)
-
-
-# startet mit fastapi
-@app.on_event("startup")
-def startup_event():
-    print(f"Starte MQTT-Verbindung zu {MQTT_HOST}:{MQTT_PORT}")
-
-    try:
-        mqtt_client.connect_async(MQTT_HOST, MQTT_PORT, 60)
-        mqtt_client.loop_start()
-
-        print("MQTT-Verbindung wurde gestartet")
-
+        return db_connector.get_latest_values_for_beds(bed_names)
     except Exception as error:
-        print(f"MQTT konnte nicht gestartet werden: {error}")
+        print(f"influxdb-abfrage fehlgeschlagen: {error}")
+        raise HTTPException(
+            status_code=503,
+            detail="InfluxDB ist gerade nicht erreichbar.",
+        ) from error
 
 
-# stoppt wenn fastapi beendet wird
-@app.on_event("shutdown")
-def shutdown_event():
-    mqtt_client.loop_stop()
-    mqtt_client.disconnect()
+def add_bed_metadata(database_bed):
+    # ergänzt substrat und sensorpositionen zu den eigentlichen messwerten
+    bed_name = database_bed["name"]
+    bed_config = BEDS[bed_name]
+    sensors = []
+
+    for sensor_id in bed_config["sensor_ids"]:
+        sensors.append(
+            {
+                "sensor_id": sensor_id,
+                **SENSORS[sensor_id],
+            }
+        )
+
+    return {
+        "name": bed_name,
+        "substrate": bed_config["substrate"],
+        "sensors": sensors,
+        "values": database_bed["values"],
+        "updated_at": database_bed["updated_at"],
+    }
 
 
-# rootroute
+def build_beds_payload(bed_names):
+    # liest alle gewünschten beete mit einer einzigen influx-abfrage
+    database_beds = read_beds_from_database(bed_names)
+    return [
+        add_bed_metadata(database_beds[bed_name])
+        for bed_name in bed_names
+    ]
+
+
 @app.get("/")
 def root():
-    return {"message": "Smart Gardening API läuft"}
+    return {
+        "message": "Smart Gardening API läuft",
+        "data_source": "InfluxDB",
+    }
 
 
-# route fürs dashboard
+@app.get("/api/health")
+def get_health():
+    # dieser endpoint zeigt getrennt, ob api und datenbank erreichbar sind
+    return {
+        "api": "ok",
+        "database": {
+            "type": "InfluxDB",
+            "connected": db_connector.check_connection(),
+        },
+    }
+
+
+@app.get("/api/beds")
+def get_beds():
+    return {
+        "beds": build_beds_payload(BED_NAMES),
+    }
+
+
+@app.get("/api/beds/{bed_name}")
+def get_bed(bed_name: str):
+    # der url-name darf klein sein, an influx geht aber Carla, Berta oder Ilse
+    exact_bed_name = BED_NAMES_BY_LOWERCASE.get(bed_name.lower())
+    if exact_bed_name is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Beet nicht gefunden. Erlaubt: Carla, Berta oder Ilse.",
+        )
+
+    return build_beds_payload([exact_bed_name])[0]
+
+
 @app.get("/api/dashboard")
 def get_dashboard():
-    with lock:
-        return {
-            "mqtt": deepcopy(mqtt_status),
-            "data": deepcopy(dashboard_data),
-        }
+    # behält die alte dashboard-url, liefert jetzt aber influx-daten statt mqtt
+    return {
+        "database": {
+            "type": "InfluxDB",
+            "connected": True,
+        },
+        "beds": build_beds_payload(BED_NAMES),
+    }

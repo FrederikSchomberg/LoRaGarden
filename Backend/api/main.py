@@ -162,7 +162,7 @@ def build_bed_response(bed_name, bed_config, all_db_data):
 
 
 @app.get("/")
-def root():
+async def root():
     return {
         "message": "Smart Gardening API läuft",
         "data_source": "InfluxDB",
@@ -170,7 +170,7 @@ def root():
 
 
 @app.get("/api/health")
-def get_health():
+async def get_health():
     # dieser endpoint zeigt getrennt, ob api und datenbank erreichbar sind
     return {
         "api": "ok",
@@ -182,7 +182,7 @@ def get_health():
 
 
 @app.get("/api/beds")
-def get_beds():
+async def get_beds():
     # liefert alle beete mit allen sensoren
     all_db_data = query_all_sensors_from_database()
     beds = []
@@ -192,7 +192,7 @@ def get_beds():
 
 
 @app.get("/api/beds/{bed_name}/{bed_position}")
-def get_bed(bed_name: str, bed_position: str):
+async def get_bed(bed_name: str, bed_position: str):
     # liefert die daten eines einzelnen sensors anhand beet-name und position
     # der url-name darf klein sein, in BEDS steht alles klein
     bed_key = bed_name.lower()
@@ -226,7 +226,7 @@ def get_bed(bed_name: str, bed_position: str):
 
 
 @app.get("/api/dashboard")
-def get_dashboard():
+async def get_dashboard():
     # behält die alte dashboard-url, liefert jetzt aber influx-daten statt mqtt
     all_db_data = query_all_sensors_from_database()
     beds = []

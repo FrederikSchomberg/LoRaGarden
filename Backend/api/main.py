@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
 
+# pyrefly: ignore [missing-import]
 from fastapi import FastAPI, HTTPException
+# pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
 
 from db_connector import DBConnector
@@ -14,6 +16,7 @@ SENSORS = {
         "place": "Botanischer Garten",
         "bed": "Ilse",
         "bed_position": "Oben",
+        "substrate": "Sand",
     },
     "0060294B": {
         "city": "Bochum",
@@ -21,6 +24,7 @@ SENSORS = {
         "place": "Botanischer Garten",
         "bed": "Berta",
         "bed_position": "Unten",
+        "substrate": "5 % Pflanzenkohle",
     },
     "00612B28": {
         "city": "Bochum",
@@ -28,6 +32,7 @@ SENSORS = {
         "place": "Botanischer Garten",
         "bed": "Berta",
         "bed_position": "Oben",
+        "substrate": "5 % Pflanzenkohle",
     },
     "0060294C": {
         "city": "Bochum",
@@ -35,6 +40,7 @@ SENSORS = {
         "place": "Botanischer Garten",
         "bed": "Carla",
         "bed_position": "Unten",
+        "substrate": "10 % Pflanzenkohle"
     },
     "00612B1F": {
         "city": "Bochum",
@@ -42,29 +48,36 @@ SENSORS = {
         "place": "Botanischer Garten",
         "bed": "Carla",
         "bed_position": "Oben",
+        "substrate": "10 % Pflanzenkohle"
     },
+    "0060294E": {
+		"city": "Bochum",
+		"area": "RUB",
+		"place": "Botanischer Garten",
+		"bed": "Ilse",
+		"bed_position": "Unten",
+        "substrate": "Sand"
+		}
 }
 
 
 # hier stehen nur infos, die nicht als messwert aus influx kommen
 BEDS = {
-    "Carla": {
+    "carla": {
         "substrate": "10 % Pflanzenkohle",
-        "sensor_ids": ["0060294C", "00612B1F"],
+        "unten": "0060294C",
+        "oben": "00612B1F"
     },
-    "Berta": {
+    "berta": {
         "substrate": "5 % Pflanzenkohle",
-        "sensor_ids": ["0060294B", "00612B28"],
+        "unten": "0060294B",
+        "oben" : "00612B28"
     },
-    "Ilse": {
+    "ilse": {
         "substrate": "Sand",
-        "sensor_ids": ["0060294A"],
+        "oben": "0060294A",
+        "unten": "0060294E" 
     },
-}
-
-BED_NAMES = list(BEDS)
-BED_NAMES_BY_LOWERCASE = {
-    name.lower(): name for name in BED_NAMES
 }
 
 db_connector = DBConnector()
@@ -98,10 +111,10 @@ app.add_middleware(
 )
 
 
-def read_beds_from_database(bed_names):
-    # fängt db-fehler an einer stelle ab und gibt der api einen sauberen statuscode
+def query_sensor_from_database(sensor_id):
+    # fragt einen einzelnen sensor per id aus influx ab
     try:
-        return db_connector.get_latest_values_for_beds(bed_names)
+        return db_connector.get_latest_values_by_id(sensor_id)
     except Exception as error:
         print(f"influxdb-abfrage fehlgeschlagen: {error}")
         raise HTTPException(
@@ -110,36 +123,42 @@ def read_beds_from_database(bed_names):
         ) from error
 
 
-def add_bed_metadata(database_bed):
-    # ergänzt substrat und sensorpositionen zu den eigentlichen messwerten
-    bed_name = database_bed["name"]
-    bed_config = BEDS[bed_name]
+def query_all_sensors_from_database():
+    # fragt alle bekannten sensoren per id aus influx ab
+    try:
+        all_ids = list(SENSORS.keys())
+        return db_connector.get_latest_values_by_ids(all_ids)
+    except Exception as error:
+        print(f"influxdb-abfrage fehlgeschlagen: {error}")
+        raise HTTPException(
+            status_code=503,
+            detail="InfluxDB ist gerade nicht erreichbar.",
+        ) from error
+
+
+def build_sensor_response(sensor_id, db_data):
+    # baut die api-antwort für einen einzelnen sensor zusammen
+    metadata = SENSORS[sensor_id]
+    return {
+        "sensor_id": sensor_id,
+        **metadata,
+        "values": db_data["values"],
+        "updated_at": db_data["updated_at"],
+    }
+
+
+def build_bed_response(bed_name, bed_config, all_db_data):
+    # baut die api-antwort für ein beet mit oben/unten zusammen
     sensors = []
-
-    for sensor_id in bed_config["sensor_ids"]:
-        sensors.append(
-            {
-                "sensor_id": sensor_id,
-                **SENSORS[sensor_id],
-            }
-        )
-
+    for position in ("oben", "unten"):
+        sid = bed_config.get(position)
+        if sid and sid in all_db_data:
+            sensors.append(build_sensor_response(sid, all_db_data[sid]))
     return {
         "name": bed_name,
         "substrate": bed_config["substrate"],
         "sensors": sensors,
-        "values": database_bed["values"],
-        "updated_at": database_bed["updated_at"],
     }
-
-
-def build_beds_payload(bed_names):
-    # liest alle gewünschten beete mit einer einzigen influx-abfrage
-    database_beds = read_beds_from_database(bed_names)
-    return [
-        add_bed_metadata(database_beds[bed_name])
-        for bed_name in bed_names
-    ]
 
 
 @app.get("/")
@@ -164,31 +183,59 @@ def get_health():
 
 @app.get("/api/beds")
 def get_beds():
-    return {
-        "beds": build_beds_payload(BED_NAMES),
-    }
+    # liefert alle beete mit allen sensoren
+    all_db_data = query_all_sensors_from_database()
+    beds = []
+    for bed_name, bed_config in BEDS.items():
+        beds.append(build_bed_response(bed_name, bed_config, all_db_data))
+    return {"beds": beds}
 
 
-@app.get("/api/beds/{bed_name}")
-def get_bed(bed_name: str):
-    # der url-name darf klein sein, an influx geht aber Carla, Berta oder Ilse
-    exact_bed_name = BED_NAMES_BY_LOWERCASE.get(bed_name.lower())
-    if exact_bed_name is None:
+@app.get("/api/beds/{bed_name}/{bed_position}")
+def get_bed(bed_name: str, bed_position: str):
+    # liefert die daten eines einzelnen sensors anhand beet-name und position
+    # der url-name darf klein sein, in BEDS steht alles klein
+    bed_key = bed_name.lower()
+    position_key = bed_position.lower()
+
+    if bed_key not in BEDS:
         raise HTTPException(
             status_code=404,
-            detail="Beet nicht gefunden. Erlaubt: Carla, Berta oder Ilse.",
+            detail=f"Beet '{bed_name}' nicht gefunden. Vorhandene Beete: {', '.join(BEDS.keys())}.",
         )
 
-    return build_beds_payload([exact_bed_name])[0]
+    bed_config = BEDS[bed_key]
+    sensor_id = bed_config.get(position_key)
+
+    if sensor_id is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Position '{bed_position}' nicht gefunden. Vorhandene Positionen: oben, unten.",
+        )
+
+    # fragt direkt per sensor-id aus influx ab
+    db_data = query_sensor_from_database(sensor_id)
+
+    if db_data is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Keine Daten für diesen Sensor gefunden.",
+        )
+
+    return build_sensor_response(sensor_id, db_data)
 
 
 @app.get("/api/dashboard")
 def get_dashboard():
     # behält die alte dashboard-url, liefert jetzt aber influx-daten statt mqtt
+    all_db_data = query_all_sensors_from_database()
+    beds = []
+    for bed_name, bed_config in BEDS.items():
+        beds.append(build_bed_response(bed_name, bed_config, all_db_data))
     return {
         "database": {
             "type": "InfluxDB",
             "connected": True,
         },
-        "beds": build_beds_payload(BED_NAMES),
+        "beds": beds,
     }

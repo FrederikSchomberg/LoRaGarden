@@ -1,186 +1,320 @@
-.app {
-  min-height: 100vh;
-  padding: 40px;
-  background: #f4f7f2;
+:root {
+  --dunkel: #183d2c;
+  --gruen: #2f7654;
+  --grau: #667168;
+  --linie: #d8dfd9;
 }
 
-.dashboard-header {
+.app {
+  width: min(1400px, 100%);
+  min-height: 100vh;
+  margin: auto;
+  padding: 24px;
+}
+
+.kopf {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 24px;
-  margin-bottom: 32px;
-  padding: 32px;
-  border-radius: 28px;
-  background: #258d20;
+  flex-wrap: wrap;
+  gap: 30px;
+  padding: 28px;
+  border-radius: 7px;
+  background: #286b4b;
   color: white;
 }
 
-.dashboard-label,
-.card-label {
-  margin: 0 0 8px;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+.kopf-text { flex: 3 1 600px; }
+.kopf-rechts { flex: 1 1 220px; text-align: right; }
+
+.oben-klein,
+.karten-label {
+  margin: 0 0 7px;
+  color: var(--gruen);
+  font-size: 0.75rem;
+  font-weight: bold;
   text-transform: uppercase;
-  color: #258d20;
 }
 
-.dashboard-header .dashboard-label {
-  color: #dff0d8;
+.oben-klein { color: #d8eadf; }
+
+.kopf h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.3rem);
+  line-height: 1.1;
 }
 
-h1 {
-  margin: 0 0 12px;
-  font-size: 3rem;
-  line-height: 1;
+.kopf-beschreibung {
+  max-width: 700px;
+  margin: 14px 0 0;
+  color: #e7f0ea;
+  line-height: 1.5;
 }
 
-h2 {
-  margin: 0 0 12px;
+.kopf-rechts p {
+  margin: 10px 0 14px;
+  color: #e7f0ea;
+  font-size: 0.87rem;
 }
 
-p {
-  margin-top: 0;
+.daten-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 5px;
+  background: white;
+  color: var(--dunkel);
+  font-size: 0.85rem;
+  font-weight: bold;
 }
 
-.last-measurement {
-  padding: 12px 16px;
-  border-radius: 999px;
-  background: #dff0d8;
-  color: #123c2f;
-  font-weight: 800;
-  white-space: nowrap;
+.daten-status span,
+.punkt {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
 }
 
-.api-warning {
-  margin-bottom: 16px;
-  padding: 14px 18px;
-  border-radius: 18px;
-  background: #fff3cd;
-  color: #5c4500;
-  font-weight: 700;
+.daten-status.live span,
+.punkt.an { background: #29935b; }
+.daten-status.demo span { background: #d7a62e; }
+.punkt.aus { background: #c75d52; }
+
+.kopf button {
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 5px;
+  background: white;
+  color: #1f5b3f;
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
 }
 
-.sensor-grid {
+.kopf button:disabled { opacity: 0.65; }
+
+.hinweis {
+  margin-top: 15px;
+  padding: 13px 15px;
+  border: 1px solid #dfc97e;
+  border-radius: 6px;
+  background: #fff8df;
+  color: #67551e;
+}
+
+.kurz-grid,
+.beet-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.kurz-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin: 18px 0;
+}
+
+.beet-grid {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.kurz-grid article,
+.beet-karte,
+.vergleich {
+  border: 1px solid var(--linie);
+  border-radius: 7px;
+  background: white;
+}
+
+.kurz-grid article {
+  display: flex;
+  min-height: 105px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 18px 20px;
+}
+
+.kurz-grid span {
+  margin-bottom: 6px;
+  color: var(--grau);
+  font-size: 0.78rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.kurz-grid strong { color: var(--dunkel); font-size: 1.45rem; }
+.kurz-grid small { margin-top: 4px; color: var(--grau); }
+
+.beet-karte {
+  padding: 21px;
+  border-top: 4px solid var(--gruen);
+}
+
+.beet-kopf,
+.messstelle,
+.vergleich-kopf,
+.fuss,
+.fuss div {
+  display: flex;
+  align-items: center;
+}
+
+.beet-kopf {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.beet-kopf h2,
+.vergleich-kopf h2 {
+  margin: 0;
+  color: var(--dunkel);
+}
+
+.beet-kopf h2 { font-size: 1.7rem; }
+
+.beet-kopf > span {
+  max-width: 145px;
+  padding: 7px 9px;
+  border-radius: 4px;
+  background: #edf3ef;
+  color: var(--gruen);
+  font-size: 0.74rem;
+  font-weight: bold;
+  text-align: right;
+}
+
+.feuchte-block {
+  margin: 20px 0 16px;
+  padding: 16px;
+  border-radius: 5px;
+  background: #edf3ef;
+}
+
+.feuchte-block p {
+  margin: 0 0 3px;
+  color: var(--grau);
+  font-size: 0.82rem;
+}
+
+.feuchte-block strong {
+  display: block;
+  color: var(--dunkel);
+  font-size: 2rem;
+}
+
+.feuchte-balken {
+  height: 6px;
+  margin-top: 10px;
+  overflow: hidden;
+  background: #d5ddd7;
+}
+
+.feuchte-balken span {
+  display: block;
+  height: 100%;
+  background: var(--gruen);
+}
+
+.mini-werte {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 7px;
 }
 
-.live-sensor-grid {
-  margin-top: 0;
+.mini-werte div {
+  padding: 10px 6px;
+  border: 1px solid var(--linie);
+  border-radius: 5px;
+  text-align: center;
 }
 
-.sensor-card,
-.watering-card,
-.weather-card,
-.ml-card,
-.system-card {
-  padding: 24px;
-  border-radius: 24px;
-  background: white;
-  box-shadow: 0 12px 30px rgba(25, 45, 20, 0.08);
+.mini-werte span,
+.mini-werte strong,
+tbody td strong,
+tbody td span { display: block; }
+
+.mini-werte span { margin-bottom: 4px; color: var(--grau); font-size: 0.7rem; }
+.mini-werte strong { color: var(--dunkel); font-size: 0.95rem; }
+
+.messstellen {
+  margin-top: 16px;
+  border-top: 1px solid var(--linie);
 }
 
-.sensor-card h2 {
-  font-size: 2rem;
-  color: #123c2f;
-}
-
-.sensor-card p:last-child,
-.watering-card p,
-.weather-card p,
-.ml-card p,
-.system-card p {
-  color: #5d665b;
-}
-
-.content-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 16px;
-}
-
-.watering-card {
-  border: 2px solid #258d20;
-}
-
-.ml-card {
-  border: 2px solid #010fdc;
-}
-
-.watering-status {
-  display: inline-block;
-  margin-bottom: 16px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  font-size: 0.9rem;
-  font-weight: 800;
-}
-
-.watering-paused {
-  background: #eef7e9;
-  color: #1f6b1b;
-}
-
-.watering-needed {
-  background: #fff1d6;
-  color: #8a4b00;
-}
-
-.decision-info {
-  display: flex;
+.messstelle {
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 18px;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 11px 1px;
+  border-bottom: 1px solid var(--linie);
 }
 
-.decision-info span {
-  padding: 8px 10px;
-  border-radius: 999px;
-  background: #f0f5ed;
-  color: #163c12;
-  font-size: 0.9rem;
-  font-weight: 700;
+.messstelle > div { display: flex; align-items: center; gap: 8px; }
+.messstelle strong { min-width: 43px; color: var(--dunkel); text-transform: capitalize; }
+.messstelle small { color: var(--grau); font-size: 0.7rem; }
+
+.messstelle code {
+  padding: 3px 6px;
+  border-radius: 3px;
+  background: #f0f2f0;
+  color: #586159;
+  font-size: 0.72rem;
 }
 
-.status-list {
-  padding-left: 18px;
-  line-height: 1.9;
-  color: #5d665b;
+.vergleich {
+  margin-top: 20px;
+  padding: 21px;
 }
 
-.status-badge {
-  display: inline-block;
-  padding: 5px 11px;
-  border-radius: 999px;
-  font-size: 0.9rem;
-  font-weight: 700;
+.vergleich-kopf {
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 16px;
 }
 
-.status-online {
-  background: #dff0d8;
-  color: #1f6b1b;
+.vergleich-kopf h2 { font-size: 1.4rem; }
+.vergleich-kopf > p { margin: 0; color: var(--grau); font-size: 0.8rem; }
+.tabelle-wrap { overflow-x: auto; }
+
+table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
 }
 
-.status-offline {
-  background: #f8d7da;
-  color: #842029;
+th,
+td {
+  padding: 13px;
+  border-bottom: 1px solid var(--linie);
+  text-align: left;
 }
 
-@media (max-width: 900px) {
-  .dashboard-header {
-    flex-direction: column;
-  }
+thead th { background: #edf2ee; color: var(--dunkel); }
+tbody th { width: 180px; color: #465048; }
+tbody td strong { margin-bottom: 5px; color: var(--dunkel); }
+tbody td span { margin-top: 2px; color: var(--grau); font-size: 0.75rem; }
 
-  .sensor-grid,
-  .content-grid {
-    grid-template-columns: 1fr;
-  }
+.fuss {
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-top: 16px;
+  padding: 12px 15px;
+  border: 1px solid var(--linie);
+  border-radius: 6px;
+  background: #edf0ed;
+  color: #526057;
+  font-size: 0.8rem;
+}
 
-  .app {
-    padding: 24px;
-  }
+.fuss div { gap: 6px; }
+
+@media (max-width: 600px) {
+  .app { padding: 12px; }
+  .kopf { padding: 21px; }
+  .kopf-rechts { text-align: left; }
+  .beet-grid { grid-template-columns: 1fr; }
+  .beet-karte,
+  .vergleich { padding: 17px; }
 }

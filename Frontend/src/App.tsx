@@ -24,9 +24,6 @@ function App() {
     "aktuell"
   );
 
-  // Status der Grafana-Verbindung
-  const [grafanaGeladen, setGrafanaGeladen] = useState(false);
-
   const holeDaten = useCallback(async () => {
     setLaedt(true);
 
@@ -59,9 +56,6 @@ function App() {
 
   const letzterStand = letzteMessung(daten.beds);
 
-  // Grafana URL - hier muss die Dashboard-ID angepasst werden, damit das richtige Dashboard angezeigt wird und VPN 
-  const grafanaUrl = `${import.meta.env.VITE_GRAFANA_URL}` + `/d/${import.meta.env.VITE_GRAFANA_DASHBOARD_ID}/dashboard?orgId=1&kiosk`;;
-
   return (
     <main className="app">
       <DashboardHeader
@@ -86,7 +80,6 @@ function App() {
           className={aktiverTab === "historisch" ? "tab aktiv" : "tab"}
           onClick={() => {
             setAktiverTab("historisch");
-            setGrafanaGeladen(false);
           }}
         >
           Historische Daten

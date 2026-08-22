@@ -1,6 +1,19 @@
 import { useState } from "react";
 
-const panelIds = {
+type Beet = "Carla" | "Berta" | "Ilse";
+type Messwert = "temperature" | "soil_moisture" | "conductivity";
+type Zeitraum = "24h" | "7d" | "30d" | "90d";
+
+type PanelIds = {
+  [beet in Beet]: {
+    [messwert in Messwert]: {
+      oben: number;
+      unten: number;
+    };
+  };
+};
+
+const panelIds : PanelIds = {
   Carla: {
     temperature: {
       oben: 1,
@@ -48,17 +61,17 @@ const panelIds = {
 };
 
 function GrafanaHistorischeDaten() {
-  const [messwert, setMesswert] = useState("temperature");
-  const [beet, setBeet] = useState("Carla");
-  const [zeitraum, setZeitraum] = useState("7d");
+  const [messwert, setMesswert] = useState<Messwert>("temperature");
+  const [beet, setBeet] = useState<Beet>("Carla");
+  const [zeitraum, setZeitraum] = useState<Zeitraum>("7d");
 
   const grafanaUrl = import.meta.env.VITE_GRAFANA_URL;
   const dashboardId = import.meta.env.VITE_GRAFANA_DASHBOARD_ID;
   const dashboardSlug = import.meta.env.VITE_GRAFANA_DASHBOARD_SLUG;
 
-  const panels = panelIds[beet]?.[messwert];
+  const panels = panelIds[beet][messwert];
 
-  const createPanelUrl = (panelId) => {
+  const createPanelUrl = (panelId: number) => {
     if (!grafanaUrl || !dashboardId || !dashboardSlug) {
       return "";
     }

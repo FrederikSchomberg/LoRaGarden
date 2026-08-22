@@ -60,8 +60,7 @@ function App() {
   const letzterStand = letzteMessung(daten.beds);
 
   // Grafana URL - hier muss die Dashboard-ID angepasst werden, damit das richtige Dashboard angezeigt wird und VPN 
-  const grafanaUrl =
-    "http://localhost:3000/d/DEINE-DASHBOARD-ID/loragarden?orgId=1&kiosk";
+  const grafanaUrl = `${import.meta.env.VITE_GRAFANA_URL}` + `/d/${import.meta.env.VITE_GRAFANA_DASHBOARD_ID}/dashboard?orgId=1&kiosk`;;
 
   return (
     <main className="app">

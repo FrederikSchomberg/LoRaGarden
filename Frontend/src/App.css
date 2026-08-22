@@ -348,48 +348,74 @@ tbody td span { margin-top: 2px; color: var(--grau); font-size: 0.75rem; }
 
 .historische-daten {
   width: 100%;
-  padding: 24px 0;
 }
 
 .historische-kontrollen {
   display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 25px;
+  margin: 30px auto;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 24px;
 }
 
 .historische-auswahl {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-width: 180px;
+  gap: 8px;
+  min-width: 230px;
 }
 
 .historische-auswahl label {
-  font-size: 0.9rem;
+  font-size: 16px;
   font-weight: 600;
-  color: var(--dunkel);
+  color: #333;
+  text-align: center;
 }
 
 .historische-auswahl select {
-  padding: 10px 12px;
-  border: 1px solid var(--linie);
-  border-radius: 6px;
-  background: white;
-  color: var(--dunkel);
-  font: inherit;
+  appearance: none;
+  width: 100%;
+  padding: 12px 40px 12px 15px;
+
+  border: 1px solid #d0d0d0;
+  border-radius: 10px;
+
+  background-color: #fff;
+  color: #333;
+
+  font-size: 15px;
+  font-weight: 500;
+
   cursor: pointer;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.historische-auswahl select:hover {
+  border-color: #999;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
 }
 
 .historische-auswahl select:focus {
-  outline: 2px solid var(--gruen);
-  outline-offset: 1px;
+  outline: none;
+  border-color: #555;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
+}
+
+.historische-auswahl select:active {
+  transform: translateY(1px);
 }
 
 .grafana-iframe {
   display: block;
   width: 100%;
-  min-height: 700px;
-  border: none;
+  min-height: 500px;
+  border: 5px solid var(--linie);
   border-radius: 8px;
 }

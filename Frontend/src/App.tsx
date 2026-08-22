@@ -9,6 +9,7 @@ import { StatusFooter } from "./components/StatusFooter";
 import { SummaryCards } from "./components/SummaryCards";
 import { letzteMessung } from "./dashboardUtils";
 import { beispielDaten } from "./data/mockData";
+import { GrafanaHistorischeDaten } from "./components/GrafanaHistorischeDaten";
 import type { DashboardResponse } from "./types/dashboard";
 
 function App() {
@@ -17,6 +18,14 @@ function App() {
   const [demo, setDemo] = useState(true);
   const [fehler, setFehler] = useState("");
   const [laedt, setLaedt] = useState(false);
+
+  // Aktiver Tab
+  const [aktiverTab, setAktiverTab] = useState<"aktuell" | "historisch">(
+    "aktuell"
+  );
+
+  // Status der Grafana-Verbindung
+  const [grafanaGeladen, setGrafanaGeladen] = useState(false);
 
   const holeDaten = useCallback(async () => {
     setLaedt(true);
@@ -50,6 +59,9 @@ function App() {
 
   const letzterStand = letzteMessung(daten.beds);
 
+  // Grafana URL - hier muss die Dashboard-ID angepasst werden, damit das richtige Dashboard angezeigt wird und VPN 
+  const grafanaUrl = `${import.meta.env.VITE_GRAFANA_URL}` + `/d/${import.meta.env.VITE_GRAFANA_DASHBOARD_ID}/dashboard?orgId=1&kiosk`;;
+
   return (
     <main className="app">
       <DashboardHeader
@@ -59,22 +71,52 @@ function App() {
         onNeuLaden={holeDaten}
       />
 
-      {demo && <DemoNotice fehler={fehler} />}
+      {/* Navigation zwischen aktuellem und historischem Dashboard */}
+      <nav className="tabs" aria-label="Dashboard Navigation">
+        <button
+          type="button"
+          className={aktiverTab === "aktuell" ? "tab aktiv" : "tab"}
+          onClick={() => setAktiverTab("aktuell")}
+        >
+          Aktuelle Daten
+        </button>
 
-      <SummaryCards beete={daten.beds} />
+        <button
+          type="button"
+          className={aktiverTab === "historisch" ? "tab aktiv" : "tab"}
+          onClick={() => {
+            setAktiverTab("historisch");
+            setGrafanaGeladen(false);
+          }}
+        >
+          Historische Daten
+        </button>
+      </nav>
 
-      <section className="beet-grid" aria-label="Beete">
-        {daten.beds.map((beet) => (
-          <BedCard key={beet.name} beet={beet} demo={demo} />
-        ))}
-      </section>
+      {/* Aktuelle Daten */}
+      {aktiverTab === "aktuell" && (
+        <>
+          {demo && <DemoNotice fehler={fehler} />}
 
-      <ComparisonTable beete={daten.beds} />
+          <SummaryCards beete={daten.beds} />
 
-      <StatusFooter
-        demo={demo}
-        datenbankVerbunden={daten.database.connected}
-      />
+          <section className="beet-grid" aria-label="Beete">
+            {daten.beds.map((beet) => (
+              <BedCard key={beet.name} beet={beet} demo={demo} />
+            ))}
+          </section>
+
+          <ComparisonTable beete={daten.beds} />
+
+          <StatusFooter
+            demo={demo}
+            datenbankVerbunden={daten.database.connected}
+          />
+        </>
+      )}
+
+      {/* Historische Daten */}
+      {aktiverTab === "historisch" && <GrafanaHistorischeDaten />}
     </main>
   );
 }

@@ -318,3 +318,104 @@ tbody td span { margin-top: 2px; color: var(--grau); font-size: 0.75rem; }
   .beet-karte,
   .vergleich { padding: 17px; }
 }
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--linie);
+}
+
+.tab {
+  padding: 10px 18px;
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--grau);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--dunkel);
+}
+
+.tab.aktiv {
+  color: var(--dunkel);
+  border-bottom-color: var(--gruen);
+}
+
+.historische-daten {
+  width: 100%;
+}
+
+.historische-kontrollen {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 25px;
+  margin: 30px auto;
+  flex-wrap: wrap;
+}
+
+.historische-auswahl {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 230px;
+}
+
+.historische-auswahl label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+.historische-auswahl select {
+  appearance: none;
+  width: 100%;
+  padding: 12px 40px 12px 15px;
+
+  border: 1px solid #d0d0d0;
+  border-radius: 10px;
+
+  background-color: #fff;
+  color: #333;
+
+  font-size: 15px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.historische-auswahl select:hover {
+  border-color: #999;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.historische-auswahl select:focus {
+  outline: none;
+  border-color: #555;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
+}
+
+.historische-auswahl select:active {
+  transform: translateY(1px);
+}
+
+.grafana-iframe {
+  display: block;
+  width: 100%;
+  min-height: 500px;
+  border: 5px solid var(--linie);
+  border-radius: 8px;
+}

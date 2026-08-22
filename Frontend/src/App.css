@@ -6,10 +6,12 @@
 }
 
 .app {
-  width: min(1400px, 100%);
+  width: 100%;
+  max-width: 1800px;
   min-height: 100vh;
-  margin: auto;
+  margin: 0 auto;
   padding: 24px;
+  box-sizing: border-box;
 }
 
 .kopf {

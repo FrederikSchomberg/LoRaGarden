@@ -95,7 +95,7 @@ function GrafanaHistorischeDaten() {
           <select
             id="messwert"
             value={messwert}
-            onChange={(event) => setMesswert(event.target.value)}
+            onChange={(event) => setMesswert(event.target.value as Messwert)}
           >
             <option value="temperature">Temperatur</option>
             <option value="soil_moisture">Bodenfeuchtigkeit</option>
@@ -109,7 +109,7 @@ function GrafanaHistorischeDaten() {
           <select
             id="beet"
             value={beet}
-            onChange={(event) => setBeet(event.target.value)}
+            onChange={(event) => setBeet(event.target.value as Beet)}
           >
             <option value="Carla">Carla 10 % Pflanzenkohle</option>
             <option value="Berta">Berta 5 % Pflanzenkohle</option>
@@ -123,7 +123,7 @@ function GrafanaHistorischeDaten() {
           <select
             id="zeitraum"
             value={zeitraum}
-            onChange={(event) => setZeitraum(event.target.value)}
+            onChange={(event) => setZeitraum(event.target.value as Zeitraum)}
           >
             <option value="24h">Letzte 24 Stunden</option>
             <option value="7d">Letzte 7 Tage</option>

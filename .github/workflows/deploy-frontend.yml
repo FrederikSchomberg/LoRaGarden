@@ -3,7 +3,7 @@ name: Deploy Frontend
 on:
   push:
     branches:
-      - github-pages
+      - main
 
 permissions:
   contents: read

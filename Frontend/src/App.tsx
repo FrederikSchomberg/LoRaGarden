@@ -116,14 +116,39 @@ function Dashboard() {
 }
 
 function App() {
+  const seiteAusUrl = () => {
+    if (window.location.hash === "#/dashboard") {
+      return "dashboard";
+    }
+
+    return "landingpage";
+  };
+
   const [seite, setSeite] = useState<"landingpage" | "dashboard">(
-    "landingpage"
+    seiteAusUrl
   );
+
+  useEffect(() => {
+    const reagiereAufUrlAenderung = () => {
+      setSeite(seiteAusUrl());
+    };
+
+    window.addEventListener("hashchange", reagiereAufUrlAenderung);
+
+    return () => {
+      window.removeEventListener("hashchange", reagiereAufUrlAenderung);
+    };
+  }, []);
+
+  const dashboardOeffnen = () => {
+    window.location.hash = "/dashboard";
+    setSeite("dashboard");
+  };
 
   if (seite === "landingpage") {
     return (
       <LandingPage
-        onDashboardOeffnen={() => setSeite("dashboard")}
+        onDashboardOeffnen={dashboardOeffnen}
       />
     );
   }

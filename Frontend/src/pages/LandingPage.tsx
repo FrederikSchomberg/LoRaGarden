@@ -1,4 +1,5 @@
 import "./LandingPage.css";
+import hsBoLogo from "../assets/hs-bo_logo.svg";
 
 type LandingPageProps = {
   onDashboardOeffnen: () => void;
@@ -9,11 +10,16 @@ export function LandingPage({
 }: LandingPageProps) {
   return (
     <div className="landingpage">
-      <header className="landingpage-kopf">
-        <p>Hochschule Bochum</p>
-        <h1>Smart Gardening</h1>
-        <span>Wähle einen Standort aus</span>
-      </header>
+     <header className="landingpage-kopf">
+  <img
+    className="landingpage-logo"
+    src={hsBoLogo}
+    alt="Hochschule Bochum"
+  />
+
+  <h1>Smart Gardening</h1>
+  <span>Wähle einen Standort aus</span>
+</header>
 
       <main className="landingpage-inhalt">
         <h2>Unsere Standorte</h2>

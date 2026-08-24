@@ -1,6 +1,12 @@
 import "./LandingPage.css";
 
-export function LandingPage() {
+type LandingPageProps = {
+  onDashboardOeffnen: () => void;
+};
+
+export function LandingPage({
+  onDashboardOeffnen,
+}: LandingPageProps) {
   return (
     <div className="landingpage">
       <header className="landingpage-kopf">
@@ -16,12 +22,16 @@ export function LandingPage() {
           <article className="standort-karte">
             <h3>Botanischer Garten</h3>
             <p>Hier befinden sich die Beete Ilse, Berta und Carla.</p>
-            <button type="button">Dashboard öffnen</button>
+
+            <button type="button" onClick={onDashboardOeffnen}>
+              Dashboard öffnen
+            </button>
           </article>
 
           <article className="standort-karte">
             <h3>BOAse</h3>
             <p>Für diesen Standort stehen noch keine Daten bereit.</p>
+
             <button type="button" disabled>
               Noch nicht verfügbar
             </button>
@@ -30,6 +40,7 @@ export function LandingPage() {
           <article className="standort-karte">
             <h3>Chinesischer Garten</h3>
             <p>Für diesen Standort stehen noch keine Daten bereit.</p>
+
             <button type="button" disabled>
               Noch nicht verfügbar
             </button>

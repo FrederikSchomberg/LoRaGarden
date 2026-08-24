@@ -11,8 +11,9 @@ import { letzteMessung } from "./dashboardUtils";
 import { beispielDaten } from "./data/mockData";
 import { GrafanaHistorischeDaten } from "./components/GrafanaHistorischeDaten";
 import type { DashboardResponse } from "./types/dashboard";
+import { LandingPage } from "./pages/LandingPage";
 
-function App() {
+function Dashboard() {
   // ohne vpn stehen hier zuerst beispieldaten drin
   const [daten, setDaten] = useState<DashboardResponse>(beispielDaten);
   const [demo, setDemo] = useState(true);
@@ -112,6 +113,22 @@ function App() {
       {aktiverTab === "historisch" && <GrafanaHistorischeDaten />}
     </main>
   );
+}
+
+function App() {
+  const [seite, setSeite] = useState<"landingpage" | "dashboard">(
+    "landingpage"
+  );
+
+  if (seite === "landingpage") {
+    return (
+      <LandingPage
+        onDashboardOeffnen={() => setSeite("dashboard")}
+      />
+    );
+  }
+
+  return <Dashboard />;
 }
 
 export default App;

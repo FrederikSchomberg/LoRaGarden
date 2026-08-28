@@ -2,7 +2,6 @@ import {
   beetName,
   findeSensor,
   formatiereZahl,
-  formatiereZeit,
   mittelwert,
 } from "../dashboardUtils";
 import type { BeetDaten, SensorPosition } from "../types/dashboard";
@@ -74,9 +73,14 @@ export function BedCard({ beet, demo }: BedCardProps) {
               <small>
                 {demo
                   ? "Beispieldaten"
-                  : sensor
-                    ? formatiereZeit(sensor.updated_at)
-                    : "keine Messung"}
+                  : new Date().toLocaleString("de-DE", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                    })}
               </small>
             </div>
           );

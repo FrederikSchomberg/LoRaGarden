@@ -13,7 +13,8 @@ import { GrafanaHistorischeDaten } from "./components/GrafanaHistorischeDaten";
 import type { DashboardResponse } from "./types/dashboard";
 
 function App() {
-  // ohne vpn stehen hier zuerst beispieldaten drin
+  // console.log("APP WURDE GELADEN");
+
   const [daten, setDaten] = useState<DashboardResponse>(beispielDaten);
   const [demo, setDemo] = useState(true);
   const [fehler, setFehler] = useState("");
@@ -29,6 +30,7 @@ function App() {
 
     try {
       const neu = await holeDashboard();
+      console.log("Neue Daten:", neu);
 
       setDaten(neu);
       setDemo(false);

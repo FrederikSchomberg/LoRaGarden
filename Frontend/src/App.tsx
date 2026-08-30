@@ -38,6 +38,7 @@ function Dashboard() {
 
     try {
       const neu = await holeDashboard();
+      console.log("Neue Daten:", neu);
 
       setDaten(neu);
       setDemo(false);

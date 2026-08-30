@@ -14,6 +14,14 @@ import type { DashboardResponse } from "./types/dashboard";
 import { LandingPage } from "./pages/LandingPage";
 
 function Dashboard() {
+  // damit wir wieder oben landen wenn wir das dashboard über den link öffnen 
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "auto",
+    });
+  }, []);
   // ohne vpn stehen hier zuerst beispieldaten drin
   const [daten, setDaten] = useState<DashboardResponse>(beispielDaten);
   const [demo, setDemo] = useState(true);

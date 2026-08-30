@@ -1,0 +1,495 @@
+/* weiches scrollen bei den navigationslinks */
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* grundaufbau der landingpage */
+
+.landingpage {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  background: #f4f7f2;
+}
+
+/* obere navigation */
+
+.landingpage-navigation {
+  display: flex;
+  min-height: 74px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  padding: 10px clamp(20px, 4vw, 64px);
+  background: #183d2c;
+  color: white;
+}
+
+/* hsbo-logo */
+
+.landingpage-logo-link {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.landingpage-logo {
+  display: block;
+  width: clamp(190px, 17vw, 260px);
+  height: auto;
+  padding: 7px 10px;
+  border-radius: 5px;
+  background: #0d2001;
+}
+
+/* navigationslinks */
+
+.landingpage-navigation nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(20px, 3vw, 42px);
+}
+
+.landingpage-navigation nav a {
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.landingpage-navigation nav a:hover {
+  color: #d8eadf;
+}
+
+/* sichtbare tastatur-auswahl */
+
+.landingpage-navigation a:focus-visible,
+.grafana-link:focus-visible,
+.projekt-link:focus-visible {
+  outline: 3px solid #f2a33a;
+  outline-offset: 4px;
+}
+
+/* oberer hero-bereich */
+
+.landingpage-hero {
+  display: grid;
+  min-height: 480px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  
+  scroll-margin-top: 20px;
+}
+
+/* text im hero-bereich */
+
+.landingpage-hero-text {
+  display: flex;
+  width: 100%;
+  max-width: none;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  justify-self: stretch;
+  padding: clamp(50px, 6vw, 92px) clamp(32px, 5vw, 96px);
+}
+
+.landingpage-hero h1 {
+  max-width: 620px;
+  margin: 0;
+  color: #183d2c;
+  font-size: clamp(3rem, 5vw, 5rem);
+  line-height: 1.02;
+}
+
+.landingpage-untertitel {
+  margin: 16px 0 0;
+  color: #286b4b;
+  font-size: clamp(1.1rem, 1.5vw, 1.4rem);
+  font-weight: 750;
+}
+
+.landingpage-beschreibung {
+  max-width: 620px;
+  margin: 22px 0 0;
+  color: #465048;
+  font-size: 1.02rem;
+  line-height: 1.65;
+}
+
+/* grafana-link */
+
+.grafana-link {
+  display: inline-flex;
+  min-height: 56px;
+  align-items: center;
+  gap: 13px;
+  margin-top: 30px;
+  padding: 12px 22px;
+  border: 1px solid #d8dfd9;
+  border-radius: 7px;
+  background: white;
+  color: #183d2c;
+  font-weight: 750;
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.grafana-link img {
+  width: 32px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.grafana-link:hover {
+  border-color: #f2a33a;
+  box-shadow: 0 8px 22px rgba(24, 61, 44, 0.14);
+  transform: translateY(-2px);
+}
+
+/* dragino-bild im hero-bereich */
+
+.landingpage-hero-bild {
+  min-height: 480px;
+  overflow: hidden;
+}
+
+.landingpage-hero-bild img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* über-das-projekt-bereich */
+
+.projekt-abschnitt {
+  padding: clamp(60px, 7vw, 100px) 20px;
+  scroll-margin-top: 20px;
+}
+
+.projekt-container {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.projekt-kopf {
+  max-width: 780px;
+  margin: 0 auto 38px;
+  text-align: center;
+}
+
+.projekt-kopf h2 {
+  margin: 0 0 16px;
+  color: #183d2c;
+  font-size: clamp(2rem, 3vw, 2.7rem);
+}
+
+.projekt-kopf p {
+  margin: 0;
+  color: #667168;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+/* abstand zwischen den projekttexten */
+
+.projekt-kopf p + p {
+  margin-top: 14px;
+}
+
+/* link zur kooperationsseite */
+
+.projekt-link {
+  display: inline-block;
+  margin-top: 22px;
+  color: #286b4b;
+  font-weight: 700;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.projekt-link:hover {
+  color: #183d2c;
+}
+
+/* messwert-karten */
+
+.messwert-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.messwert-karte {
+  display: flex;
+  min-height: 160px;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 24px;
+  border: 1px solid #d8dfd9;
+  border-radius: 8px;
+  background: white;
+}
+
+.messwert-icon {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
+  place-items: center;
+  border-radius: 50%;
+  background: #edf5f0;
+}
+
+.messwert-icon img {
+  width: 36px;
+  height: 36px;
+}
+
+.messwert-karte h3 {
+  margin: 4px 0 8px;
+  color: #183d2c;
+  font-size: 1.05rem;
+}
+
+.messwert-karte p {
+  margin: 0;
+  color: #667168;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* standort-bereich */
+
+.landingpage-inhalt {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  scroll-margin-top: 20px;
+}
+
+.landingpage-inhalt h2 {
+  margin: 0 0 25px;
+  color: #183d2c;
+  text-align: center;
+}
+
+/* anordnung der standort-karten */
+
+.standort-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* einzelne standort-karte */
+
+.standort-karte {
+  display: flex;
+  overflow: hidden;
+  flex-direction: column;
+  border: 1px solid #d8dfd9;
+  border-radius: 7px;
+  background: white;
+}
+
+/* bild oben in der standort-karte */
+
+.standort-bild {
+  display: block;
+  width: 100%;
+  height: 180px;
+  flex-shrink: 0;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* text und button unter dem bild */
+
+.standort-karte-inhalt {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 22px;
+}
+
+.standort-karte h3 {
+  margin: 0 0 10px;
+  color: #183d2c;
+}
+
+.standort-karte p {
+  margin: 0 0 20px;
+  color: #667168;
+  line-height: 1.5;
+}
+
+/* buttons der standort-karten */
+
+.standort-karte button {
+  width: 100%;
+  margin-top: auto;
+  padding: 10px;
+  border: 0;
+  border-radius: 5px;
+  background: #286b4b;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.standort-karte button:disabled {
+  background: #aab3ac;
+  cursor: not-allowed;
+}
+
+/* so-funktioniert-es-bereich */
+
+.ablauf-abschnitt {
+  padding: clamp(55px, 6vw, 85px) 20px;
+  scroll-margin-top: 20px;
+}
+
+.ablauf-container {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.ablauf-container h2 {
+  margin: 0 0 42px;
+  color: #183d2c;
+  font-size: clamp(2rem, 3vw, 2.7rem);
+  text-align: center;
+}
+
+/* anordnung der einzelnen schritte */
+
+.ablauf-liste {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(42px, 5vw, 70px);
+  list-style: none;
+}
+
+/* einzelner schritt */
+
+.ablauf-schritt {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 16px;
+}
+
+/* pfeile zwischen den schritten */
+
+.ablauf-schritt:not(:last-child)::after {
+  position: absolute;
+  top: 50%;
+  right: clamp(-46px, -3.5vw, -28px);
+  color: #286b4b;
+  content: "→";
+  font-size: 1.8rem;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+
+/* runder hintergrund der icons */
+
+.ablauf-icon {
+  display: grid;
+  width: 68px;
+  height: 68px;
+  flex: 0 0 68px;
+  place-items: center;
+  border: 1px solid #dce8df;
+  border-radius: 50%;
+  background: #edf5f0;
+}
+
+.ablauf-icon img {
+  display: block;
+  width: 34px;
+  height: 34px;
+}
+
+/* beschriftung der schritte */
+
+.ablauf-text h3 {
+  margin: 0 0 7px;
+  color: #183d2c;
+  font-size: 1rem;
+}
+
+.ablauf-text p {
+  margin: 0;
+  color: #667168;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+/* footer */
+
+.landingpage-fuss {
+  margin-top: auto;
+  padding: 20px;
+  color: #667168;
+  text-align: center;
+}
+
+
+
+/* smartphones */
+
+@media (max-width: 560px) {
+  .landingpage-navigation {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 18px 15px;
+  }
+
+  .landingpage-logo {
+    width: 210px;
+  }
+
+  .landingpage-navigation nav {
+    gap: 24px;
+  }
+
+  .landingpage-hero-text {
+    align-items: center;
+    padding: 44px 20px;
+    text-align: center;
+  }
+
+  .landingpage-hero-bild {
+    min-height: 260px;
+  }
+
+  .grafana-link {
+    width: 100%;
+    max-width: 260px;
+    justify-content: center;
+  }
+
+  .messwert-karte {
+    align-items: center;
+  }
+
+  .standort-bild {
+    height: 190px;
+  }
+
+  .ablauf-schritt {
+    align-items: center;
+  }
+}

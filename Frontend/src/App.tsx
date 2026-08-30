@@ -11,10 +11,18 @@ import { letzteMessung } from "./dashboardUtils";
 import { beispielDaten } from "./data/mockData";
 import { GrafanaHistorischeDaten } from "./components/GrafanaHistorischeDaten";
 import type { DashboardResponse } from "./types/dashboard";
+import { LandingPage } from "./pages/LandingPage";
 
-function App() {
-  // console.log("APP WURDE GELADEN");
-
+function Dashboard() {
+  // damit wir wieder oben landen wenn wir das dashboard über den link öffnen 
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "auto",
+    });
+  }, []);
+  // ohne vpn stehen hier zuerst beispieldaten drin
   const [daten, setDaten] = useState<DashboardResponse>(beispielDaten);
   const [demo, setDemo] = useState(true);
   const [fehler, setFehler] = useState("");
@@ -114,6 +122,47 @@ function App() {
       {aktiverTab === "historisch" && <GrafanaHistorischeDaten />}
     </main>
   );
+}
+
+function App() {
+  const seiteAusUrl = () => {
+    if (window.location.hash === "#/dashboard") {
+      return "dashboard";
+    }
+
+    return "landingpage";
+  };
+
+  const [seite, setSeite] = useState<"landingpage" | "dashboard">(
+    seiteAusUrl
+  );
+
+  useEffect(() => {
+    const reagiereAufUrlAenderung = () => {
+      setSeite(seiteAusUrl());
+    };
+
+    window.addEventListener("hashchange", reagiereAufUrlAenderung);
+
+    return () => {
+      window.removeEventListener("hashchange", reagiereAufUrlAenderung);
+    };
+  }, []);
+
+  const dashboardOeffnen = () => {
+    window.location.hash = "/dashboard";
+    setSeite("dashboard");
+  };
+
+  if (seite === "landingpage") {
+    return (
+      <LandingPage
+        onDashboardOeffnen={dashboardOeffnen}
+      />
+    );
+  }
+
+  return <Dashboard />;
 }
 
 export default App;

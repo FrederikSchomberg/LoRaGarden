@@ -493,3 +493,16 @@ html {
     align-items: center;
   }
 }
+
+@media (max-width: 800px) {
+  .landingpage-hero,
+  .messwert-grid,
+  .standort-grid,
+  .ablauf-liste {
+    grid-template-columns: 1fr;
+  }
+
+  .ablauf-schritt:not(:last-child)::after {
+    display: none;
+  }
+}

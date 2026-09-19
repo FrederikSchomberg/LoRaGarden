@@ -5,7 +5,7 @@ import chinesischerGartenBild from "../assets/chinesischer_garten.jpg";
 import databaseIcon from "../assets/database.svg";
 import draginoGarden from "../assets/dragino_garden.png";
 import dropletsIcon from "../assets/droplets.svg";
-import grafanaLogo from "../assets/grafana_icon.svg";
+//import grafanaLogo from "../assets/grafana_icon.svg";
 //import hsBoLogo from "../assets/hs-bo_logo.svg";
 //import hsBoLogo from "../assets/hsbo_logo_RGB_WHITE_Complete_Wide.svg";
 import monitorUpIcon from "../assets/monitor-up.svg";
@@ -57,6 +57,7 @@ export function LandingPage({ onDashboardOeffnen }: LandingPageProps) {
             eine ressourcenschonende Bewässerung aufbereitet.
           </p>
 
+          {/*
           <a
             className="grafana-link"
             href="http://sr-labor.ddns.net:3088/"
@@ -66,6 +67,7 @@ export function LandingPage({ onDashboardOeffnen }: LandingPageProps) {
             <img src={grafanaLogo} alt="" aria-hidden="true" />
             <span>Grafana öffnen</span>
           </a>
+          */}
         </div>
 
         <div className="landingpage-hero-bild">

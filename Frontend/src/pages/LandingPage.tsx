@@ -6,7 +6,8 @@ import databaseIcon from "../assets/database.svg";
 import draginoGarden from "../assets/dragino_garden.png";
 import dropletsIcon from "../assets/droplets.svg";
 import grafanaLogo from "../assets/grafana_icon.svg";
-import hsBoLogo from "../assets/hs-bo_logo.svg";
+//import hsBoLogo from "../assets/hs-bo_logo.svg";
+//import hsBoLogo from "../assets/hsbo_logo_RGB_WHITE_Complete_Wide.svg";
 import monitorUpIcon from "../assets/monitor-up.svg";
 import radioTowerIcon from "../assets/radio-tower.svg";
 import soilSensorIcon from "../assets/soil-sensor.svg";
@@ -21,7 +22,7 @@ export function LandingPage({ onDashboardOeffnen }: LandingPageProps) {
   return (
     <div className="landingpage">
       <header className="landingpage-navigation">
-        <a
+       {/*} <a
           className="landingpage-logo-link"
           href="https://www.hochschule-bochum.de/"
           target="_blank"
@@ -32,7 +33,7 @@ export function LandingPage({ onDashboardOeffnen }: LandingPageProps) {
             src={hsBoLogo}
             alt="Hochschule Bochum"
           />
-        </a>
+        </a> */}
 
         <nav aria-label="Navigation der Landingpage">
           <a href="#projekt">Projekt</a>

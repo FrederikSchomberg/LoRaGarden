@@ -1,21 +1,23 @@
 """
 Bodenfeuchte-Vorhersage - komplettes Modell
-Daten kommen ueber Grafana (nicht direkt InfluxDB), dann Random Forest Training.
+Daten kommen jetzt DIREKT ueber den InfluxDB DB-Connector (influxdb-client),
+nicht mehr ueber Grafana.
 
-pip install requests pandas numpy scikit-learn matplotlib
+pip install influxdb-client pandas numpy scikit-learn matplotlib
 """
 
-import requests
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from influxdb_client import InfluxDBClient
+from config import INFLUX_TOKEN
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 # 1) KONFIGURATION
-GRAFANA_URL = "http://sr-labor.ddns.net:3088"    
-GRAFANA_TOKEN = ""     # 
-DATASOURCE_UID = "cfu5tebp57i0we"
+#Zugangsdaten
+INFLUX_URL = "http://192.168.65.15:8086"       
+INFLUX_ORG = "BO"                       
 
 INFLUX_BUCKET = "rooftop"
 MEASUREMENT = "mqtt_consumer"
@@ -36,19 +38,13 @@ FIELD_EC = "soil_ec"
 HORIZONT_H = 12   # wie viele Stunden voraus vorhergesagt wird
 ZEITRAUM_TAGE = 60  # wie viele Tage rueckwaerts geladen werden
 
-HEADERS = {
-    "Authorization": f"Bearer {GRAFANA_TOKEN}",
-    "Content-Type": "application/json",
-}
 
-
-
-# 2) DATEN UEBER GRAFANA HOLEN
+# 2) DATEN DIREKT UEBER DEN DB-CONNECTOR HOLEN
 
 def hole_daten():
-    """Fragt moisture, temperature, ec fuer alle Beete ueber die Grafana
-    Query-API ab. Grafana leitet das intern an InfluxDB weiter,
-    ich brauche also keine InfluxDB Zugangsdaten selbst.
+    """Fragt moisture, temperature, ec fuer alle Beete DIREKT aus InfluxDB ab.
+    Kein Umweg mehr ueber Grafana - der Connector spricht die Datenbank
+    direkt an und gibt das Ergebnis schon fast als pandas-Tabelle zurueck.
     """
     flux_query = f'''
     from(bucket: "{INFLUX_BUCKET}")
@@ -59,30 +55,25 @@ def hole_daten():
       |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
       |> rename(columns: {{"{FIELD_MOISTURE}": "moisture", "{FIELD_TEMP}": "temperature", "{FIELD_EC}": "ec"}})
     '''
- 
-    url = f"{GRAFANA_URL}/api/ds/query"
-    payload = {
-        "queries": [{
-            "refId": "A",
-            "datasource": {"uid": DATASOURCE_UID},
-            "query": flux_query,
-        }],
-        "from": f"now-{ZEITRAUM_TAGE}d",
-        "to": "now",
-    }
- 
-    antwort = requests.post(url, headers=HEADERS, json=payload)
-    print("Status:", antwort.status_code)
-    print("Antwort von Grafana:", antwort.text)
-    print("Query war:", flux_query)
-    antwort.raise_for_status()
-    return antwort.json()
- 
- 
+
+    # Verbindung zur Datenbank aufbauen und Query direkt ausfuehren
+    with InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG) as client:
+        df = client.query_api().query_data_frame(flux_query)
+
+    # query_data_frame kann bei mehreren Frames eine LISTE von DataFrames
+    # zurueckgeben statt einem einzigen -> dann zusammenfuehren
+    if isinstance(df, list):
+        df = pd.concat(df, ignore_index=True)
+
+    return df
+
+
 # ---------------------------------------------------------------------------
 # HAUPTPROGRAMM
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
-    rohdaten = hole_daten()
-    print("\n--- Rohdaten (kompletter Dict) ---")
-    print(rohdaten)
+    df = hole_daten()
+    print("\n--- Spalten, die zurueckkamen ---")
+    print(df.columns.tolist())
+    print("\n--- Erste Zeilen ---")
+    print(df.head())

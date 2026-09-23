@@ -39,6 +39,7 @@ export function LandingPage({ onDashboardOeffnen }: LandingPageProps) {
           <a href="#projekt">Projekt</a>
           <a href="#standorte">Standorte</a>
           <a href="#technik">Technik</a>
+          <a href="#login">Login</a>
         </nav>
       </header>
 

@@ -1,0 +1,111 @@
+.login-seite {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+  background: #f4f7f2;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 420px;
+  padding: 32px;
+  border: 1px solid #d8dfd9;
+  border-radius: 8px;
+  background: white;
+}
+
+.login-klein {
+  margin: 0 0 8px;
+  color: #286b4b;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.login-box h1 {
+  margin: 0;
+  color: #183d2c;
+  font-size: 2rem;
+}
+
+.login-text {
+  margin: 10px 0 24px;
+  color: #667168;
+}
+
+.login-box form {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-box label {
+  margin: 0 0 6px;
+  color: #37443b;
+  font-weight: 600;
+}
+
+.login-box input {
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 11px 12px;
+  border: 1px solid #cbd4cd;
+  border-radius: 5px;
+  font: inherit;
+}
+
+.login-box input:focus {
+  outline: 2px solid #9ec5ae;
+  border-color: #286b4b;
+}
+
+.login-box form button {
+  margin-top: 4px;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 5px;
+  background: #286b4b;
+  color: white;
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.login-fehler,
+.login-erfolg {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 5px;
+  font-size: 0.9rem;
+}
+
+.login-fehler {
+  background: #fff0ee;
+  color: #8f332b;
+}
+
+.login-erfolg {
+  background: #edf5f0;
+  color: #1f6342;
+}
+
+.login-zurueck {
+  width: 100%;
+  margin-top: 12px;
+  padding: 9px;
+  border: 0;
+  background: transparent;
+  color: #286b4b;
+  font: inherit;
+  cursor: pointer;
+}
+
+@media (max-width: 500px) {
+  .login-seite {
+    padding: 14px;
+  }
+
+  .login-box {
+    padding: 24px 20px;
+  }
+}

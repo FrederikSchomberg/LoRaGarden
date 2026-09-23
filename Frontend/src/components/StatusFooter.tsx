@@ -19,7 +19,7 @@ export function StatusFooter({
         InfluxDB: {datenbankVerbunden ? "online" : "offline"}
       </div>
 
-      <div>Aktualisierung alle 30 Sekunden</div>
+      <div>Aktualisierung alle 2 Minuten</div>
     </footer>
   );
 }

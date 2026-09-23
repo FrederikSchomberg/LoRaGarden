@@ -12,9 +12,10 @@ import { beispielDaten } from "./data/mockData";
 import { GrafanaHistorischeDaten } from "./components/GrafanaHistorischeDaten";
 import type { DashboardResponse } from "./types/dashboard";
 import { LandingPage } from "./pages/LandingPage";
+import { LoginPage } from "./pages/LoginPage";
 
 function Dashboard() {
-  // damit wir wieder oben landen wenn wir das dashboard über den link öffnen 
+  // damit wir wieder oben landen wenn wir das dashboard über den link öffnen
   useEffect(() => {
     window.scrollTo({
       top: 0,
@@ -30,7 +31,7 @@ function Dashboard() {
 
   // Aktiver Tab
   const [aktiverTab, setAktiverTab] = useState<"aktuell" | "historisch">(
-    "aktuell"
+    "aktuell",
   );
 
   const holeDaten = useCallback(async () => {
@@ -46,7 +47,9 @@ function Dashboard() {
     } catch {
       setDaten(beispielDaten);
       setDemo(true);
-      setFehler("Backend nicht erreichbar – es werden Beispieldaten angezeigt.");
+      setFehler(
+        "Backend nicht erreichbar – es werden Beispieldaten angezeigt.",
+      );
     } finally {
       setLaedt(false);
     }
@@ -55,8 +58,8 @@ function Dashboard() {
   useEffect(() => {
     const start = window.setTimeout(() => void holeDaten(), 0);
 
-    // 30 sekunden reichen, sonst fragen wir influx unnötig oft ab
-    const timer = window.setInterval(() => void holeDaten(), 30000);
+    // im 2min intervall wird die seite neu geladen 
+    const timer = window.setInterval(() => void holeDaten(), 120000);
 
     return () => {
       window.clearTimeout(start);
@@ -130,11 +133,15 @@ function App() {
       return "dashboard";
     }
 
+    if (window.location.hash === "#/login") {
+      return "login";
+    }
+
     return "landingpage";
   };
 
-  const [seite, setSeite] = useState<"landingpage" | "dashboard">(
-    seiteAusUrl
+  const [seite, setSeite] = useState<"landingpage" | "dashboard" | "login">(
+    seiteAusUrl,
   );
 
   useEffect(() => {
@@ -154,12 +161,17 @@ function App() {
     setSeite("dashboard");
   };
 
+  const startseiteOeffnen = () => {
+    window.location.hash = "/";
+    setSeite("landingpage");
+  };
+
+  if (seite === "login") {
+    return <LoginPage onZurueck={startseiteOeffnen} />;
+  }
+
   if (seite === "landingpage") {
-    return (
-      <LandingPage
-        onDashboardOeffnen={dashboardOeffnen}
-      />
-    );
+    return <LandingPage onDashboardOeffnen={dashboardOeffnen} />;
   }
 
   return <Dashboard />;

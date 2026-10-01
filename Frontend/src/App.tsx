@@ -12,6 +12,7 @@ import { beispielDaten } from "./data/mockData";
 import { GrafanaHistorischeDaten } from "./components/GrafanaHistorischeDaten";
 import type { DashboardResponse } from "./types/dashboard";
 import { LandingPage } from "./pages/LandingPage";
+import HistorischeDaten from "./components/HistorischeDaten";
 
 function Dashboard() {
   // damit wir wieder oben landen wenn wir das dashboard über den link öffnen 
@@ -29,7 +30,7 @@ function Dashboard() {
   const [laedt, setLaedt] = useState(false);
 
   // Aktiver Tab
-  const [aktiverTab, setAktiverTab] = useState<"aktuell" | "historisch">(
+  const [aktiverTab, setAktiverTab] = useState<"aktuell" | "historisch" | "historischNeu">(
     "aktuell"
   );
 
@@ -94,6 +95,15 @@ function Dashboard() {
         >
           Historische Daten
         </button>
+        <button
+          type="button"
+          className={aktiverTab === "historischNeu" ? "tab aktiv" : "tab"}
+          onClick={() => {
+            setAktiverTab("historischNeu");
+          }}
+        >
+          Historische Daten (Neu)
+        </button>
       </nav>
 
       {/* Aktuelle Daten */}
@@ -120,6 +130,9 @@ function Dashboard() {
 
       {/* Historische Daten */}
       {aktiverTab === "historisch" && <GrafanaHistorischeDaten />}
+
+      {/* Historische Daten */}
+      {aktiverTab === "historischNeu" && <HistorischeDaten />}
     </main>
   );
 }

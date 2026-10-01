@@ -1,13 +1,27 @@
 import { useMemo, useState } from "react";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
 
 /*
- * ---------------------------------------------------------
+ * =========================================================
  * MOCKDATEN
- * ---------------------------------------------------------
+ * =========================================================
  *
- * Die Daten sind absichtlich so aufgebaut, dass sie später
- * leicht durch die Antwort von /api/history ersetzt werden
- * können.
+ * Diese Daten werden später durch die Antwort der API ersetzt.
+ *
+ * Aktuell:
+ * MOCK_DATA
+ *
+ * Später:
+ * API / Datenbank
  */
 
 const MOCK_DATA = {
@@ -144,13 +158,295 @@ const MOCK_DATA = {
       ],
     },
   },
+
+  Berta: {
+    temperature: {
+      oben: [
+        { timestamp: "2026-09-25T08:00:00", value: 11.4 },
+        { timestamp: "2026-09-25T12:00:00", value: 13.1 },
+        { timestamp: "2026-09-25T16:00:00", value: 14.3 },
+        { timestamp: "2026-09-26T08:00:00", value: 10.8 },
+        { timestamp: "2026-09-26T12:00:00", value: 12.7 },
+        { timestamp: "2026-09-26T16:00:00", value: 15.1 },
+        { timestamp: "2026-09-27T08:00:00", value: 11.2 },
+        { timestamp: "2026-09-27T12:00:00", value: 14.0 },
+        { timestamp: "2026-09-27T16:00:00", value: 16.2 },
+        { timestamp: "2026-09-28T08:00:00", value: 11.7 },
+        { timestamp: "2026-09-28T12:00:00", value: 13.8 },
+        { timestamp: "2026-09-28T16:00:00", value: 15.7 },
+        { timestamp: "2026-09-29T08:00:00", value: 10.9 },
+        { timestamp: "2026-09-29T12:00:00", value: 13.4 },
+        { timestamp: "2026-09-29T16:00:00", value: 14.9 },
+        { timestamp: "2026-09-30T08:00:00", value: 11.5 },
+        { timestamp: "2026-09-30T12:00:00", value: 14.2 },
+        { timestamp: "2026-09-30T16:00:00", value: 16.0 },
+      ],
+      unten: [
+        { timestamp: "2026-09-25T08:00:00", value: 11.4 },
+        { timestamp: "2026-09-25T12:00:00", value: 13.1 },
+        { timestamp: "2026-09-25T16:00:00", value: 14.3 },
+        { timestamp: "2026-09-26T08:00:00", value: 10.8 },
+        { timestamp: "2026-09-26T12:00:00", value: 12.7 },
+        { timestamp: "2026-09-26T16:00:00", value: 15.1 },
+        { timestamp: "2026-09-27T08:00:00", value: 11.2 },
+        { timestamp: "2026-09-27T12:00:00", value: 14.0 },
+        { timestamp: "2026-09-27T16:00:00", value: 16.2 },
+        { timestamp: "2026-09-28T08:00:00", value: 11.7 },
+        { timestamp: "2026-09-28T12:00:00", value: 13.8 },
+        { timestamp: "2026-09-28T16:00:00", value: 15.7 },
+        { timestamp: "2026-09-29T08:00:00", value: 10.9 },
+        { timestamp: "2026-09-29T12:00:00", value: 13.4 },
+        { timestamp: "2026-09-29T16:00:00", value: 14.9 },
+        { timestamp: "2026-09-30T08:00:00", value: 11.5 },
+        { timestamp: "2026-09-30T12:00:00", value: 14.2 },
+        { timestamp: "2026-09-30T16:00:00", value: 16.0 },
+      ],
+    },
+    soil_moisture: {
+      oben: [
+        { timestamp: "2026-09-25T08:00:00", value: 32 },
+        { timestamp: "2026-09-25T12:00:00", value: 30 },
+        { timestamp: "2026-09-25T16:00:00", value: 28 },
+        { timestamp: "2026-09-26T08:00:00", value: 33 },
+        { timestamp: "2026-09-26T12:00:00", value: 31 },
+        { timestamp: "2026-09-26T16:00:00", value: 29 },
+        { timestamp: "2026-09-27T08:00:00", value: 34 },
+        { timestamp: "2026-09-27T12:00:00", value: 32 },
+        { timestamp: "2026-09-27T16:00:00", value: 30 },
+        { timestamp: "2026-09-28T08:00:00", value: 35 },
+        { timestamp: "2026-09-28T12:00:00", value: 33 },
+        { timestamp: "2026-09-28T16:00:00", value: 31 },
+        { timestamp: "2026-09-29T08:00:00", value: 36 },
+        { timestamp: "2026-09-29T12:00:00", value: 34 },
+        { timestamp: "2026-09-29T16:00:00", value: 32 },
+        { timestamp: "2026-09-30T08:00:00", value: 35 },
+        { timestamp: "2026-09-30T12:00:00", value: 33 },
+        { timestamp: "2026-09-30T16:00:00", value: 31 },
+      ],
+      unten: [
+        { timestamp: "2026-09-25T08:00:00", value: 32 },
+        { timestamp: "2026-09-25T12:00:00", value: 30 },
+        { timestamp: "2026-09-25T16:00:00", value: 28 },
+        { timestamp: "2026-09-26T08:00:00", value: 33 },
+        { timestamp: "2026-09-26T12:00:00", value: 31 },
+        { timestamp: "2026-09-26T16:00:00", value: 29 },
+        { timestamp: "2026-09-27T08:00:00", value: 34 },
+        { timestamp: "2026-09-27T12:00:00", value: 32 },
+        { timestamp: "2026-09-27T16:00:00", value: 30 },
+        { timestamp: "2026-09-28T08:00:00", value: 35 },
+        { timestamp: "2026-09-28T12:00:00", value: 33 },
+        { timestamp: "2026-09-28T16:00:00", value: 31 },
+        { timestamp: "2026-09-29T08:00:00", value: 36 },
+        { timestamp: "2026-09-29T12:00:00", value: 34 },
+        { timestamp: "2026-09-29T16:00:00", value: 32 },
+        { timestamp: "2026-09-30T08:00:00", value: 35 },
+        { timestamp: "2026-09-30T12:00:00", value: 33 },
+        { timestamp: "2026-09-30T16:00:00", value: 31 },
+      ],
+    },
+    conductivity: {
+      oben: [
+        { timestamp: "2026-09-25T08:00:00", value: 1.1 },
+        { timestamp: "2026-09-25T12:00:00", value: 1.2 },
+        { timestamp: "2026-09-25T16:00:00", value: 1.3 },
+        { timestamp: "2026-09-26T08:00:00", value: 1.1 },
+        { timestamp: "2026-09-26T12:00:00", value: 1.4 },
+        { timestamp: "2026-09-26T16:00:00", value: 1.3 },
+        { timestamp: "2026-09-27T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-27T12:00:00", value: 1.4 },
+        { timestamp: "2026-09-27T16:00:00", value: 1.4 },
+        { timestamp: "2026-09-28T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-28T12:00:00", value: 1.4 },
+        { timestamp: "2026-09-28T16:00:00", value: 1.5 },
+        { timestamp: "2026-09-29T08:00:00", value: 1.3 },
+        { timestamp: "2026-09-29T12:00:00", value: 1.5 },
+        { timestamp: "2026-09-29T16:00:00", value: 1.6 },
+        { timestamp: "2026-09-30T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-30T12:00:00", value: 1.2 },
+        { timestamp: "2026-09-30T16:00:00", value: 2.3 },
+      ],
+      unten: [
+        { timestamp: "2026-09-25T08:00:00", value: 1.1 },
+        { timestamp: "2026-09-25T12:00:00", value: 1.2 },
+        { timestamp: "2026-09-25T16:00:00", value: 1.3 },
+        { timestamp: "2026-09-26T08:00:00", value: 1.1 },
+        { timestamp: "2026-09-26T12:00:00", value: 1.4 },
+        { timestamp: "2026-09-26T16:00:00", value: 1.3 },
+        { timestamp: "2026-09-27T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-27T12:00:00", value: 1.4 },
+        { timestamp: "2026-09-27T16:00:00", value: 1.4 },
+        { timestamp: "2026-09-28T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-28T12:00:00", value: 1.4 },
+        { timestamp: "2026-09-28T16:00:00", value: 1.5 },
+        { timestamp: "2026-09-29T08:00:00", value: 1.3 },
+        { timestamp: "2026-09-29T12:00:00", value: 1.5 },
+        { timestamp: "2026-09-29T16:00:00", value: 1.6 },
+        { timestamp: "2026-09-30T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-30T12:00:00", value: 1.2 },
+        { timestamp: "2026-09-30T16:00:00", value: 2.3 },
+      ],
+    },
+  },
+
+  Ilse: {
+    temperature: {
+      oben: [
+        { timestamp: "2026-09-25T08:00:00", value: 16.4 },
+        { timestamp: "2026-09-25T12:00:00", value: 18.1 },
+        { timestamp: "2026-09-25T16:00:00", value: 19.3 },
+        { timestamp: "2026-09-26T08:00:00", value: 15.8 },
+        { timestamp: "2026-09-26T12:00:00", value: 17.7 },
+        { timestamp: "2026-09-26T16:00:00", value: 20.1 },
+        { timestamp: "2026-09-27T08:00:00", value: 16.2 },
+        { timestamp: "2026-09-27T12:00:00", value: 19.0 },
+        { timestamp: "2026-09-27T16:00:00", value: 21.2 },
+        { timestamp: "2026-09-28T08:00:00", value: 16.7 },
+        { timestamp: "2026-09-28T12:00:00", value: 18.8 },
+        { timestamp: "2026-09-28T16:00:00", value: 20.7 },
+        { timestamp: "2026-09-29T08:00:00", value: 15.9 },
+        { timestamp: "2026-09-29T12:00:00", value: 18.4 },
+        { timestamp: "2026-09-29T16:00:00", value: 19.9 },
+        { timestamp: "2026-09-30T08:00:00", value: 16.5 },
+        { timestamp: "2026-09-30T12:00:00", value: 19.2 },
+        { timestamp: "2026-09-30T16:00:00", value: 21.0 },
+      ],
+      unten: [
+        { timestamp: "2026-09-25T08:00:00", value: 16.4 },
+        { timestamp: "2026-09-25T12:00:00", value: 18.1 },
+        { timestamp: "2026-09-25T16:00:00", value: 19.3 },
+        { timestamp: "2026-09-26T08:00:00", value: 15.8 },
+        { timestamp: "2026-09-26T12:00:00", value: 17.7 },
+        { timestamp: "2026-09-26T16:00:00", value: 20.1 },
+        { timestamp: "2026-09-27T08:00:00", value: 16.2 },
+        { timestamp: "2026-09-27T12:00:00", value: 19.0 },
+        { timestamp: "2026-09-27T16:00:00", value: 21.2 },
+        { timestamp: "2026-09-28T08:00:00", value: 16.7 },
+        { timestamp: "2026-09-28T12:00:00", value: 18.8 },
+        { timestamp: "2026-09-28T16:00:00", value: 20.7 },
+        { timestamp: "2026-09-29T08:00:00", value: 15.9 },
+        { timestamp: "2026-09-29T12:00:00", value: 18.4 },
+        { timestamp: "2026-09-29T16:00:00", value: 19.9 },
+        { timestamp: "2026-09-30T08:00:00", value: 16.5 },
+        { timestamp: "2026-09-30T12:00:00", value: 19.2 },
+        { timestamp: "2026-09-30T16:00:00", value: 21.0 },
+      ],
+    },
+    soil_moisture: {
+      oben: [
+        { timestamp: "2026-09-25T08:00:00", value: 27 },
+        { timestamp: "2026-09-25T12:00:00", value: 25 },
+        { timestamp: "2026-09-25T16:00:00", value: 23 },
+        { timestamp: "2026-09-26T08:00:00", value: 28 },
+        { timestamp: "2026-09-26T12:00:00", value: 26 },
+        { timestamp: "2026-09-26T16:00:00", value: 24 },
+        { timestamp: "2026-09-27T08:00:00", value: 29 },
+        { timestamp: "2026-09-27T12:00:00", value: 27 },
+        { timestamp: "2026-09-27T16:00:00", value: 25 },
+        { timestamp: "2026-09-28T08:00:00", value: 30 },
+        { timestamp: "2026-09-28T12:00:00", value: 28 },
+        { timestamp: "2026-09-28T16:00:00", value: 26 },
+        { timestamp: "2026-09-29T08:00:00", value: 31 },
+        { timestamp: "2026-09-29T12:00:00", value: 29 },
+        { timestamp: "2026-09-29T16:00:00", value: 27 },
+        { timestamp: "2026-09-30T08:00:00", value: 30 },
+        { timestamp: "2026-09-30T12:00:00", value: 28 },
+        { timestamp: "2026-09-30T16:00:00", value: 26 },
+      ],
+      unten: [
+        { timestamp: "2026-09-25T08:00:00", value: 27 },
+        { timestamp: "2026-09-25T12:00:00", value: 25 },
+        { timestamp: "2026-09-25T16:00:00", value: 23 },
+        { timestamp: "2026-09-26T08:00:00", value: 28 },
+        { timestamp: "2026-09-26T12:00:00", value: 26 },
+        { timestamp: "2026-09-26T16:00:00", value: 24 },
+        { timestamp: "2026-09-27T08:00:00", value: 29 },
+        { timestamp: "2026-09-27T12:00:00", value: 27 },
+        { timestamp: "2026-09-27T16:00:00", value: 25 },
+        { timestamp: "2026-09-28T08:00:00", value: 30 },
+        { timestamp: "2026-09-28T12:00:00", value: 28 },
+        { timestamp: "2026-09-28T16:00:00", value: 26 },
+        { timestamp: "2026-09-29T08:00:00", value: 31 },
+        { timestamp: "2026-09-29T12:00:00", value: 29 },
+        { timestamp: "2026-09-29T16:00:00", value: 27 },
+        { timestamp: "2026-09-30T08:00:00", value: 30 },
+        { timestamp: "2026-09-30T12:00:00", value: 28 },
+        { timestamp: "2026-09-30T16:00:00", value: 26 },
+      ],
+    },
+    conductivity: {
+      oben: [
+        { timestamp: "2026-09-25T08:00:00", value: 1.7 },
+        { timestamp: "2026-09-25T12:00:00", value: 1.2 },
+        { timestamp: "2026-09-25T16:00:00", value: 1.9 },
+        { timestamp: "2026-09-26T08:00:00", value: 1.4 },
+        { timestamp: "2026-09-26T12:00:00", value: 2.1 },
+        { timestamp: "2026-09-26T16:00:00", value: 1.6 },
+        { timestamp: "2026-09-27T08:00:00", value: 1.1 },
+        { timestamp: "2026-09-27T12:00:00", value: 1.8 },
+        { timestamp: "2026-09-27T16:00:00", value: 2.3 },
+        { timestamp: "2026-09-28T08:00:00", value: 1.5 },
+        { timestamp: "2026-09-28T12:00:00", value: 2.0 },
+        { timestamp: "2026-09-28T16:00:00", value: 1.3 },
+        { timestamp: "2026-09-29T08:00:00", value: 1.9 },
+        { timestamp: "2026-09-29T12:00:00", value: 2.4 },
+        { timestamp: "2026-09-29T16:00:00", value: 1.7 },
+        { timestamp: "2026-09-30T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-30T12:00:00", value: 2.2 },
+        { timestamp: "2026-09-30T16:00:00", value: 1.6 },
+      ],
+      unten: [
+        { timestamp: "2026-09-25T08:00:00", value: 1.7 },
+        { timestamp: "2026-09-25T12:00:00", value: 1.2 },
+        { timestamp: "2026-09-25T16:00:00", value: 1.9 },
+        { timestamp: "2026-09-26T08:00:00", value: 1.4 },
+        { timestamp: "2026-09-26T12:00:00", value: 2.1 },
+        { timestamp: "2026-09-26T16:00:00", value: 1.6 },
+        { timestamp: "2026-09-27T08:00:00", value: 1.1 },
+        { timestamp: "2026-09-27T12:00:00", value: 1.8 },
+        { timestamp: "2026-09-27T16:00:00", value: 2.3 },
+        { timestamp: "2026-09-28T08:00:00", value: 1.5 },
+        { timestamp: "2026-09-28T12:00:00", value: 2.0 },
+        { timestamp: "2026-09-28T16:00:00", value: 1.3 },
+        { timestamp: "2026-09-29T08:00:00", value: 1.9 },
+        { timestamp: "2026-09-29T12:00:00", value: 2.4 },
+        { timestamp: "2026-09-29T16:00:00", value: 1.7 },
+        { timestamp: "2026-09-30T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-30T12:00:00", value: 2.2 },
+        { timestamp: "2026-09-30T16:00:00", value: 1.6 },
+      ],
+    },
+  },
 };
 
 
 /*
- * ---------------------------------------------------------
- * EINHEITEN
- * ---------------------------------------------------------
+ * =========================================================
+ * BEET-KONFIGURATION
+ * =========================================================
+ */
+
+const beetConfig = {
+  Carla: {
+    label: "Carla",
+    description: "10 % Pflanzenkohle",
+  },
+
+  Berta: {
+    label: "Berta",
+    description: "5 % Pflanzenkohle",
+  },
+
+  Ilse: {
+    label: "Ilse",
+    description: "Sand",
+  },
+};
+
+
+/*
+ * =========================================================
+ * MESSWERT-KONFIGURATION
+ * =========================================================
  */
 
 const measurementConfig = {
@@ -172,272 +468,552 @@ const measurementConfig = {
 
 
 /*
- * ---------------------------------------------------------
- * DIAGRAMM
- * ---------------------------------------------------------
+ * =========================================================
+ * FARBEN FÜR DIE BEETE
+ * =========================================================
  */
 
-function HistoryChart({ title, data, unit }) {
+const beetColors = {
+  Carla: "#2563eb",
+  Berta: "#16a34a",
+  Ilse: "#ea580c",
+};
+
+
+/*
+ * =========================================================
+ * HILFSFUNKTION:
+ * MOCK-DATEN FÜR RECHARTS AUFBEREITEN
+ * =========================================================
+ *
+ * Recharts erwartet für mehrere Linien beispielsweise:
+ *
+ * [
+ *   {
+ *     timestamp: "...",
+ *     Carla: 21.4,
+ *     Berta: 20.8,
+ *     Ilse: 21.1
+ *   }
+ * ]
+ */
+
+function buildChartData({
+  selectedBeds,
+  measurement,
+  position,
+}) {
+  const byTimestamp = {};
+
+  selectedBeds.forEach((bed) => {
+    const values =
+      MOCK_DATA[bed]?.[measurement]?.[position] ?? [];
+
+    values.forEach((point) => {
+      if (!byTimestamp[point.timestamp]) {
+        byTimestamp[point.timestamp] = {
+          timestamp: point.timestamp,
+        };
+      }
+
+      byTimestamp[point.timestamp][bed] = point.value;
+    });
+  });
+
+  return Object.values(byTimestamp).sort(
+    (a, b) =>
+      new Date(a.timestamp) -
+      new Date(b.timestamp)
+  );
+}
+
+
+/*
+ * =========================================================
+ * ZEITRAUM FILTERN
+ * =========================================================
+ */
+
+function filterByTimeRange(data, zeitraum) {
   if (!data || data.length === 0) {
-    return (
-      <div className="history-chart-card">
-        <h3>{title}</h3>
-        <p>Keine Daten vorhanden.</p>
-      </div>
-    );
+    return [];
   }
 
-  const width = 900;
-  const height = 320;
+  /*
+   * Die Mock-Daten gehen aktuell nur über wenige Tage.
+   * Für die Mock-Daten reicht es deshalb, anhand des
+   * vorhandenen Datenbereichs zu filtern.
+   */
 
-  const paddingLeft = 60;
-  const paddingRight = 25;
-  const paddingTop = 25;
-  const paddingBottom = 45;
-
-  const values = data.map((point) => point.value);
-
-  let minValue = Math.min(...values);
-  let maxValue = Math.max(...values);
-
-  // Etwas Abstand oberhalb und unterhalb der Daten
-  const difference = maxValue - minValue || 1;
-
-  minValue -= difference * 0.15;
-  maxValue += difference * 0.15;
-
-  const chartWidth = width - paddingLeft - paddingRight;
-  const chartHeight = height - paddingTop - paddingBottom;
-
-  const getX = (index) => {
-    if (data.length === 1) {
-      return paddingLeft + chartWidth / 2;
-    }
-
-    return (
-      paddingLeft +
-      (index / (data.length - 1)) * chartWidth
-    );
-  };
-
-  const getY = (value) => {
-    return (
-      paddingTop +
-      ((maxValue - value) / (maxValue - minValue)) *
-        chartHeight
-    );
-  };
-
-  const points = data
-    .map(
-      (point, index) =>
-        `${getX(index)},${getY(point.value)}`
+  const latestTimestamp = Math.max(
+    ...data.map((point) =>
+      new Date(point.timestamp).getTime()
     )
-    .join(" ");
+  );
+
+  let milliseconds;
+
+  switch (zeitraum) {
+    case "24h":
+      milliseconds = 24 * 60 * 60 * 1000;
+      break;
+
+    case "7d":
+      milliseconds = 7 * 24 * 60 * 60 * 1000;
+      break;
+
+    case "30d":
+      milliseconds = 30 * 24 * 60 * 60 * 1000;
+      break;
+
+    case "90d":
+      milliseconds = 90 * 24 * 60 * 60 * 1000;
+      break;
+
+    default:
+      return data;
+  }
+
+  const minimumTimestamp =
+    latestTimestamp - milliseconds;
+
+  return data.filter(
+    (point) =>
+      new Date(point.timestamp).getTime() >=
+      minimumTimestamp
+  );
+}
+
+
+/*
+ * =========================================================
+ * DATUM FORMATIEREN
+ * =========================================================
+ */
+
+function formatDate(timestamp) {
+  return new Date(timestamp).toLocaleDateString(
+    "de-DE",
+    {
+      day: "2-digit",
+      month: "2-digit",
+    }
+  );
+}
+
+
+/*
+ * =========================================================
+ * TOOLTIP
+ * =========================================================
+ */
+
+function HistoryTooltip({
+  active,
+  payload,
+  label,
+  unit,
+}) {
+  if (!active || !payload || payload.length === 0) {
+    return null;
+  }
 
   return (
-    <div className="history-chart-card">
-      <div className="history-chart-header">
-        <h3>{title}</h3>
-
-        <span>
-          {data[data.length - 1].value.toFixed(1)} {unit}
-        </span>
+    <div
+      className="history-tooltip"
+      style={{
+        background: "#ffffff",
+        border: "1px solid #e5e7eb",
+        borderRadius: "8px",
+        padding: "10px 12px",
+        boxShadow:
+          "0 4px 12px rgba(0, 0, 0, 0.08)",
+      }}
+    >
+      <div
+        style={{
+          fontWeight: 600,
+          marginBottom: "6px",
+        }}
+      >
+        {new Date(label).toLocaleString("de-DE")}
       </div>
 
-      <div className="history-chart-wrapper">
-        <svg
-          viewBox={`0 0 ${width} ${height}`}
-          className="history-chart"
-          preserveAspectRatio="none"
+      {payload.map((entry) => (
+        <div
+          key={entry.dataKey}
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: "20px",
+            marginTop: "3px",
+          }}
         >
-          {/* Horizontale Hilfslinien */}
-          {[0, 1, 2, 3, 4].map((line) => {
-            const y =
-              paddingTop +
-              (line / 4) * chartHeight;
+          <span>
+            {entry.name}
+          </span>
 
-            return (
-              <line
-                key={line}
-                x1={paddingLeft}
-                x2={width - paddingRight}
-                y1={y}
-                y2={y}
-                className="chart-grid-line"
-              />
-            );
-          })}
-
-          {/* Y-Achse */}
-          <line
-            x1={paddingLeft}
-            x2={paddingLeft}
-            y1={paddingTop}
-            y2={height - paddingBottom}
-            className="chart-axis"
-          />
-
-          {/* X-Achse */}
-          <line
-            x1={paddingLeft}
-            x2={width - paddingRight}
-            y1={height - paddingBottom}
-            y2={height - paddingBottom}
-            className="chart-axis"
-          />
-
-          {/* Datenlinie */}
-          <polyline
-            points={points}
-            className="chart-line"
-            fill="none"
-          />
-
-          {/* Datenpunkte */}
-          {data.map((point, index) => (
-            <circle
-              key={`${point.timestamp}-${index}`}
-              cx={getX(index)}
-              cy={getY(point.value)}
-              r="4"
-              className="chart-point"
-            />
-          ))}
-
-          {/* Startdatum */}
-          <text
-            x={paddingLeft}
-            y={height - 15}
-            className="chart-label"
-          >
-            {formatDate(data[0].timestamp)}
-          </text>
-
-          {/* Enddatum */}
-          <text
-            x={width - paddingRight}
-            y={height - 15}
-            textAnchor="end"
-            className="chart-label"
-          >
-            {formatDate(data[data.length - 1].timestamp)}
-          </text>
-        </svg>
-      </div>
+          <strong>
+            {entry.value} {unit}
+          </strong>
+        </div>
+      ))}
     </div>
   );
 }
 
 
 /*
- * ---------------------------------------------------------
- * DATUM FORMATIEREN
- * ---------------------------------------------------------
+ * =========================================================
+ * DIAGRAMM
+ * =========================================================
  */
 
-function formatDate(timestamp) {
-  const date = new Date(timestamp);
+function HistoryChart({
+  title,
+  data,
+  unit,
+  selectedBeds,
+}) {
+  const hasData = data && data.length > 0;
 
-  return date.toLocaleDateString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-  });
+  return (
+    <div className="history-chart-card">
+      <div className="history-chart-header">
+        <div>
+          <h3>{title}</h3>
+
+          {hasData && (
+            <span className="history-chart-period">
+              {formatDate(data[0].timestamp)}
+              {" – "}
+              {formatDate(
+                data[data.length - 1].timestamp
+              )}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {!hasData ? (
+        <div className="history-chart-empty">
+          <p>
+            Für die ausgewählten Beete sind keine
+            Daten vorhanden.
+          </p>
+        </div>
+      ) : (
+        <div
+          className="history-chart-wrapper"
+          style={{
+            width: "100%",
+            height: 340,
+          }}
+        >
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+          >
+            <LineChart
+              data={data}
+              margin={{
+                top: 10,
+                right: 20,
+                left: 10,
+                bottom: 10,
+              }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                className="chart-grid"
+              />
+
+              <XAxis
+                dataKey="timestamp"
+                tickFormatter={formatDate}
+                tick={{ fontSize: 12 }}
+                minTickGap={25}
+              />
+
+              <YAxis
+                tick={{ fontSize: 12 }}
+                width={55}
+                label={{
+                  value: unit,
+                  angle: -90,
+                  position: "insideLeft",
+                  style: {
+                    textAnchor: "middle",
+                  },
+                }}
+              />
+
+              <Tooltip
+                content={
+                  <HistoryTooltip unit={unit} />
+                }
+              />
+
+              <Legend />
+
+              {selectedBeds.map((bed) => (
+                <Line
+                  key={bed}
+                  type="monotone"
+                  dataKey={bed}
+                  name={beetConfig[bed]?.label ?? bed}
+                  stroke={
+                    beetColors[bed] ?? "#64748b"
+                  }
+                  strokeWidth={2.5}
+                  dot={false}
+                  activeDot={{
+                    r: 5,
+                  }}
+                  connectNulls
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </div>
+  );
 }
 
 
 /*
- * ---------------------------------------------------------
+ * =========================================================
  * HAUPTKOMPONENTE
- * ---------------------------------------------------------
+ * =========================================================
  */
 
 export default function HistorischeDaten() {
-  const [beet, setBeet] = useState("Carla");
-  const [messwert, setMesswert] = useState("temperature");
-  const [zeitraum, setZeitraum] = useState("7d");
-
   /*
-   * Hier holen wir aktuell noch die Mockdaten.
-   *
-   * Später wird genau diese Stelle durch fetch()
-   * auf /api/history ersetzt.
+   * -------------------------------------------------------
+   * AUSGEWÄHLTE BEETE
+   * -------------------------------------------------------
    */
 
-  const history = useMemo(() => {
-    return MOCK_DATA[beet]?.[messwert] ?? {
-      oben: [],
-      unten: [],
-    };
-  }, [beet, messwert]);
+  const [selectedBeds, setSelectedBeds] =
+    useState(["Carla"]);
 
-  const config = measurementConfig[messwert];
+
+  /*
+   * -------------------------------------------------------
+   * AUSGEWÄHLTE MESSWERTE
+   * -------------------------------------------------------
+   */
+
+  const [
+    selectedMeasurements,
+    setSelectedMeasurements,
+  ] = useState(["temperature"]);
+
+
+  /*
+   * -------------------------------------------------------
+   * ZEITRAUM
+   * -------------------------------------------------------
+   */
+
+  const [zeitraum, setZeitraum] =
+    useState("7d");
+
+
+  /*
+   * -------------------------------------------------------
+   * BEET AUS-/ABWÄHLEN
+   * -------------------------------------------------------
+   */
+
+  function toggleBed(bed) {
+    setSelectedBeds((current) => {
+      if (current.includes(bed)) {
+        return current.filter(
+          (item) => item !== bed
+        );
+      }
+
+      return [...current, bed];
+    });
+  }
+
+
+  /*
+   * -------------------------------------------------------
+   * MESSWERT AUS-/ABWÄHLEN
+   * -------------------------------------------------------
+   */
+
+  function toggleMeasurement(measurement) {
+    setSelectedMeasurements((current) => {
+      if (current.includes(measurement)) {
+        return current.filter(
+          (item) => item !== measurement
+        );
+      }
+
+      return [...current, measurement];
+    });
+  }
+
+
+  /*
+   * -------------------------------------------------------
+   * DIAGRAMMDATEN ERZEUGEN
+   * -------------------------------------------------------
+   *
+   * Für jeden Messwert und jede Position wird aus den
+   * Mock-Daten ein eigenes Recharts-Dataset erstellt.
+   */
+
+  const chartData = useMemo(() => {
+    const result = {};
+
+    ["oben", "unten"].forEach((position) => {
+      result[position] = {};
+
+      selectedMeasurements.forEach(
+        (measurement) => {
+          const data = buildChartData({
+            selectedBeds,
+            measurement,
+            position,
+          });
+
+          result[position][measurement] =
+            filterByTimeRange(
+              data,
+              zeitraum
+            );
+        }
+      );
+    });
+
+    return result;
+  }, [
+    selectedBeds,
+    selectedMeasurements,
+    zeitraum,
+  ]);
+
+
+  /*
+   * -------------------------------------------------------
+   * RENDER
+   * -------------------------------------------------------
+   */
 
   return (
     <section className="historische-daten">
 
-      {/* ------------------------------------------------ */}
-      {/* AUSWAHL                                         */}
-      {/* ------------------------------------------------ */}
+      {/* ================================================= */}
+      {/* ÜBERSCHRIFT                                      */}
+      {/* ================================================= */}
+
+      <div className="historische-übersichtNeu">
+        <p>
+          Historischer Verlauf der Messwerte
+          für die ausgewählten Beete.
+        </p>
+      </div>
+
+
+      {/* ================================================= */}
+      {/* AUSWAHL                                          */}
+      {/* ================================================= */}
 
       <div className="historische-kontrollen">
 
+        {/* ----------------------------------------------- */}
+        {/* BEETE                                           */}
+        {/* ----------------------------------------------- */}
+
         <div className="historische-auswahl">
-          <label htmlFor="history-beet">
-            Beet
+          <label>
+            Beete
           </label>
 
-          <select
-            id="history-beet"
-            value={beet}
-            onChange={(event) =>
-              setBeet(event.target.value)
-            }
-          >
-            <option value="Carla">
-              Carla 10 % Pflanzenkohle
-            </option>
+          <div className="history-checkbox-group">
 
-            <option value="Berta">
-              Berta 5 % Pflanzenkohle
-            </option>
+            {Object.entries(beetConfig).map(
+              ([bed, config]) => (
+                <label
+                  key={bed}
+                  className="history-checkbox"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedBeds.includes(
+                      bed
+                    )}
+                    onChange={() =>
+                      toggleBed(bed)
+                    }
+                  />
 
-            <option value="Ilse">
-              Ilse Sand
-            </option>
-          </select>
+                  <span>
+                    {config.label}
+                  </span>
+                </label>
+              )
+            )}
+
+          </div>
         </div>
 
 
+        {/* ----------------------------------------------- */}
+        {/* MESSWERTE                                       */}
+        {/* ----------------------------------------------- */}
+
         <div className="historische-auswahl">
-          <label htmlFor="history-messwert">
-            Messwert
+          <label>
+            Messwerte
           </label>
 
-          <select
-            id="history-messwert"
-            value={messwert}
-            onChange={(event) =>
-              setMesswert(event.target.value)
-            }
-          >
-            <option value="temperature">
-              Temperatur
-            </option>
+          <div className="history-checkbox-group">
 
-            <option value="soil_moisture">
-              Bodenfeuchtigkeit
-            </option>
+            {Object.entries(
+              measurementConfig
+            ).map(
+              ([measurement, config]) => (
+                <label
+                  key={measurement}
+                  className="history-checkbox"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedMeasurements.includes(
+                      measurement
+                    )}
+                    onChange={() =>
+                      toggleMeasurement(
+                        measurement
+                      )
+                    }
+                  />
 
-            <option value="conductivity">
-              Leitfähigkeit
-            </option>
-          </select>
+                  <span>
+                    {config.label}
+                  </span>
+                </label>
+              )
+            )}
+
+          </div>
         </div>
 
 
+        {/* ----------------------------------------------- */}
+        {/* ZEITRAUM                                        */}
+        {/* ----------------------------------------------- */}
+
         <div className="historische-auswahl">
-          <label htmlFor="history-zeitraum">
+          <label
+            htmlFor="history-zeitraum"
+          >
             Zeitraum
           </label>
 
@@ -445,7 +1021,9 @@ export default function HistorischeDaten() {
             id="history-zeitraum"
             value={zeitraum}
             onChange={(event) =>
-              setZeitraum(event.target.value)
+              setZeitraum(
+                event.target.value
+              )
             }
           >
             <option value="24h">
@@ -469,40 +1047,110 @@ export default function HistorischeDaten() {
       </div>
 
 
-      {/* ------------------------------------------------ */}
-      {/* ÜBERSCHRIFT                                    */}
-      {/* ------------------------------------------------ */}
+      {/* ================================================= */}
+      {/* KEINE AUSWAHL                                    */}
+      {/* ================================================= */}
 
-      <div className="historische-übersicht">
-        <h2>
-          {config.label} – {beet}
-        </h2>
+      {selectedBeds.length === 0 ||
+      selectedMeasurements.length === 0 ? (
+        <div className="history-empty-selection">
+          <h3>
+            Keine Auswahl
+          </h3>
 
-        <p>
-          Historischer Verlauf · {zeitraum}
-        </p>
-      </div>
+          <p>
+            Bitte mindestens ein Beet und einen
+            Messwert auswählen.
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* ============================================= */}
+          {/* OBEN                                          */}
+          {/* ============================================= */}
+
+          <section className="history-position-section">
+
+            <div className="history-position-header">
+              <h2>Oben</h2>
+            </div>
+
+            <div className="history-charts">
+
+              {selectedMeasurements.map(
+                (measurement) => {
+                  const config =
+                    measurementConfig[
+                      measurement
+                    ];
+
+                  return (
+                    <HistoryChart
+                      key={`oben-${measurement}`}
+                      title={
+                        config.label
+                      }
+                      data={
+                        chartData.oben[
+                          measurement
+                        ]
+                      }
+                      unit={config.unit}
+                      selectedBeds={
+                        selectedBeds
+                      }
+                    />
+                  );
+                }
+              )}
+
+            </div>
+          </section>
 
 
-      {/* ------------------------------------------------ */}
-      {/* DIAGRAMME                                      */}
-      {/* ------------------------------------------------ */}
+          {/* ============================================= */}
+          {/* UNTEN                                         */}
+          {/* ============================================= */}
 
-      <div className="history-charts">
+          <section className="history-position-section">
 
-        <HistoryChart
-          title={`${config.label} – Oben`}
-          data={history.oben}
-          unit={config.unit}
-        />
+            <div className="history-position-header">
+              <h2>Unten</h2>
+            </div>
 
-        <HistoryChart
-          title={`${config.label} – Unten`}
-          data={history.unten}
-          unit={config.unit}
-        />
+            <div className="history-charts">
 
-      </div>
+              {selectedMeasurements.map(
+                (measurement) => {
+                  const config =
+                    measurementConfig[
+                      measurement
+                    ];
+
+                  return (
+                    <HistoryChart
+                      key={`unten-${measurement}`}
+                      title={
+                        config.label
+                      }
+                      data={
+                        chartData.unten[
+                          measurement
+                        ]
+                      }
+                      unit={config.unit}
+                      selectedBeds={
+                        selectedBeds
+                      }
+                    />
+                  );
+                }
+              )}
+
+            </div>
+          </section>
+        </>
+      )}
 
     </section>
   );

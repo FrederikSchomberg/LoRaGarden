@@ -487,6 +487,7 @@ tbody td span { margin-top: 2px; color: var(--grau); font-size: 0.75rem; }
 .historische-übersichtNeu p {
   margin-top: 0.4rem;
   color: #666;
+  text-align: center;
 }
 
 

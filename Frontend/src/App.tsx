@@ -34,6 +34,15 @@ function Dashboard() {
     "aktuell"
   );
 
+  const [historischeBeete, setHistorischeBeete] =
+  useState<string[]>(["Carla"]);
+
+  const [historischeMesswerte, setHistorischeMesswerte] =
+    useState<string[]>(["temperature"]);
+
+  const [historischerZeitraum, setHistorischerZeitraum] =
+    useState("7d");
+
   const holeDaten = useCallback(async () => {
     setLaedt(true);
 
@@ -132,7 +141,16 @@ function Dashboard() {
       {aktiverTab === "historisch" && <GrafanaHistorischeDaten />}
 
       {/* Historische Daten */}
-      {aktiverTab === "historischNeu" && <HistorischeDaten />}
+      {aktiverTab === "historischNeu" && (
+        <HistorischeDaten
+          selectedBeds={historischeBeete}
+          setSelectedBeds={setHistorischeBeete}
+          selectedMeasurements={historischeMesswerte}
+          setSelectedMeasurements={setHistorischeMesswerte}
+          zeitraum={historischerZeitraum}
+          setZeitraum={setHistorischerZeitraum}
+        />
+      )}
     </main>
   );
 }

@@ -422,32 +422,17 @@ tbody td span { margin-top: 2px; color: var(--grau); font-size: 0.75rem; }
   border-radius: 8px;
 }
 
-.historische-datenNeu {
-  width: 100%;
-}
-
-
 /* ---------------------------------------------
-   AUSWAHL
+   Historische Daten Neu
 --------------------------------------------- */
 
-/* ---------------------------------------------
-   AUSWAHL
---------------------------------------------- */
-
-.historische-kontrollenNeu {
+.historische-übersichtNeu p{
   display: flex;
   justify-content: center;
-  align-items: flex-end;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 2rem;
-  padding: 1rem;
-  border-radius: 8px;
-  background: #f5f5f5;
+  align-items: center;
 }
 
-.historische-auswahlNeu {
+.historische-filter-gruppe{
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -455,137 +440,31 @@ tbody td span { margin-top: 2px; color: var(--grau); font-size: 0.75rem; }
   min-width: 200px;
 }
 
-.historische-auswahlNeu label {
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-align: center;
-}
-
-.historische-auswahlNeu select {
-  width: 100%;
-  padding: 0.6rem 0.8rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: white;
-  font-size: 0.95rem;
-  text-align: center;
-}
-
-
-/* ---------------------------------------------
-   ÜBERSICHT
---------------------------------------------- */
-
-.historische-übersichtNeu {
-  margin-bottom: 1.5rem;
-}
-
-.historische-übersichtNeu h2 {
-  margin: 0;
-}
-
-.historische-übersichtNeu p {
-  margin-top: 0.4rem;
-  color: #666;
-  text-align: center;
-}
-
-
-/* ---------------------------------------------
-   DIAGRAMME
---------------------------------------------- */
-
-.history-charts {
+.historische-filter {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
   gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
 }
 
-.history-chart-card {
-  width: 100%;
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background: white;
-  box-sizing: border-box;
-}
-
-.history-chart-header {
+.historische-bereich-header{
   display: flex;
+  justify-content: center;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
 }
-
-.history-chart-header h3 {
-  margin: 0;
-}
-
-.history-chart-header span {
-  font-weight: 600;
-}
-
-.history-chart-wrapper {
-  width: 100%;
-  height: 320px;
-}
-
-.history-chart {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-
-/* ---------------------------------------------
-   SVG DIAGRAMM
---------------------------------------------- */
-
-.chart-grid-line {
-  stroke: #e5e5e5;
-  stroke-width: 1;
-}
-
-.chart-axis {
-  stroke: #999;
-  stroke-width: 1;
-}
-
-.chart-line {
-  stroke: #2563eb;
-  stroke-width: 3;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-
-.chart-point {
-  fill: #2563eb;
-}
-
-.chart-label {
-  fill: #666;
-  font-size: 12px;
-}
-
-
-/* ---------------------------------------------
-   MOBILE
---------------------------------------------- */
 
 @media (max-width: 700px) {
-  .historische-kontrollenNeu {
+  .historische-filter-gruppe {
     flex-direction: column;
   }
 
-  .historische-auswahlNeu {
-    width: 100%;
-  }
-
-  .history-chart-card {
+  .historische-filter {
     padding: 0.75rem;
   }
 
-  .history-chart-wrapper {
+  .historische-bereich-header {
     height: 250px;
   }
 }

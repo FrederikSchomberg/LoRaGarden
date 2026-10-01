@@ -443,191 +443,188 @@ const beetConfig = {
 };
 
 
-/*
- * =========================================================
- * MESSWERT-KONFIGURATION
- * =========================================================
- */
-
 const measurementConfig = {
   temperature: {
     label: "Temperatur",
     unit: "°C",
   },
-
   soil_moisture: {
     label: "Bodenfeuchtigkeit",
     unit: "%",
   },
-
   conductivity: {
     label: "Leitfähigkeit",
     unit: "mS/cm",
   },
 };
 
-
-/*
- * =========================================================
- * FARBEN FÜR DIE BEETE
- * =========================================================
- */
-
-const beetColors = {
+const BED_COLORS = {
   Carla: "#2563eb",
   Berta: "#16a34a",
   Ilse: "#ea580c",
 };
 
+const BED_NAMES = ["Carla", "Berta", "Ilse"];
+
+const MEASUREMENTS = [
+  {
+    key: "temperature",
+    label: "Temperatur",
+  },
+  {
+    key: "soil_moisture",
+    label: "Bodenfeuchtigkeit",
+  },
+  {
+    key: "conductivity",
+    label: "Leitfähigkeit",
+  },
+];
+
+const ZEITRAEUME = [
+  {
+    value: "24h",
+    label: "Letzte 24 Stunden",
+  },
+  {
+    value: "7d",
+    label: "Letzte 7 Tage",
+  },
+  {
+    value: "30d",
+    label: "Letzte 30 Tage",
+  },
+  {
+    value: "90d",
+    label: "Letzte 90 Tage",
+  },
+];
+
+function formatDate(timestamp) {
+  const date = new Date(timestamp);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleDateString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+  });
+}
+
+function formatTooltipDate(timestamp) {
+  const date = new Date(timestamp);
+
+  if (Number.isNaN(date.getTime())) {
+    return timestamp;
+  }
+
+  return date.toLocaleString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function getZeitraumMillis(zeitraum) {
+  switch (zeitraum) {
+    case "24h":
+      return 24 * 60 * 60 * 1000;
+
+    case "7d":
+      return 7 * 24 * 60 * 60 * 1000;
+
+    case "30d":
+      return 30 * 24 * 60 * 60 * 1000;
+
+    case "90d":
+      return 90 * 24 * 60 * 60 * 1000;
+
+    default:
+      return 7 * 24 * 60 * 60 * 1000;
+  }
+}
 
 /*
- * =========================================================
- * HILFSFUNKTION:
- * MOCK-DATEN FÜR RECHARTS AUFBEREITEN
- * =========================================================
+ * Baut die Daten für genau einen Messwert und eine Position
+ * (oben oder unten) zusammen.
  *
- * Recharts erwartet für mehrere Linien beispielsweise:
+ * Ergebnis beispielsweise:
  *
  * [
  *   {
  *     timestamp: "...",
- *     Carla: 21.4,
- *     Berta: 20.8,
- *     Ilse: 21.1
+ *     Carla: 18.2,
+ *     Berta: 19.1
  *   }
  * ]
  */
-
-function buildChartData({
-  selectedBeds,
-  measurement,
-  position,
-}) {
-  const byTimestamp = {};
+function buildChartData(selectedBeds, measurement, position, zeitraum) {
+  const allePunkte = [];
 
   selectedBeds.forEach((bed) => {
-    const values =
+    const messwerte =
       MOCK_DATA[bed]?.[measurement]?.[position] ?? [];
 
-    values.forEach((point) => {
-      if (!byTimestamp[point.timestamp]) {
-        byTimestamp[point.timestamp] = {
-          timestamp: point.timestamp,
-        };
-      }
-
-      byTimestamp[point.timestamp][bed] = point.value;
+    messwerte.forEach((punkt) => {
+      allePunkte.push({
+        ...punkt,
+        bed,
+      });
     });
   });
 
-  return Object.values(byTimestamp).sort(
-    (a, b) =>
-      new Date(a.timestamp) -
-      new Date(b.timestamp)
-  );
-}
-
-
-/*
- * =========================================================
- * ZEITRAUM FILTERN
- * =========================================================
- */
-
-function filterByTimeRange(data, zeitraum) {
-  if (!data || data.length === 0) {
+  if (allePunkte.length === 0) {
     return [];
   }
 
-  /*
-   * Die Mock-Daten gehen aktuell nur über wenige Tage.
-   * Für die Mock-Daten reicht es deshalb, anhand des
-   * vorhandenen Datenbereichs zu filtern.
-   */
-
-  const latestTimestamp = Math.max(
-    ...data.map((point) =>
-      new Date(point.timestamp).getTime()
-    )
+  const letzterZeitpunkt = Math.max(
+    ...allePunkte.map((punkt) => new Date(punkt.timestamp).getTime()),
   );
 
-  let milliseconds;
+  const zeitraumMillis = getZeitraumMillis(zeitraum);
+  const startZeitpunkt = letzterZeitpunkt - zeitraumMillis;
 
-  switch (zeitraum) {
-    case "24h":
-      milliseconds = 24 * 60 * 60 * 1000;
-      break;
+  const gefiltertePunkte = allePunkte.filter((punkt) => {
+    const zeit = new Date(punkt.timestamp).getTime();
 
-    case "7d":
-      milliseconds = 7 * 24 * 60 * 60 * 1000;
-      break;
+    return zeit >= startZeitpunkt && zeit <= letzterZeitpunkt;
+  });
 
-    case "30d":
-      milliseconds = 30 * 24 * 60 * 60 * 1000;
-      break;
+  const gruppiert = new Map();
 
-    case "90d":
-      milliseconds = 90 * 24 * 60 * 60 * 1000;
-      break;
-
-    default:
-      return data;
-  }
-
-  const minimumTimestamp =
-    latestTimestamp - milliseconds;
-
-  return data.filter(
-    (point) =>
-      new Date(point.timestamp).getTime() >=
-      minimumTimestamp
-  );
-}
-
-
-/*
- * =========================================================
- * DATUM FORMATIEREN
- * =========================================================
- */
-
-function formatDate(timestamp) {
-  return new Date(timestamp).toLocaleDateString(
-    "de-DE",
-    {
-      day: "2-digit",
-      month: "2-digit",
+  gefiltertePunkte.forEach((punkt) => {
+    if (!gruppiert.has(punkt.timestamp)) {
+      gruppiert.set(punkt.timestamp, {
+        timestamp: punkt.timestamp,
+      });
     }
+
+    gruppiert.get(punkt.timestamp)[punkt.bed] = punkt.value;
+  });
+
+  return Array.from(gruppiert.values()).sort(
+    (a, b) =>
+      new Date(a.timestamp).getTime() -
+      new Date(b.timestamp).getTime(),
   );
 }
 
-
-/*
- * =========================================================
- * TOOLTIP
- * =========================================================
- */
-
-function HistoryTooltip({
-  active,
-  payload,
-  label,
-  unit,
-}) {
+function CustomTooltip({ active, payload, label, unit }) {
   if (!active || !payload || payload.length === 0) {
     return null;
   }
 
   return (
     <div
-      className="history-tooltip"
       style={{
         background: "#ffffff",
-        border: "1px solid #e5e7eb",
+        border: "1px solid #d1d5db",
         borderRadius: "8px",
         padding: "10px 12px",
-        boxShadow:
-          "0 4px 12px rgba(0, 0, 0, 0.08)",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
       }}
     >
       <div
@@ -636,38 +633,23 @@ function HistoryTooltip({
           marginBottom: "6px",
         }}
       >
-        {new Date(label).toLocaleString("de-DE")}
+        {formatTooltipDate(label)}
       </div>
 
       {payload.map((entry) => (
         <div
           key={entry.dataKey}
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            gap: "20px",
+            color: entry.color,
             marginTop: "3px",
           }}
         >
-          <span>
-            {entry.name}
-          </span>
-
-          <strong>
-            {entry.value} {unit}
-          </strong>
+          {entry.name}: {entry.value} {unit}
         </div>
       ))}
     </div>
   );
 }
-
-
-/*
- * =========================================================
- * DIAGRAMM
- * =========================================================
- */
 
 function HistoryChart({
   title,
@@ -675,82 +657,60 @@ function HistoryChart({
   unit,
   selectedBeds,
 }) {
-  const hasData = data && data.length > 0;
-
   return (
-    <div className="history-chart-card">
-      <div className="history-chart-header">
-        <div>
-          <h3>{title}</h3>
+    <section className="historische-chart">
+      <div className="historische-chart-header">
+        <h3>{title}</h3>
 
-          {hasData && (
-            <span className="history-chart-period">
-              {formatDate(data[0].timestamp)}
-              {" – "}
-              {formatDate(
-                data[data.length - 1].timestamp
-              )}
-            </span>
-          )}
-        </div>
+        <span className="historische-chart-einheit">
+          {unit}
+        </span>
       </div>
 
-      {!hasData ? (
-        <div className="history-chart-empty">
+      {data.length === 0 ? (
+        <div className="historische-chart-leer">
           <p>
-            Für die ausgewählten Beete sind keine
-            Daten vorhanden.
+            Für die ausgewählten Beete und den gewählten Zeitraum
+            sind keine Daten vorhanden.
           </p>
         </div>
       ) : (
         <div
-          className="history-chart-wrapper"
           style={{
             width: "100%",
-            height: 340,
+            height: 360,
           }}
         >
-          <ResponsiveContainer
-            width="100%"
-            height="100%"
-          >
+          <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={data}
               margin={{
-                top: 10,
-                right: 20,
+                top: 20,
+                right: 25,
                 left: 10,
                 bottom: 10,
               }}
             >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                className="chart-grid"
-              />
+              <CartesianGrid strokeDasharray="3 3" />
 
               <XAxis
                 dataKey="timestamp"
                 tickFormatter={formatDate}
-                tick={{ fontSize: 12 }}
-                minTickGap={25}
+                minTickGap={30}
               />
 
               <YAxis
-                tick={{ fontSize: 12 }}
                 width={55}
-                label={{
-                  value: unit,
-                  angle: -90,
-                  position: "insideLeft",
-                  style: {
-                    textAnchor: "middle",
-                  },
-                }}
+                tickFormatter={(value) =>
+                  typeof value === "number"
+                    ? value.toLocaleString("de-DE")
+                    : value
+                }
               />
 
               <Tooltip
                 content={
-                  <HistoryTooltip unit={unit} />
+                  <CustomTooltip unit={unit} />
                 }
               />
 
@@ -761,12 +721,13 @@ function HistoryChart({
                   key={bed}
                   type="monotone"
                   dataKey={bed}
-                  name={beetConfig[bed]?.label ?? bed}
-                  stroke={
-                    beetColors[bed] ?? "#64748b"
-                  }
+                  name={bed}
+                  stroke={BED_COLORS[bed]}
                   strokeWidth={2.5}
-                  dot={false}
+                  dot={{
+                    r: 3,
+                    fill: BED_COLORS[bed],
+                  }}
                   activeDot={{
                     r: 5,
                   }}
@@ -777,381 +738,215 @@ function HistoryChart({
           </ResponsiveContainer>
         </div>
       )}
-    </div>
+    </section>
   );
 }
 
-
-/*
- * =========================================================
- * HAUPTKOMPONENTE
- * =========================================================
- */
-
-export default function HistorischeDaten() {
-  /*
-   * -------------------------------------------------------
-   * AUSGEWÄHLTE BEETE
-   * -------------------------------------------------------
-   */
-
-  const [selectedBeds, setSelectedBeds] =
-    useState(["Carla"]);
-
-
-  /*
-   * -------------------------------------------------------
-   * AUSGEWÄHLTE MESSWERTE
-   * -------------------------------------------------------
-   */
-
-  const [
-    selectedMeasurements,
-    setSelectedMeasurements,
-  ] = useState(["temperature"]);
-
-
-  /*
-   * -------------------------------------------------------
-   * ZEITRAUM
-   * -------------------------------------------------------
-   */
-
-  const [zeitraum, setZeitraum] =
-    useState("7d");
-
-
-  /*
-   * -------------------------------------------------------
-   * BEET AUS-/ABWÄHLEN
-   * -------------------------------------------------------
-   */
-
-  function toggleBed(bed) {
-    setSelectedBeds((current) => {
-      if (current.includes(bed)) {
-        return current.filter(
-          (item) => item !== bed
-        );
+export default function HistorischeDaten({
+  selectedBeds,
+  setSelectedBeds,
+  selectedMeasurements,
+  setSelectedMeasurements,
+  zeitraum,
+  setZeitraum,
+}) {
+  const toggleBed = (bed) => {
+    setSelectedBeds((aktuell) => {
+      if (aktuell.includes(bed)) {
+        return aktuell.filter((item) => item !== bed);
       }
 
-      return [...current, bed];
+      return [...aktuell, bed];
     });
-  }
+  };
 
-
-  /*
-   * -------------------------------------------------------
-   * MESSWERT AUS-/ABWÄHLEN
-   * -------------------------------------------------------
-   */
-
-  function toggleMeasurement(measurement) {
-    setSelectedMeasurements((current) => {
-      if (current.includes(measurement)) {
-        return current.filter(
-          (item) => item !== measurement
-        );
+  const toggleMeasurement = (measurement) => {
+    setSelectedMeasurements((aktuell) => {
+      if (aktuell.includes(measurement)) {
+        return aktuell.filter((item) => item !== measurement);
       }
 
-      return [...current, measurement];
+      return [...aktuell, measurement];
     });
-  }
-
-
-  /*
-   * -------------------------------------------------------
-   * DIAGRAMMDATEN ERZEUGEN
-   * -------------------------------------------------------
-   *
-   * Für jeden Messwert und jede Position wird aus den
-   * Mock-Daten ein eigenes Recharts-Dataset erstellt.
-   */
+  };
 
   const chartData = useMemo(() => {
-    const result = {};
+    const ergebnis = {
+      oben: {},
+      unten: {},
+    };
 
-    ["oben", "unten"].forEach((position) => {
-      result[position] = {};
+    selectedMeasurements.forEach((measurement) => {
+      ergebnis.oben[measurement] = buildChartData(
+        selectedBeds,
+        measurement,
+        "oben",
+        zeitraum,
+      );
 
-      selectedMeasurements.forEach(
-        (measurement) => {
-          const data = buildChartData({
-            selectedBeds,
-            measurement,
-            position,
-          });
-
-          result[position][measurement] =
-            filterByTimeRange(
-              data,
-              zeitraum
-            );
-        }
+      ergebnis.unten[measurement] = buildChartData(
+        selectedBeds,
+        measurement,
+        "unten",
+        zeitraum,
       );
     });
 
-    return result;
+    return ergebnis;
   }, [
     selectedBeds,
     selectedMeasurements,
     zeitraum,
   ]);
 
-
-  /*
-   * -------------------------------------------------------
-   * RENDER
-   * -------------------------------------------------------
-   */
-
   return (
-    <section className="historische-daten">
+    <section className="historische-date">
+        <div className="historische-übersichtNeu">
+          <p>
+            Vergleiche historische Messwerte mehrerer Beete
+            und Messgrößen.
+          </p>
+        </div>
 
-      {/* ================================================= */}
-      {/* ÜBERSCHRIFT                                      */}
-      {/* ================================================= */}
+      <section className="historische-filter">
+        <div className="historische-filter-gruppe">
+          <h2>Beete</h2>
 
-      <div className="historische-übersichtNeu">
-        <p>
-          Historischer Verlauf der Messwerte
-          für die ausgewählten Beete.
-        </p>
-      </div>
+          <div className="historische-checkboxen">
+            {BED_NAMES.map((bed) => (
+              <label
+                key={bed}
+                className="historische-checkbox"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedBeds.includes(bed)}
+                  onChange={() => toggleBed(bed)}
+                />
 
+                <span
+                  className="historische-checkbox-farbe"
+                  style={{
+                    backgroundColor: BED_COLORS[bed],
+                  }}
+                />
 
-      {/* ================================================= */}
-      {/* AUSWAHL                                          */}
-      {/* ================================================= */}
-
-      <div className="historische-kontrollen">
-
-        {/* ----------------------------------------------- */}
-        {/* BEETE                                           */}
-        {/* ----------------------------------------------- */}
-
-        <div className="historische-auswahl">
-          <label>
-            Beete
-          </label>
-
-          <div className="history-checkbox-group">
-
-            {Object.entries(beetConfig).map(
-              ([bed, config]) => (
-                <label
-                  key={bed}
-                  className="history-checkbox"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedBeds.includes(
-                      bed
-                    )}
-                    onChange={() =>
-                      toggleBed(bed)
-                    }
-                  />
-
-                  <span>
-                    {config.label}
-                  </span>
-                </label>
-              )
-            )}
-
+                <span>{bed}</span>
+              </label>
+            ))}
           </div>
         </div>
 
+        <div className="historische-filter-gruppe">
+          <h2>Messwerte</h2>
 
-        {/* ----------------------------------------------- */}
-        {/* MESSWERTE                                       */}
-        {/* ----------------------------------------------- */}
+          <div className="historische-checkboxen">
+            {MEASUREMENTS.map((measurement) => (
+              <label
+                key={measurement.key}
+                className="historische-checkbox"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedMeasurements.includes(
+                    measurement.key,
+                  )}
+                  onChange={() =>
+                    toggleMeasurement(measurement.key)
+                  }
+                />
 
-        <div className="historische-auswahl">
-          <label>
-            Messwerte
-          </label>
-
-          <div className="history-checkbox-group">
-
-            {Object.entries(
-              measurementConfig
-            ).map(
-              ([measurement, config]) => (
-                <label
-                  key={measurement}
-                  className="history-checkbox"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedMeasurements.includes(
-                      measurement
-                    )}
-                    onChange={() =>
-                      toggleMeasurement(
-                        measurement
-                      )
-                    }
-                  />
-
-                  <span>
-                    {config.label}
-                  </span>
-                </label>
-              )
-            )}
-
+                <span>{measurement.label}</span>
+              </label>
+            ))}
           </div>
         </div>
 
-
-        {/* ----------------------------------------------- */}
-        {/* ZEITRAUM                                        */}
-        {/* ----------------------------------------------- */}
-
-        <div className="historische-auswahl">
-          <label
-            htmlFor="history-zeitraum"
-          >
-            Zeitraum
-          </label>
+        <div className="historische-filter-gruppe">
+          <h2>Zeitraum</h2>
 
           <select
-            id="history-zeitraum"
+            className="historische-auswahl"
             value={zeitraum}
             onChange={(event) =>
-              setZeitraum(
-                event.target.value
-              )
+              setZeitraum(event.target.value)
             }
           >
-            <option value="24h">
-              Letzte 24 Stunden
-            </option>
-
-            <option value="7d">
-              Letzte 7 Tage
-            </option>
-
-            <option value="30d">
-              Letzte 30 Tage
-            </option>
-
-            <option value="90d">
-              Letzte 3 Monate
-            </option>
+            {ZEITRAEUME.map((option) => (
+              <option
+                key={option.value}
+                value={option.value}
+              >
+                {option.label}
+              </option>
+            ))}
           </select>
         </div>
-
-      </div>
-
-
-      {/* ================================================= */}
-      {/* KEINE AUSWAHL                                    */}
-      {/* ================================================= */}
+      </section>
 
       {selectedBeds.length === 0 ||
       selectedMeasurements.length === 0 ? (
-        <div className="history-empty-selection">
-          <h3>
-            Keine Auswahl
-          </h3>
+        <div className="historische-leerzustand">
+          <h2>Keine Auswahl</h2>
 
           <p>
-            Bitte mindestens ein Beet und einen
-            Messwert auswählen.
+            Bitte wähle mindestens ein Beet und einen Messwert
+            aus.
           </p>
         </div>
       ) : (
         <>
-          {/* ============================================= */}
-          {/* OBEN                                          */}
-          {/* ============================================= */}
-
-          <section className="history-position-section">
-
-            <div className="history-position-header">
+          <section className="historische-bereich">
+            <div className="historische-bereich-header">
               <h2>Oben</h2>
             </div>
 
-            <div className="history-charts">
+            <div className="historische-charts">
+              {selectedMeasurements.map((measurement) => {
+                const config =
+                  measurementConfig[measurement];
 
-              {selectedMeasurements.map(
-                (measurement) => {
-                  const config =
-                    measurementConfig[
-                      measurement
-                    ];
-
-                  return (
-                    <HistoryChart
-                      key={`oben-${measurement}`}
-                      title={
-                        config.label
-                      }
-                      data={
-                        chartData.oben[
-                          measurement
-                        ]
-                      }
-                      unit={config.unit}
-                      selectedBeds={
-                        selectedBeds
-                      }
-                    />
-                  );
-                }
-              )}
-
+                return (
+                  <HistoryChart
+                    key={`oben-${measurement}`}
+                    title={config.label}
+                    unit={config.unit}
+                    data={
+                      chartData.oben[measurement] ?? []
+                    }
+                    selectedBeds={selectedBeds}
+                  />
+                );
+              })}
             </div>
           </section>
 
-
-          {/* ============================================= */}
-          {/* UNTEN                                         */}
-          {/* ============================================= */}
-
-          <section className="history-position-section">
-
-            <div className="history-position-header">
+          <section className="historische-bereich">
+            <div className="historische-bereich-header">
               <h2>Unten</h2>
             </div>
 
-            <div className="history-charts">
+            <div className="historische-charts">
+              {selectedMeasurements.map((measurement) => {
+                const config =
+                  measurementConfig[measurement];
 
-              {selectedMeasurements.map(
-                (measurement) => {
-                  const config =
-                    measurementConfig[
-                      measurement
-                    ];
-
-                  return (
-                    <HistoryChart
-                      key={`unten-${measurement}`}
-                      title={
-                        config.label
-                      }
-                      data={
-                        chartData.unten[
-                          measurement
-                        ]
-                      }
-                      unit={config.unit}
-                      selectedBeds={
-                        selectedBeds
-                      }
-                    />
-                  );
-                }
-              )}
-
+                return (
+                  <HistoryChart
+                    key={`unten-${measurement}`}
+                    title={config.label}
+                    unit={config.unit}
+                    data={
+                      chartData.unten[measurement] ?? []
+                    }
+                    selectedBeds={selectedBeds}
+                  />
+                );
+              })}
             </div>
           </section>
         </>
       )}
-
     </section>
   );
 }

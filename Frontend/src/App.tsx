@@ -186,6 +186,11 @@ function App() {
     setSeite("intern");
   };
 
+  const emilyOeffnen = () => {
+    window.location.hash = "/emily";
+    setSeite("emily");
+  };
+
   const dashboardZurueck = () => {
     window.history.back();
   };
@@ -195,7 +200,12 @@ function App() {
   }
 
   if (seite === "intern") {
-    return <InternalPage onDashboardOeffnen={dashboardOeffnen} />;
+    return (
+      <InternalPage
+        onDashboardOeffnen={dashboardOeffnen}
+        onEmilyOeffnen={emilyOeffnen}
+      />
+    );
   }
 
   if (seite === "emily") {

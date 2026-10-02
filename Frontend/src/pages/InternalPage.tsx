@@ -5,9 +5,13 @@ import soilSensorIcon from "../assets/soil-sensor.svg";
 
 type InternalPageProps = {
   onDashboardOeffnen: () => void;
+  onEmilyOeffnen: () => void;
 };
 
-export function InternalPage({ onDashboardOeffnen }: InternalPageProps) {
+export function InternalPage({
+  onDashboardOeffnen,
+  onEmilyOeffnen,
+}: InternalPageProps) {
   return (
     <div className="intern-seite">
       <header className="intern-kopf">
@@ -85,7 +89,7 @@ export function InternalPage({ onDashboardOeffnen }: InternalPageProps) {
               Versuchsfläche.
             </p>
 
-            <button type="button" disabled>
+            <button type="button" onClick={onEmilyOeffnen}>
               Dashboard öffnen
             </button>
           </article>

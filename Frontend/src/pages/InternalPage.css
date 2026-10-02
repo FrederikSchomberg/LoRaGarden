@@ -125,6 +125,7 @@
   color: white;
   font: inherit;
   font-weight: bold;
+  cursor: pointer;
 }
 
 .intern-karte button:disabled {

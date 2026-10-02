@@ -5,6 +5,7 @@ type DashboardHeaderProps = {
   letzterStand: string | null;
   laedt: boolean;
   onNeuLaden: () => void;
+  onZurueck: () => void;
 };
 
 export function DashboardHeader({
@@ -12,16 +13,16 @@ export function DashboardHeader({
   letzterStand,
   laedt,
   onNeuLaden,
+  onZurueck,
 }: DashboardHeaderProps) {
   return (
     <header className="kopf">
       <div className="kopf-text">
-        
         <h1>Smart Gardening</h1>
 
         <p className="kopf-beschreibung">
-          Carla, Berta und Ilse auf einen Blick. Die großen Werte sind immer
-          der Durchschnitt aus oberem und unterem Sensor.
+          Carla, Berta und Ilse auf einen Blick. Die großen Werte sind immer der
+          Durchschnitt aus oberem und unterem Sensor.
         </p>
       </div>
 
@@ -31,15 +32,17 @@ export function DashboardHeader({
           {demo ? "Beispieldaten" : "Live"}
         </div>
 
-        <p>
-          {demo
-            ? ""
-            : `Letzter Stand: ${formatiereZeit(letzterStand)}`}
-        </p>
+        <p>{demo ? "" : `Letzter Stand: ${formatiereZeit(letzterStand)}`}</p>
 
-        <button type="button" onClick={onNeuLaden} disabled={laedt}>
-          {laedt ? "wird geladen ..." : "Daten neu laden"}
-        </button>
+        <div className="kopf-aktionen">
+          <button type="button" onClick={onZurueck}>
+            Zurück
+          </button>
+
+          <button type="button" onClick={onNeuLaden} disabled={laedt}>
+            {laedt ? "wird geladen ..." : "Daten neu laden"}
+          </button>
+        </div>
       </div>
     </header>
   );

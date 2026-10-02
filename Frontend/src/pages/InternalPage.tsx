@@ -3,7 +3,11 @@ import grafanaIcon from "../assets/grafana_icon.svg";
 import monitorIcon from "../assets/monitor-up.svg";
 import soilSensorIcon from "../assets/soil-sensor.svg";
 
-export function InternalPage() {
+type InternalPageProps = {
+  onDashboardOeffnen: () => void;
+};
+
+export function InternalPage({ onDashboardOeffnen }: InternalPageProps) {
   return (
     <div className="intern-seite">
       <header className="intern-kopf">
@@ -22,8 +26,8 @@ export function InternalPage() {
           <h2>Übersicht</h2>
 
           <p>
-            Von hier aus können die verschiedenen Dashboards und
-            Auswertungen geöffnet werden.
+            Von hier aus können die verschiedenen Dashboards und Auswertungen
+            geöffnet werden.
           </p>
         </div>
 
@@ -40,7 +44,7 @@ export function InternalPage() {
               anzeigen.
             </p>
 
-            <button type="button" disabled>
+            <button type="button" onClick={onDashboardOeffnen}>
               Dashboard öffnen
             </button>
           </article>
@@ -53,11 +57,18 @@ export function InternalPage() {
             <h3>Grafana</h3>
 
             <p>
-              Technische Messwerte und historische Daten in Grafana
-              anzeigen.
+              Technische Messwerte und historische Daten in Grafana anzeigen.
             </p>
 
-            <button type="button" disabled>
+            <button
+              type="button"
+              onClick={() =>
+                window.open(
+                  "http://sr-labor.ddns.net:3088/d/adtpq57/rooftop?from=now-24h&to=now&timezone=browser&var-query0=",
+                  "_blank",
+                )
+              }
+            >
               Grafana öffnen
             </button>
           </article>

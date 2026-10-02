@@ -15,7 +15,11 @@ import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { InternalPage } from "./pages/InternalPage";
 
-function Dashboard() {
+type DashboardProps = {
+  onZurueck: () => void;
+};
+
+function Dashboard({ onZurueck }: DashboardProps) {
   // damit wir wieder oben landen wenn wir das dashboard über den link öffnen
   useEffect(() => {
     window.scrollTo({
@@ -77,6 +81,7 @@ function Dashboard() {
         letzterStand={letzterStand}
         laedt={laedt}
         onNeuLaden={holeDaten}
+        onZurueck={onZurueck}
       />
 
       {/* Navigation zwischen aktuellem und historischem Dashboard */}
@@ -171,19 +176,28 @@ function App() {
     setSeite("landingpage");
   };
 
+  const internOeffnen = () => {
+    window.location.hash = "/intern";
+    setSeite("intern");
+  };
+
+  const dashboardZurueck = () => {
+    window.history.back();
+  };
+
   if (seite === "login") {
     return <LoginPage onZurueck={startseiteOeffnen} />;
   }
 
   if (seite === "intern") {
-    return <InternalPage />;
+    return <InternalPage onDashboardOeffnen={dashboardOeffnen} />;
   }
 
   if (seite === "landingpage") {
     return <LandingPage onDashboardOeffnen={dashboardOeffnen} />;
   }
 
-  return <Dashboard />;
+  return <Dashboard onZurueck={dashboardZurueck} />;
 }
 
 export default App;

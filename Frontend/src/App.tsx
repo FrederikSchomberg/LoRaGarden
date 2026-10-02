@@ -14,6 +14,7 @@ import type { DashboardResponse } from "./types/dashboard";
 import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { InternalPage } from "./pages/InternalPage";
+import { EmilyDashboard } from "./pages/EmilyDashboard";
 
 type DashboardProps = {
   onZurueck: () => void;
@@ -147,11 +148,15 @@ function App() {
       return "intern";
     }
 
+    if (window.location.hash === "#/emily") {
+      return "emily";
+    }
+
     return "landingpage";
   };
 
   const [seite, setSeite] = useState<
-    "landingpage" | "dashboard" | "login" | "intern"
+    "landingpage" | "dashboard" | "login" | "intern" | "emily"
   >(seiteAusUrl);
 
   useEffect(() => {
@@ -191,6 +196,10 @@ function App() {
 
   if (seite === "intern") {
     return <InternalPage onDashboardOeffnen={dashboardOeffnen} />;
+  }
+
+  if (seite === "emily") {
+    return <EmilyDashboard onZurueck={internOeffnen} />;
   }
 
   if (seite === "landingpage") {

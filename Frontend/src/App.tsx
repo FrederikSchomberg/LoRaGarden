@@ -13,6 +13,7 @@ import { GrafanaHistorischeDaten } from "./components/GrafanaHistorischeDaten";
 import type { DashboardResponse } from "./types/dashboard";
 import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
+import { InternalPage } from "./pages/InternalPage";
 
 function Dashboard() {
   // damit wir wieder oben landen wenn wir das dashboard über den link öffnen
@@ -58,7 +59,7 @@ function Dashboard() {
   useEffect(() => {
     const start = window.setTimeout(() => void holeDaten(), 0);
 
-    // im 2min intervall wird die seite neu geladen 
+    // im 2min intervall wird die seite neu geladen
     const timer = window.setInterval(() => void holeDaten(), 120000);
 
     return () => {
@@ -137,12 +138,16 @@ function App() {
       return "login";
     }
 
+    if (window.location.hash === "#/intern") {
+      return "intern";
+    }
+
     return "landingpage";
   };
 
-  const [seite, setSeite] = useState<"landingpage" | "dashboard" | "login">(
-    seiteAusUrl,
-  );
+  const [seite, setSeite] = useState<
+    "landingpage" | "dashboard" | "login" | "intern"
+  >(seiteAusUrl);
 
   useEffect(() => {
     const reagiereAufUrlAenderung = () => {
@@ -168,6 +173,10 @@ function App() {
 
   if (seite === "login") {
     return <LoginPage onZurueck={startseiteOeffnen} />;
+  }
+
+  if (seite === "intern") {
+    return <InternalPage />;
   }
 
   if (seite === "landingpage") {

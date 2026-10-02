@@ -1,0 +1,158 @@
+.intern-seite {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  background: #f4f7f2;
+}
+
+.intern-kopf {
+  display: flex;
+  min-height: 120px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  padding: 24px clamp(24px, 5vw, 70px);
+  background: #183d2c;
+  color: white;
+}
+
+.intern-klein {
+  margin: 0 0 6px;
+  color: #d8eadf;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.intern-kopf h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.intern-kopf button {
+  padding: 10px 16px;
+  border: 1px solid #d8eadf;
+  border-radius: 5px;
+  background: white;
+  color: #183d2c;
+  font: inherit;
+  font-weight: bold;
+}
+
+.intern-kopf button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.intern-inhalt {
+  width: 100%;
+  max-width: 1200px;
+  flex: 1;
+  margin: 0 auto;
+  padding: 60px 24px;
+  box-sizing: border-box;
+}
+
+.intern-einleitung {
+  max-width: 700px;
+  margin-bottom: 32px;
+}
+
+.intern-einleitung h2 {
+  margin: 0 0 10px;
+  color: #183d2c;
+  font-size: 2rem;
+}
+
+.intern-einleitung p {
+  margin: 0;
+  color: #667168;
+  line-height: 1.6;
+}
+
+.intern-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.intern-karte {
+  display: flex;
+  min-height: 280px;
+  flex-direction: column;
+  padding: 26px;
+  border: 1px solid #d8dfd9;
+  border-top: 4px solid #286b4b;
+  border-radius: 8px;
+  background: white;
+}
+
+.intern-icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 20px;
+  place-items: center;
+  border-radius: 50%;
+  background: #edf5f0;
+}
+
+.intern-icon img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.intern-karte h3 {
+  margin: 0 0 10px;
+  color: #183d2c;
+  font-size: 1.25rem;
+}
+
+.intern-karte p {
+  margin: 0 0 24px;
+  color: #667168;
+  line-height: 1.55;
+}
+
+.intern-karte button {
+  width: 100%;
+  margin-top: auto;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 5px;
+  background: #286b4b;
+  color: white;
+  font: inherit;
+  font-weight: bold;
+}
+
+.intern-karte button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.intern-fuss {
+  padding: 18px 24px;
+  background: #183d2c;
+  color: #d8eadf;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+@media (max-width: 850px) {
+  .intern-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 550px) {
+  .intern-kopf {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .intern-inhalt {
+    padding: 40px 16px;
+  }
+}

@@ -22,3 +22,33 @@ export async function holeDashboard(): Promise<DashboardResponse> {
 
   return daten;
 }
+
+// login daten ans backend schicken
+export async function login(benutzername: string, passwort: string) {
+  const antwort = await fetch(`${API_URL}/api/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+
+    // wichtig für den login-cookie vom backend
+    credentials: "include",
+
+    body: JSON.stringify({
+      username: benutzername,
+      password: passwort,
+    }),
+  });
+
+  // login daten waren falsch
+  if (antwort.status === 401 || antwort.status === 403) {
+    return false;
+  }
+
+  // irgendein anderer fehler vom backend
+  if (!antwort.ok) {
+    throw new Error("Login fehlgeschlagen");
+  }
+
+  return true;
+}

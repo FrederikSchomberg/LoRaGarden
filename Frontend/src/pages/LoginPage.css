@@ -71,6 +71,11 @@
   cursor: pointer;
 }
 
+.login-box form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .login-fehler,
 .login-erfolg {
   margin: 0 0 14px;

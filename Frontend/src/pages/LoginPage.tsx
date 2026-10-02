@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { login } from "../api";
 import "./LoginPage.css";
 
 type LoginPageProps = {
@@ -11,20 +12,29 @@ export function LoginPage({ onZurueck }: LoginPageProps) {
   const [passwort, setPasswort] = useState("");
   const [fehler, setFehler] = useState("");
   const [erfolg, setErfolg] = useState(false);
+  const [laedt, setLaedt] = useState(false);
 
-  const anmelden = (event: FormEvent<HTMLFormElement>) => {
+  const anmelden = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     setFehler("");
     setErfolg(false);
+    setLaedt(true);
 
-    // erstmal nur ein einfacher test-login bis die backend-schnittstelle fertig ist
-    if (benutzername === "test" && passwort === "garten") {
+    try {
+      const erfolgreich = await login(benutzername, passwort);
+
+      if (!erfolgreich) {
+        setFehler("Benutzername oder Passwort ist falsch.");
+        return;
+      }
+
       setErfolg(true);
-      return;
+    } catch {
+      setFehler("Verbindung zum Backend fehlgeschlagen.");
+    } finally {
+      setLaedt(false);
     }
-
-    setFehler("Benutzername oder Passwort ist falsch.");
   };
 
   return (
@@ -46,6 +56,7 @@ export function LoginPage({ onZurueck }: LoginPageProps) {
             type="text"
             value={benutzername}
             onChange={(event) => setBenutzername(event.target.value)}
+            disabled={laedt}
             required
           />
 
@@ -56,31 +67,20 @@ export function LoginPage({ onZurueck }: LoginPageProps) {
             type="password"
             value={passwort}
             onChange={(event) => setPasswort(event.target.value)}
+            disabled={laedt}
             required
           />
 
-          {fehler && (
-            <p className="login-fehler">
-              {fehler}
-            </p>
-          )}
+          {fehler && <p className="login-fehler">{fehler}</p>}
 
-          {erfolg && (
-            <p className="login-erfolg">
-              Anmeldung erfolgreich.
-            </p>
-          )}
+          {erfolg && <p className="login-erfolg">Anmeldung erfolgreich.</p>}
 
-          <button type="submit">
-            Anmelden
+          <button type="submit" disabled={laedt}>
+            {laedt ? "Anmeldung läuft..." : "Anmelden"}
           </button>
         </form>
 
-        <button
-          className="login-zurueck"
-          type="button"
-          onClick={onZurueck}
-        >
+        <button className="login-zurueck" type="button" onClick={onZurueck}>
           Zurück zur Startseite
         </button>
       </section>

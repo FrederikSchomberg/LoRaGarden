@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -442,7 +442,6 @@ const beetConfig = {
   },
 };
 
-
 const measurementConfig = {
   temperature: {
     label: "Temperatur",
@@ -490,14 +489,14 @@ const ZEITRAEUME = [
     value: "7d",
     label: "Letzte 7 Tage",
   },
-  {
-    value: "30d",
-    label: "Letzte 30 Tage",
-  },
-  {
-    value: "90d",
-    label: "Letzte 90 Tage",
-  },
+  // {
+  //   value: "30d",
+  //   label: "Letzte 30 Tage",
+  // },
+  // {
+  //   value: "90d",
+  //   label: "Letzte 90 Tage",
+  // },
 ];
 
 function formatDate(timestamp) {
@@ -656,6 +655,7 @@ function HistoryChart({
   data,
   unit,
   selectedBeds,
+  showOutsideTemperature,
 }) {
   return (
     <section className="historische-chart">
@@ -734,12 +734,125 @@ function HistoryChart({
                   connectNulls
                 />
               ))}
+
+              {showOutsideTemperature && (
+                <Line
+                  type="monotone"
+                  dataKey="outsideTemperature"
+                  name="Außentemperatur"
+                  stroke="#111827"
+                  strokeWidth={2}
+                  strokeDasharray="6 4"
+                  dot={false}
+                  connectNulls
+                />
+              )}
             </LineChart>
           </ResponsiveContainer>
         </div>
       )}
     </section>
   );
+}
+// Wenn tatsächlich eine Verbindung zur DB vorhanden ist
+// function getDateRange(zeitraum) {
+//   const end = new Date();
+//   const start = new Date(end);
+
+//   switch (zeitraum) {
+//     case "24h":
+//       start.setHours(start.getHours() - 24);
+//       break;
+
+//     case "7d":
+//       start.setDate(start.getDate() - 7);
+//       break;
+
+//     case "30d":
+//       start.setDate(start.getDate() - 30);
+//       break;
+
+//     case "90d":
+//       start.setDate(start.getDate() - 90);
+//       break;
+
+//     default:
+//       start.setDate(start.getDate() - 7);
+//   }
+
+//   return {
+//     start,
+//     end,
+//   };
+// }
+
+function getDateRange(zeitraum) {
+  return {
+    start: new Date("2026-09-25T00:00:00"),
+    end: new Date("2026-09-30T23:59:59"),
+  };
+}
+
+function formatDateForApi(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+async function fetchWeatherData(zeitraum) {
+  const { start, end } = getDateRange(zeitraum);
+
+  const startDate = formatDateForApi(start);
+  const endDate = formatDateForApi(end);
+
+  const latitude = 51.4817;
+  const longitude = 7.2165;
+
+  const url =
+    `https://archive-api.open-meteo.com/v1/archive` +
+    `?latitude=${latitude}` +
+    `&longitude=${longitude}` +
+    `&start_date=${startDate}` +
+    `&end_date=${endDate}` +
+    `&hourly=temperature_2m` +
+    `&models=dwd_icon_seamless` +
+    `&timezone=Europe%2FBerlin`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("Open-Meteo Anfrage fehlgeschlagen.");
+  }
+
+  const data = await response.json();
+
+  return data.hourly.time.map((timestamp, index) => ({
+    timestamp,
+    value: data.hourly.temperature_2m[index],
+  }));
+}
+
+function addWeatherData(chartData, weatherData) {
+  const weatherMap = new Map();
+
+  weatherData.forEach((point) => {
+    weatherMap.set(
+      normalizeTimestamp(point.timestamp),
+      point.value
+    );
+  });
+
+  return chartData.map((point) => ({
+    ...point,
+    outsideTemperature:
+      weatherMap.get(
+        normalizeTimestamp(point.timestamp)
+      ) ?? null,
+  }));
+}
+
+function normalizeTimestamp(timestamp) {
+  const date = new Date(timestamp);
+
+  return date.toISOString().slice(0, 13);
 }
 
 export default function HistorischeDaten({
@@ -750,6 +863,11 @@ export default function HistorischeDaten({
   zeitraum,
   setZeitraum,
 }) {
+
+  const [weatherData, setWeatherData] = useState([]);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherError, setWeatherError] = useState(null);
+
   const toggleBed = (bed) => {
     setSelectedBeds((aktuell) => {
       if (aktuell.includes(bed)) {
@@ -770,6 +888,28 @@ export default function HistorischeDaten({
     });
   };
 
+  useEffect(() => {
+  async function loadWeatherData() {
+    try {
+      setWeatherLoading(true);
+      setWeatherError(null);
+
+      const data = await fetchWeatherData(zeitraum);
+
+      setWeatherData(data);
+    } catch (error) {
+      console.error(error);
+      setWeatherError(
+        "Die Wetterdaten konnten nicht geladen werden."
+      );
+    } finally {
+      setWeatherLoading(false);
+    }
+  }
+
+  loadWeatherData();
+}, [zeitraum]);
+
   const chartData = useMemo(() => {
     const ergebnis = {
       oben: {},
@@ -777,19 +917,27 @@ export default function HistorischeDaten({
     };
 
     selectedMeasurements.forEach((measurement) => {
-      ergebnis.oben[measurement] = buildChartData(
+      let oben = buildChartData(
         selectedBeds,
         measurement,
         "oben",
         zeitraum,
       );
 
-      ergebnis.unten[measurement] = buildChartData(
+      let unten = buildChartData(
         selectedBeds,
         measurement,
         "unten",
         zeitraum,
       );
+
+      if (measurement === "temperature") {
+        oben = addWeatherData(oben, weatherData);
+        unten = addWeatherData(unten, weatherData);
+      }
+
+      ergebnis.oben[measurement] = oben;
+      ergebnis.unten[measurement] = unten;
     });
 
     return ergebnis;
@@ -797,6 +945,7 @@ export default function HistorischeDaten({
     selectedBeds,
     selectedMeasurements,
     zeitraum,
+    weatherData,
   ]);
 
   return (
@@ -915,6 +1064,7 @@ export default function HistorischeDaten({
                       chartData.oben[measurement] ?? []
                     }
                     selectedBeds={selectedBeds}
+                    showOutsideTemperature={measurement === "temperature"}
                   />
                 );
               })}
@@ -940,6 +1090,7 @@ export default function HistorischeDaten({
                       chartData.unten[measurement] ?? []
                     }
                     selectedBeds={selectedBeds}
+                    showOutsideTemperature={measurement === "temperature"}
                   />
                 );
               })}
@@ -947,6 +1098,18 @@ export default function HistorischeDaten({
           </section>
         </>
       )}
+
+      <div class="weather-attribution">
+        Externe Wetterdaten (Außentemperatur) von&nbsp;
+        <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">
+            Open-Meteo.com&nbsp;
+        </a>
+        •&nbsp;
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">
+            CC BY 4.0
+        </a>
+      </div>
     </section>
+    
   );
 }

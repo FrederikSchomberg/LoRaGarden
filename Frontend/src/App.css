@@ -468,3 +468,14 @@ tbody td span { margin-top: 2px; color: var(--grau); font-size: 0.75rem; }
     height: 250px;
   }
 }
+
+.weather-attribution {
+    font-size: 0.75rem;
+    color: #777;
+    margin-top: 8px;
+}
+
+.weather-attribution a {
+    color: inherit;
+    text-decoration: underline;
+}

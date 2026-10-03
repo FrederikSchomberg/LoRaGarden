@@ -68,7 +68,7 @@ def _get_current_user(request: Request) -> dict:
 
 @router.post("/register")
 async def register(body: RegisterRequest, response: Response):
-    # neuen user anlegen und direkt per cookie einloggen
+    # registriert einen neuen user und loggt ihn direkt per cookie ein
     if len(body.password) < 6:
         raise HTTPException(
             status_code=400,
@@ -118,7 +118,7 @@ async def login(body: LoginRequest, response: Response):
         print(f"login fehlgeschlagen (datenbankfehler): {error}")
         raise HTTPException(
             status_code=503,
-            detail="Datenbank gerade nicht erreichbar.",
+            detail="Datenbank ist gerade nicht erreichbar. Bitte später erneut versuchen.",
         ) from error
 
     if user is None:
@@ -147,7 +147,7 @@ async def login(body: LoginRequest, response: Response):
 
 @router.post("/logout")
 async def logout(response: Response):
-    # cookie löschen
+    # meldet einen user ab, indem der cookie gelöscht wird
     response.delete_cookie(
         key=COOKIE_NAME,
         path="/",

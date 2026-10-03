@@ -1,18 +1,18 @@
-import "./EmilyDashboard.css";
+import "./NeleDashboard.css";
 
-type EmilyDashboardProps = {
+type NeleDashboardProps = {
   onZurueck: () => void;
 };
 
-export function EmilyDashboard({
+export function NeleDashboard({
   onZurueck,
-}: EmilyDashboardProps) {
+}: NeleDashboardProps) {
   return (
-    <div className="emily-seite">
-      <header className="emily-kopf">
+    <div className="nele-seite">
+      <header className="nele-kopf">
         <div>
-          <p className="emily-klein">Smart Gardening</p>
-          <h1>Emily Dashboard</h1>
+          <p className="nele-klein">Smart Gardening</p>
+          <h1>Nele Dashboard</h1>
         </div>
 
         <button type="button" onClick={onZurueck}>
@@ -20,34 +20,34 @@ export function EmilyDashboard({
         </button>
       </header>
 
-      <main className="emily-inhalt">
-        <section className="emily-einleitung">
+      <main className="nele-inhalt">
+        <section className="nele-einleitung">
           <h2>Sensorübersicht</h2>
 
           <p>
-            Hier werden später die Messwerte von Emilys Sensoren angezeigt.
+            Hier werden später die Messwerte von Neles Sensoren angezeigt.
           </p>
         </section>
 
-        <section className="emily-grid">
-          <article className="emily-karte">
+        <section className="nele-grid">
+          <article className="nele-karte">
             <h3>Bodenfeuchtigkeit</h3>
             <p>Noch keine Daten vorhanden.</p>
           </article>
 
-          <article className="emily-karte">
+          <article className="nele-karte">
             <h3>Temperatur</h3>
             <p>Noch keine Daten vorhanden.</p>
           </article>
 
-          <article className="emily-karte">
+          <article className="nele-karte">
             <h3>Weitere Messwerte</h3>
             <p>Noch keine Daten vorhanden.</p>
           </article>
         </section>
       </main>
 
-      <footer className="emily-fuss">
+      <footer className="nele-fuss">
         Smart Gardening – Softwarepraktikum der Hochschule Bochum
       </footer>
     </div>

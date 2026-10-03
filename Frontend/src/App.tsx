@@ -15,7 +15,7 @@ import type { User } from "./types/auth";
 import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { InternalPage } from "./pages/InternalPage";
-import { EmilyDashboard } from "./pages/EmilyDashboard";
+import { NeleDashboard } from "./pages/NeleDashboard";
 
 type DashboardProps = {
   user: User | null;
@@ -163,15 +163,15 @@ function App() {
       return "intern";
     }
 
-    if (window.location.hash === "#/emily") {
-      return "emily";
+    if (window.location.hash === "#/nele") {
+      return "nele";
     }
 
     return "landingpage";
   };
 
   const [seite, setSeite] = useState<
-    "landingpage" | "dashboard" | "login" | "intern" | "emily"
+    "landingpage" | "dashboard" | "login" | "intern" | "nele"
   >(seiteAusUrl);
 
   // Beim Start prüfen, ob der User bereits eingeloggt ist (Cookie prüfen)
@@ -230,9 +230,9 @@ function App() {
     setSeite("intern");
   };
 
-  const emilyOeffnen = () => {
-    window.location.hash = "/emily";
-    setSeite("emily");
+  const neleOeffnen = () => {
+    window.location.hash = "/nele";
+    setSeite("nele");
   };
 
   if (seite === "login") {
@@ -251,13 +251,13 @@ function App() {
     return (
       <InternalPage
         onDashboardOeffnen={dashboardOeffnen}
-        onEmilyOeffnen={emilyOeffnen}
+        onNeleOeffnen={neleOeffnen}
       />
     );
   }
 
-  if (seite === "emily") {
-    return <EmilyDashboard onZurueck={internOeffnen} />;
+  if (seite === "nele") {
+    return <NeleDashboard onZurueck={internOeffnen} />;
   }
 
   if (seite === "landingpage") {

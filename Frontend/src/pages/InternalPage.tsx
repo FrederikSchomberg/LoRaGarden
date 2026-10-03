@@ -5,12 +5,12 @@ import soilSensorIcon from "../assets/soil-sensor.svg";
 
 type InternalPageProps = {
   onDashboardOeffnen: () => void;
-  onEmilyOeffnen: () => void;
+  onNeleOeffnen: () => void;
 };
 
 export function InternalPage({
   onDashboardOeffnen,
-  onEmilyOeffnen,
+  onNeleOeffnen,
 }: InternalPageProps) {
   return (
     <div className="intern-seite">
@@ -82,14 +82,14 @@ export function InternalPage({
               <img src={soilSensorIcon} alt="" aria-hidden="true" />
             </div>
 
-            <h3>Emily Dashboard</h3>
+            <h3>Nele Dashboard</h3>
 
             <p>
-              Zusätzlicher Bereich für die Sensordaten von Emilys
+              Zusätzlicher Bereich für die Sensordaten von Neles
               Versuchsfläche.
             </p>
 
-            <button type="button" onClick={onEmilyOeffnen}>
+            <button type="button" onClick={onNeleOeffnen}>
               Dashboard öffnen
             </button>
           </article>

@@ -6,4 +6,4 @@ influxdb-client
 passlib
 bcrypt
 PyJWT
-pydantic[email]
+pydantic

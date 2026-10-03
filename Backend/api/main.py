@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from db_connector import DBConnector
 from auth_routes import router as auth_router
+from auth import create_default_users
 
 
 # die ids bleiben metadaten, die influx-abfrage läuft über tag "name"
@@ -90,6 +91,11 @@ async def lifespan(_app):
     # testet beim start einmal die db, beendet die api bei einem fehler aber nicht
     if db_connector.check_connection():
         print("influxdb ist verbunden")
+
+        try:
+            create_default_users()
+        except Exception as error:
+            print(f"user konnten nicht angelegt werden: {error}")
     else:
         print("api läuft, aber influxdb ist noch nicht erreichbar")
 
@@ -411,4 +417,4 @@ async def get_dashboard_history(
     # liefert historische messwerte aller beete und sensoren für das dashboard
     valid_range = validate_time_range(time_range)
     all_history = query_all_sensors_history_from_database(time_range=valid_range)
-    return build_dashboard_history_response(all_history, time_range)
+    return build_dashboard_history_response(all_history, time_range)

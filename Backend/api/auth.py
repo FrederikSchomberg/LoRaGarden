@@ -72,12 +72,13 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 
-def create_access_token(email: str, name: str) -> str:
-    # erstellt einen jwt token mit email und name als payload
+def create_access_token(username: str, name: str) -> str:
+    # erstellt den token für den eingeloggten user
     _check_auth_settings()
     expire = datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRE_HOURS)
+
     payload = {
-        "sub": email,
+        "sub": username,
         "name": name,
         "exp": expire,
         "iat": datetime.now(timezone.utc),
@@ -96,17 +97,16 @@ def decode_access_token(token: str) -> dict | None:
         return None
 
 
-def get_user_by_email(email: str) -> dict | None:
-    # sucht einen user per email in der db
+def get_user_by_username(username: str) -> dict | None:
+    # sucht einen user über den benutzernamen
     _check_auth_settings()
-    email_lower = email.lower().strip()
+    username_lower = username.lower().strip()
 
-    # holt die email aus der db
     query = f'''\
 from(bucket: {json.dumps(USERS_BUCKET)})
   |> range(start: 0)
   |> filter(fn: (r) => r._measurement == "user")
-  |> filter(fn: (r) => r.email == {json.dumps(email_lower)})
+  |> filter(fn: (r) => r.username == {json.dumps(username_lower)})
   |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
   |> group()
   |> sort(columns: ["_time"], desc: true)
@@ -118,7 +118,7 @@ from(bucket: {json.dumps(USERS_BUCKET)})
     for table in tables:
         for record in table.records:
             return {
-                "email": record.values.get("email", email_lower),
+                "username": record.values.get("username", username_lower),
                 "name": record.values.get("name", ""),
                 "password_hash": record.values.get("password_hash", ""),
                 "created_at": record.get_time().isoformat() if record.get_time() else None,
@@ -127,23 +127,21 @@ from(bucket: {json.dumps(USERS_BUCKET)})
     return None
 
 
-def create_user(email: str, name: str, password: str) -> dict:
-    # legt einen neuen user an und gibt ihn zurück (ohne passwort-hash)
+def create_user(username: str, name: str, password: str) -> dict:
+    # legt einen user an falls er noch nicht existiert
     _check_auth_settings()
-    email_lower = email.lower().strip()
+    username_lower = username.lower().strip()
 
-    # prüfen ob user schon existiert
-    existing = get_user_by_email(email_lower)
+    existing = get_user_by_username(username_lower)
     if existing:
-        raise ValueError("Ein User mit dieser E-Mail existiert bereits.")
+        raise ValueError("User existiert bereits.")
 
     password_hash = hash_password(password)
     now = datetime.now(timezone.utc)
 
-    # "email" ist ein tag, "name" und "password_hash" sind felder
     point = (
         Point("user")
-        .tag("email", email_lower)
+        .tag("username", username_lower)
         .field("name", name)
         .field("password_hash", password_hash)
         .time(now, WritePrecision.S)
@@ -154,7 +152,38 @@ def create_user(email: str, name: str, password: str) -> dict:
         write_api.write(bucket=USERS_BUCKET, org=INFLUX_ORG, record=point)
 
     return {
-        "email": email_lower,
+        "username": username_lower,
         "name": name,
         "created_at": now.isoformat(),
     }
+    
+def create_default_users():
+    # die beiden accounts werden nur angelegt wenn sie noch nicht existieren
+    users = [
+        {
+            "username": "admin",
+            "name": "Admin",
+            "password": os.getenv("ADMIN_PASSWORD", ""),
+        },
+        {
+            "username": "nachhaltigkeit",
+            "name": "Nachhaltigkeit",
+            "password": os.getenv("NACHHALTIGKEIT_PASSWORD", ""),
+        },
+    ]
+
+    for user in users:
+        if not user["password"]:
+            print(f"passwort für {user['username']} fehlt in der .env")
+            continue
+
+        if get_user_by_username(user["username"]):
+            continue
+
+        create_user(
+            username=user["username"],
+            name=user["name"],
+            password=user["password"],
+        )
+
+        print(f"user {user['username']} wurde angelegt")

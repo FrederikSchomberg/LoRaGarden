@@ -1,13 +1,12 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 # pyrefly: ignore [missing-import]
 from fastapi import APIRouter, HTTPException, Request, Response
 
 from auth import (
     JWT_EXPIRE_HOURS,
     create_access_token,
-    create_user,
     decode_access_token,
-    get_user_by_email,
+    get_user_by_username,
     verify_password,
 )
 
@@ -19,15 +18,8 @@ COOKIE_NAME = "access_token"
 COOKIE_MAX_AGE = JWT_EXPIRE_HOURS * 60 * 60
 
 
-# request-modelle für die validierung
-class RegisterRequest(BaseModel):
-    email: EmailStr
-    name: str
-    password: str
-
-
 class LoginRequest(BaseModel):
-    email: EmailStr
+    username: str
     password: str
 
 
@@ -61,85 +53,45 @@ def _get_current_user(request: Request) -> dict:
         )
 
     return {
-        "email": payload.get("sub"),
+        "username": payload.get("sub"),
         "name": payload.get("name"),
     }
 
-
-@router.post("/register")
-async def register(body: RegisterRequest, response: Response):
-    # registriert einen neuen user und loggt ihn direkt per cookie ein
-    if len(body.password) < 6:
-        raise HTTPException(
-            status_code=400,
-            detail="Das Passwort muss mindestens 6 Zeichen lang sein.",
-        )
-
-    if not body.name.strip():
-        raise HTTPException(
-            status_code=400,
-            detail="Der Name darf nicht leer sein.",
-        )
-
-    try:
-        user = create_user(
-            email=body.email,
-            name=body.name.strip(),
-            password=body.password,
-        )
-    except ValueError as error:
-        raise HTTPException(status_code=409, detail=str(error)) from error
-    except Exception as error:
-        print(f"registrierung fehlgeschlagen: {error}")
-        raise HTTPException(
-            status_code=503,
-            detail="Datenbank ist gerade nicht erreichbar. Bitte später erneut versuchen.",
-        ) from error
-
-    # nach registrierung direkt einloggen
-    token = create_access_token(email=user["email"], name=user["name"])
-    _set_token_cookie(response, token)
-
-    return {
-        "message": "Registrierung erfolgreich.",
-        "user": {
-            "email": user["email"],
-            "name": user["name"],
-        },
-    }
-
-
 @router.post("/login")
 async def login(body: LoginRequest, response: Response):
-    # user anmelden und jwt-cookie setzen
+    # user suchen und passwort prüfen
     try:
-        user = get_user_by_email(body.email)
+        user = get_user_by_username(body.username)
     except Exception as error:
-        print(f"login fehlgeschlagen (datenbankfehler): {error}")
+        print(f"login fehlgeschlagen: {error}")
         raise HTTPException(
             status_code=503,
-            detail="Datenbank ist gerade nicht erreichbar. Bitte später erneut versuchen.",
+            detail="Datenbank ist gerade nicht erreichbar.",
         ) from error
 
     if user is None:
         raise HTTPException(
             status_code=401,
-            detail="E-Mail oder Passwort ist falsch.",
+            detail="Benutzername oder Passwort ist falsch.",
         )
 
     if not verify_password(body.password, user["password_hash"]):
         raise HTTPException(
             status_code=401,
-            detail="E-Mail oder Passwort ist falsch.",
+            detail="Benutzername oder Passwort ist falsch.",
         )
 
-    token = create_access_token(email=user["email"], name=user["name"])
+    token = create_access_token(
+        username=user["username"],
+        name=user["name"],
+    )
+
     _set_token_cookie(response, token)
 
     return {
         "message": "Login erfolgreich.",
         "user": {
-            "email": user["email"],
+            "username": user["username"],
             "name": user["name"],
         },
     }

@@ -1,5 +1,5 @@
 export type User = {
-  email: string;
+  username: string;
   name: string;
 };
 
@@ -9,12 +9,6 @@ export type AuthResponse = {
 };
 
 export type LoginPayload = {
-  email: string;
-  password: string;
-};
-
-export type RegisterPayload = {
-  email: string;
-  name: string;
+  username: string;
   password: string;
 };

@@ -1,4 +1,4 @@
-import type { AuthResponse, LoginPayload, RegisterPayload, User } from "./types/auth";
+import type { AuthResponse, LoginPayload, User } from "./types/auth";
 import type { DashboardHistoryResponse, DashboardResponse } from "./types/dashboard";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8001";
@@ -23,9 +23,7 @@ async function extrahiereFehlermeldung(res: Response, standard: string): Promise
 
 // Hole die Beete anstatt von dem Dashboard oder Dashboard
 export async function holeDashboard(): Promise<DashboardResponse> {
-  const antwort = await fetch(`${API_URL}/api/dashboard`, {
-    credentials: "include",
-  });
+  const antwort = await fetch(`${API_URL}/api/dashboard`);
 
   if (!antwort.ok) {
     throw new Error("Dashboard konnte nicht geladen werden");
@@ -38,11 +36,7 @@ export async function holeDashboard(): Promise<DashboardResponse> {
 // Hole historische Daten für das gesamte Dashboard
 export async function holeDashboardHistorie(timeRange = "5d"): Promise<DashboardHistoryResponse> {
   const antwort = await fetch(
-    `${API_URL}/api/dashboard/history?time_range=${encodeURIComponent(timeRange)}`,
-    {
-      credentials: "include",
-    },
-  );
+    `${API_URL}/api/dashboard/history?time_range=${encodeURIComponent(timeRange)}`);
 
   if (!antwort.ok) {
     const fehler = await extrahiereFehlermeldung(
@@ -70,27 +64,6 @@ export async function loginUser(payload: LoginPayload): Promise<AuthResponse> {
     const fehler = await extrahiereFehlermeldung(
       antwort,
       "Anmeldung fehlgeschlagen. Bitte Eingaben überprüfen.",
-    );
-    throw new Error(fehler);
-  }
-
-  return antwort.json();
-}
-
-export async function registerUser(payload: RegisterPayload): Promise<AuthResponse> {
-  const antwort = await fetch(`${API_URL}/api/auth/register`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify(payload),
-  });
-
-  if (!antwort.ok) {
-    const fehler = await extrahiereFehlermeldung(
-      antwort,
-      "Registrierung fehlgeschlagen. Bitte Eingaben überprüfen.",
     );
     throw new Error(fehler);
   }

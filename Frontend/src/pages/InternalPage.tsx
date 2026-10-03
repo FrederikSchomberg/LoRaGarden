@@ -26,15 +26,6 @@ export function InternalPage({
       </header>
 
       <main className="intern-inhalt">
-        <div className="intern-einleitung">
-          <h2>Übersicht</h2>
-
-          <p>
-            Von hier aus können die verschiedenen Dashboards und Auswertungen
-            geöffnet werden.
-          </p>
-        </div>
-
         <section className="intern-grid" aria-label="Interne Anwendungen">
           <article className="intern-karte">
             <div className="intern-icon">
@@ -85,8 +76,7 @@ export function InternalPage({
             <h3>Nele Dashboard</h3>
 
             <p>
-              Zusätzlicher Bereich für die Sensordaten von Neles
-              Versuchsfläche.
+              Zusätzlicher Bereich für die Sensordaten von Neles Versuchsfläche.
             </p>
 
             <button type="button" onClick={onNeleOeffnen}>

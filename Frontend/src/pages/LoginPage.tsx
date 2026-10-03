@@ -1,37 +1,74 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { login } from "../api";
+import { loginUser, registerUser } from "../api";
+import type { User } from "../types/auth";
 import "./LoginPage.css";
 
 type LoginPageProps = {
   onZurueck: () => void;
+  onLoginErfolg?: (user: User) => void;
 };
 
-export function LoginPage({ onZurueck }: LoginPageProps) {
-  const [benutzername, setBenutzername] = useState("");
+type Modus = "anmelden" | "registrieren";
+
+export function LoginPage({ onZurueck, onLoginErfolg }: LoginPageProps) {
+  const [modus, setModus] = useState<Modus>("anmelden");
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [passwort, setPasswort] = useState("");
+
   const [fehler, setFehler] = useState("");
-  const [erfolg, setErfolg] = useState(false);
+  const [erfolg, setErfolg] = useState("");
   const [laedt, setLaedt] = useState(false);
 
-  const anmelden = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
+  const wechsleModus = (neuerModus: Modus) => {
+    setModus(neuerModus);
     setFehler("");
-    setErfolg(false);
+    setErfolg("");
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFehler("");
+    setErfolg("");
     setLaedt(true);
 
     try {
-      const erfolgreich = await login(benutzername, passwort);
+      if (modus === "anmelden") {
+        const antwort = await loginUser({
+          email: email.trim(),
+          password: passwort,
+        });
 
-      if (!erfolgreich) {
-        setFehler("Benutzername oder Passwort ist falsch.");
-        return;
+        setErfolg(`Willkommen zurück, ${antwort.user.name}!`);
+
+        if (onLoginErfolg) {
+          setTimeout(() => {
+            onLoginErfolg(antwort.user);
+          }, 600);
+        }
+      } else {
+        const antwort = await registerUser({
+          name: name.trim(),
+          email: email.trim(),
+          password: passwort,
+        });
+
+        setErfolg(`Konto erfolgreich erstellt! Willkommen, ${antwort.user.name}.`);
+
+        if (onLoginErfolg) {
+          setTimeout(() => {
+            onLoginErfolg(antwort.user);
+          }, 600);
+        }
       }
-
-      setErfolg(true);
-    } catch {
-      setFehler("Verbindung zum Backend fehlgeschlagen.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setFehler(err.message);
+      } else {
+        setFehler("Ein unerwarteter Fehler ist aufgetreten.");
+      }
     } finally {
       setLaedt(false);
     }
@@ -42,43 +79,96 @@ export function LoginPage({ onZurueck }: LoginPageProps) {
       <section className="login-box">
         <p className="login-klein">Smart Gardening</p>
 
-        <h1>Anmelden</h1>
+        <h1>{modus === "anmelden" ? "Anmelden" : "Konto erstellen"}</h1>
+
+        <div className="login-tabs">
+          <button
+            type="button"
+            className={modus === "anmelden" ? "login-tab-btn aktiv" : "login-tab-btn"}
+            onClick={() => wechsleModus("anmelden")}
+          >
+            Anmelden
+          </button>
+          <button
+            type="button"
+            className={modus === "registrieren" ? "login-tab-btn aktiv" : "login-tab-btn"}
+            onClick={() => wechsleModus("registrieren")}
+          >
+            Registrieren
+          </button>
+        </div>
 
         <p className="login-text">
-          Bitte mit Benutzername und Passwort anmelden.
+          {modus === "anmelden"
+            ? "Bitte mit E-Mail und Passwort anmelden."
+            : "Erstelle ein neues Benutzerkonto für LoRaGarden."}
         </p>
 
-        <form onSubmit={anmelden}>
-          <label htmlFor="benutzername">Benutzername</label>
+        <form onSubmit={handleSubmit}>
+          {modus === "registrieren" && (
+            <>
+              <label htmlFor="name">Name</label>
+              <input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="z. B. Max Mustermann"
+                required
+              />
+            </>
+          )}
 
+          <label htmlFor="email">E-Mail-Adresse</label>
           <input
-            id="benutzername"
-            type="text"
-            value={benutzername}
-            onChange={(event) => setBenutzername(event.target.value)}
-            disabled={laedt}
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="name@beispiel.de"
             required
           />
 
           <label htmlFor="passwort">Passwort</label>
-
           <input
             id="passwort"
             type="password"
             value={passwort}
-            onChange={(event) => setPasswort(event.target.value)}
-            disabled={laedt}
+            onChange={(e) => setPasswort(e.target.value)}
+            placeholder={modus === "registrieren" ? "Mindestens 6 Zeichen" : ""}
+            minLength={modus === "registrieren" ? 6 : undefined}
             required
           />
+          {modus === "registrieren" && (
+            <p className="login-hinweis">Das Passwort muss mindestens 6 Zeichen lang sein.</p>
+          )}
 
           {fehler && <p className="login-fehler">{fehler}</p>}
 
-          {erfolg && <p className="login-erfolg">Anmeldung erfolgreich.</p>}
+          {erfolg && <p className="login-erfolg">{erfolg}</p>}
 
           <button type="submit" disabled={laedt}>
-            {laedt ? "Anmeldung läuft..." : "Anmelden"}
+            {laedt
+              ? modus === "anmelden"
+                ? "Wird angemeldet..."
+                : "Wird registriert..."
+              : modus === "anmelden"
+                ? "Anmelden"
+                : "Registrieren"}
           </button>
         </form>
+
+        <div className="login-wechsel-abschnitt">
+          <button
+            type="button"
+            className="login-wechsel-btn"
+            onClick={() => wechsleModus(modus === "anmelden" ? "registrieren" : "anmelden")}
+          >
+            {modus === "anmelden"
+              ? "Noch kein Konto? Jetzt registrieren"
+              : "Bereits registriert? Hier anmelden"}
+          </button>
+        </div>
 
         <button className="login-zurueck" type="button" onClick={onZurueck}>
           Zurück zur Startseite

@@ -3,3 +3,7 @@ uvicorn
 paho-mqtt
 python-dotenv
 influxdb-client
+passlib
+bcrypt
+PyJWT
+pydantic[email]

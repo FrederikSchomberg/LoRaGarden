@@ -1,3 +1,4 @@
+import type { User } from "../types/auth";
 import { formatiereZeit } from "../dashboardUtils";
 
 type DashboardHeaderProps = {
@@ -5,7 +6,10 @@ type DashboardHeaderProps = {
   letzterStand: string | null;
   laedt: boolean;
   onNeuLaden: () => void;
-  onZurueck: () => void;
+  user?: User | null;
+  onLogout?: () => void;
+  onLoginOeffnen?: () => void;
+  onStartseiteOeffnen?: () => void;
 };
 
 export function DashboardHeader({
@@ -13,7 +17,10 @@ export function DashboardHeader({
   letzterStand,
   laedt,
   onNeuLaden,
-  onZurueck,
+  user,
+  onLogout,
+  onLoginOeffnen,
+  onStartseiteOeffnen,
 }: DashboardHeaderProps) {
   return (
     <header className="kopf">
@@ -35,13 +42,45 @@ export function DashboardHeader({
         <p>{demo ? "" : `Letzter Stand: ${formatiereZeit(letzterStand)}`}</p>
 
         <div className="kopf-aktionen">
-          <button type="button" onClick={onZurueck}>
-            Zurück
-          </button>
-
           <button type="button" onClick={onNeuLaden} disabled={laedt}>
             {laedt ? "wird geladen ..." : "Daten neu laden"}
           </button>
+
+          {user ? (
+            <div className="kopf-benutzer">
+              <span className="kopf-benutzer-name">👤 {user.name}</span>
+              {onLogout && (
+                <button
+                  type="button"
+                  className="btn-abmelden"
+                  onClick={onLogout}
+                  title="Abmelden"
+                >
+                  Abmelden
+                </button>
+              )}
+            </div>
+          ) : (
+            onLoginOeffnen && (
+              <button
+                type="button"
+                className="btn-abmelden"
+                onClick={onLoginOeffnen}
+              >
+                Anmelden
+              </button>
+            )
+          )}
+
+          {onStartseiteOeffnen && (
+            <button
+              type="button"
+              className="btn-abmelden"
+              onClick={onStartseiteOeffnen}
+            >
+              Startseite
+            </button>
+          )}
         </div>
       </div>
     </header>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import "./App.css";
-import { holeDashboard } from "./api";
+import { getCurrentUser, holeDashboard, logoutUser } from "./api";
 import { BedCard } from "./components/BedCard";
 import { ComparisonTable } from "./components/ComparisonTable";
 import { DashboardHeader } from "./components/DashboardHeader";
@@ -11,16 +11,25 @@ import { letzteMessung } from "./dashboardUtils";
 import { beispielDaten } from "./data/mockData";
 import { GrafanaHistorischeDaten } from "./components/GrafanaHistorischeDaten";
 import type { DashboardResponse } from "./types/dashboard";
+import type { User } from "./types/auth";
 import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { InternalPage } from "./pages/InternalPage";
 import { EmilyDashboard } from "./pages/EmilyDashboard";
 
 type DashboardProps = {
-  onZurueck: () => void;
+  user: User | null;
+  onLogout: () => void;
+  onLoginOeffnen: () => void;
+  onStartseiteOeffnen: () => void;
 };
 
-function Dashboard({ onZurueck }: DashboardProps) {
+function Dashboard({
+  user,
+  onLogout,
+  onLoginOeffnen,
+  onStartseiteOeffnen,
+}: DashboardProps) {
   // damit wir wieder oben landen wenn wir das dashboard über den link öffnen
   useEffect(() => {
     window.scrollTo({
@@ -82,7 +91,10 @@ function Dashboard({ onZurueck }: DashboardProps) {
         letzterStand={letzterStand}
         laedt={laedt}
         onNeuLaden={holeDaten}
-        onZurueck={onZurueck}
+        user={user}
+        onLogout={onLogout}
+        onLoginOeffnen={onLoginOeffnen}
+        onStartseiteOeffnen={onStartseiteOeffnen}
       />
 
       {/* Navigation zwischen aktuellem und historischem Dashboard */}
@@ -135,12 +147,15 @@ function Dashboard({ onZurueck }: DashboardProps) {
 }
 
 function App() {
+  const [user, setUser] = useState<User | null>(null);
+
   const seiteAusUrl = () => {
-    if (window.location.hash === "#/dashboard") {
+    const hash = window.location.hash;
+    if (hash === "#/dashboard" || hash === "#dashboard") {
       return "dashboard";
     }
 
-    if (window.location.hash === "#/login") {
+    if (hash === "#/login" || hash === "#login") {
       return "login";
     }
 
@@ -158,6 +173,20 @@ function App() {
   const [seite, setSeite] = useState<
     "landingpage" | "dashboard" | "login" | "intern" | "emily"
   >(seiteAusUrl);
+
+  // Beim Start prüfen, ob der User bereits eingeloggt ist (Cookie prüfen)
+  useEffect(() => {
+    let aktiv = true;
+    getCurrentUser().then((currentUser) => {
+      if (aktiv && currentUser) {
+        setUser(currentUser);
+      }
+    });
+
+    return () => {
+      aktiv = false;
+    };
+  }, []);
 
   useEffect(() => {
     const reagiereAufUrlAenderung = () => {
@@ -181,6 +210,21 @@ function App() {
     setSeite("landingpage");
   };
 
+  const loginOeffnen = () => {
+    window.location.hash = "/login";
+    setSeite("login");
+  };
+
+  const abmelden = async () => {
+    try {
+      await logoutUser();
+    } catch (error) {
+      console.error("Logout Fehler:", error);
+    } finally {
+      setUser(null);
+    }
+  };
+
   const internOeffnen = () => {
     window.location.hash = "/intern";
     setSeite("intern");
@@ -191,12 +235,16 @@ function App() {
     setSeite("emily");
   };
 
-  const dashboardZurueck = () => {
-    window.history.back();
-  };
-
   if (seite === "login") {
-    return <LoginPage onZurueck={startseiteOeffnen} />;
+    return (
+      <LoginPage
+        onZurueck={startseiteOeffnen}
+        onLoginErfolg={(eingeloggterUser) => {
+          setUser(eingeloggterUser);
+          dashboardOeffnen();
+        }}
+      />
+    );
   }
 
   if (seite === "intern") {
@@ -213,10 +261,25 @@ function App() {
   }
 
   if (seite === "landingpage") {
-    return <LandingPage onDashboardOeffnen={dashboardOeffnen} />;
+    return (
+      <LandingPage
+        onDashboardOeffnen={dashboardOeffnen}
+        user={user}
+        onLoginOeffnen={loginOeffnen}
+        onLogout={abmelden}
+      />
+    );
   }
 
-  return <Dashboard onZurueck={dashboardZurueck} />;
+  return (
+    <Dashboard
+      user={user}
+      onLogout={abmelden}
+      onLoginOeffnen={loginOeffnen}
+      onStartseiteOeffnen={startseiteOeffnen}
+    />
+  );
 }
 
 export default App;
+

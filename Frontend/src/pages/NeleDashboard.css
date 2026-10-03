@@ -1,11 +1,11 @@
-.emily-seite {
+.nele-seite {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
   background: #f4f7f2;
 }
 
-.emily-kopf {
+.nele-kopf {
   display: flex;
   min-height: 120px;
   align-items: center;
@@ -16,7 +16,7 @@
   color: white;
 }
 
-.emily-klein {
+.nele-klein {
   margin: 0 0 6px;
   color: #d8eadf;
   font-size: 0.8rem;
@@ -24,12 +24,12 @@
   text-transform: uppercase;
 }
 
-.emily-kopf h1 {
+.nele-kopf h1 {
   margin: 0;
   font-size: clamp(2rem, 4vw, 3rem);
 }
 
-.emily-kopf button {
+.nele-kopf button {
   padding: 10px 16px;
   border: 1px solid #d8eadf;
   border-radius: 5px;
@@ -40,7 +40,7 @@
   cursor: pointer;
 }
 
-.emily-inhalt {
+.nele-inhalt {
   width: 100%;
   max-width: 1200px;
   flex: 1;
@@ -49,29 +49,29 @@
   box-sizing: border-box;
 }
 
-.emily-einleitung {
+.nele-einleitung {
   margin-bottom: 32px;
 }
 
-.emily-einleitung h2 {
+.nele-einleitung h2 {
   margin: 0 0 10px;
   color: #183d2c;
   font-size: 2rem;
 }
 
-.emily-einleitung p {
+.nele-einleitung p {
   margin: 0;
   color: #667168;
   line-height: 1.6;
 }
 
-.emily-grid {
+.nele-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
 
-.emily-karte {
+.nele-karte {
   min-height: 150px;
   padding: 24px;
   border: 1px solid #d8dfd9;
@@ -80,17 +80,17 @@
   background: white;
 }
 
-.emily-karte h3 {
+.nele-karte h3 {
   margin: 0 0 12px;
   color: #183d2c;
 }
 
-.emily-karte p {
+.nele-karte p {
   margin: 0;
   color: #667168;
 }
 
-.emily-fuss {
+.nele-fuss {
   padding: 18px 24px;
   background: #183d2c;
   color: #d8eadf;
@@ -99,18 +99,18 @@
 }
 
 @media (max-width: 800px) {
-  .emily-grid {
+  .nele-grid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 550px) {
-  .emily-kopf {
+  .nele-kopf {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .emily-inhalt {
+  .nele-inhalt {
     padding: 40px 16px;
   }
 }

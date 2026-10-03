@@ -69,6 +69,66 @@
   font: inherit;
   font-weight: bold;
   cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-box form button:hover:not(:disabled) {
+  background: #1f563c;
+}
+
+.login-box form button:disabled {
+  background: #9bb7a7;
+  cursor: not-allowed;
+}
+
+.login-tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #d8dfd9;
+}
+
+.login-tab-btn {
+  flex: 1;
+  padding: 10px;
+  border: 0;
+  background: transparent;
+  color: #667168;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.login-tab-btn.aktiv {
+  color: #286b4b;
+  border-bottom-color: #286b4b;
+}
+
+.login-hinweis {
+  margin: -12px 0 14px;
+  font-size: 0.78rem;
+  color: #7b887e;
+}
+
+.login-wechsel-abschnitt {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.login-wechsel-btn {
+  border: 0;
+  background: transparent;
+  color: #286b4b;
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.login-wechsel-btn:hover {
+  color: #183d2c;
 }
 
 .login-box form button:disabled {
@@ -104,6 +164,7 @@
   font: inherit;
   cursor: pointer;
 }
+
 
 @media (max-width: 500px) {
   .login-seite {

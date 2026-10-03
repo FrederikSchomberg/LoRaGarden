@@ -1,54 +1,132 @@
-import type { DashboardResponse } from "./types/dashboard";
+import type { AuthResponse, LoginPayload, RegisterPayload, User } from "./types/auth";
+import type { DashboardHistoryResponse, DashboardResponse } from "./types/dashboard";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8001";
 
+async function extrahiereFehlermeldung(res: Response, standard: string): Promise<string> {
+  try {
+    const daten = await res.json();
+    if (typeof daten?.detail === "string") {
+      return daten.detail;
+    }
+    if (Array.isArray(daten?.detail) && daten.detail.length > 0) {
+      return daten.detail
+        .map((e: { msg?: string }) => e.msg || "")
+        .filter(Boolean)
+        .join(", ");
+    }
+  } catch {
+    // Fehler beim Parsen ignorieren und Standardmeldung verwenden
+  }
+  return standard;
+}
+
 // Hole die Beete anstatt von dem Dashboard oder Dashboard
 export async function holeDashboard(): Promise<DashboardResponse> {
-  // console.log("API URL:", API_URL);
-  // console.log("Rufe auf:", `${API_URL}`);
-
-  const antwort = await fetch(`${API_URL}/api/dashboard`);
-
-  // console.log("HTTP Status:", antwort.status);
-  // console.log("Antwort OK:", antwort.ok);
+  const antwort = await fetch(`${API_URL}/api/dashboard`, {
+    credentials: "include",
+  });
 
   if (!antwort.ok) {
     throw new Error("Dashboard konnte nicht geladen werden");
   }
 
   const daten = await antwort.json();
-
-  // console.log("Dashboard-Daten:", daten);
-
   return daten;
 }
 
-// login daten ans backend schicken
-export async function login(benutzername: string, passwort: string) {
-  const antwort = await fetch(`${API_URL}/api/login`, {
+// Hole historische Daten für das gesamte Dashboard
+export async function holeDashboardHistorie(timeRange = "5d"): Promise<DashboardHistoryResponse> {
+  const antwort = await fetch(
+    `${API_URL}/api/dashboard/history?time_range=${encodeURIComponent(timeRange)}`,
+    {
+      credentials: "include",
+    },
+  );
+
+  if (!antwort.ok) {
+    const fehler = await extrahiereFehlermeldung(
+      antwort,
+      "Dashboard-Historie konnte nicht geladen werden",
+    );
+    throw new Error(fehler);
+  }
+
+  const daten = await antwort.json();
+  return daten;
+}
+
+export async function loginUser(payload: LoginPayload): Promise<AuthResponse> {
+  const antwort = await fetch(`${API_URL}/api/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-
-    // wichtig für den login-cookie vom backend
     credentials: "include",
-
-    body: JSON.stringify({
-      username: benutzername,
-      password: passwort,
-    }),
+    body: JSON.stringify(payload),
   });
 
-  // login daten waren falsch
-  if (antwort.status === 401 || antwort.status === 403) {
-    return false;
-  }
-
-  // irgendein anderer fehler vom backend
   if (!antwort.ok) {
-    throw new Error("Login fehlgeschlagen");
+    const fehler = await extrahiereFehlermeldung(
+      antwort,
+      "Anmeldung fehlgeschlagen. Bitte Eingaben überprüfen.",
+    );
+    throw new Error(fehler);
   }
 
-  return true;
+  return antwort.json();
+}
+
+export async function registerUser(payload: RegisterPayload): Promise<AuthResponse> {
+  const antwort = await fetch(`${API_URL}/api/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
+
+  if (!antwort.ok) {
+    const fehler = await extrahiereFehlermeldung(
+      antwort,
+      "Registrierung fehlgeschlagen. Bitte Eingaben überprüfen.",
+    );
+    throw new Error(fehler);
+  }
+
+  return antwort.json();
+}
+
+export async function logoutUser(): Promise<void> {
+  const antwort = await fetch(`${API_URL}/api/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+  });
+
+  if (!antwort.ok) {
+    const fehler = await extrahiereFehlermeldung(
+      antwort,
+      "Abmeldung fehlgeschlagen.",
+    );
+    throw new Error(fehler);
+  }
+}
+
+export async function getCurrentUser(): Promise<User | null> {
+  try {
+    const antwort = await fetch(`${API_URL}/api/auth/me`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (!antwort.ok) {
+      return null;
+    }
+
+    const daten = await antwort.json();
+    return daten.user || null;
+  } catch {
+    return null;
+  }
 }

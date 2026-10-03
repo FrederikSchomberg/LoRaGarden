@@ -13,16 +13,25 @@ import radioTowerIcon from "../assets/radio-tower.svg";
 import soilSensorIcon from "../assets/soil-sensor.svg";
 import thermometerIcon from "../assets/thermometer.svg";
 import zapIcon from "../assets/zap.svg";
+import type { User } from "../types/auth";
 
 type LandingPageProps = {
   onDashboardOeffnen: () => void;
+  user?: User | null;
+  onLoginOeffnen?: () => void;
+  onLogout?: () => void;
 };
 
-export function LandingPage({ onDashboardOeffnen }: LandingPageProps) {
+export function LandingPage({
+  onDashboardOeffnen,
+  user,
+  onLoginOeffnen,
+  onLogout,
+}: LandingPageProps) {
   return (
     <div className="landingpage">
       <header className="landingpage-navigation">
-       {/*} <a
+        {/*} <a
           className="landingpage-logo-link"
           href="https://www.hochschule-bochum.de/"
           target="_blank"
@@ -39,9 +48,45 @@ export function LandingPage({ onDashboardOeffnen }: LandingPageProps) {
           <a href="#projekt">Projekt</a>
           <a href="#standorte">Standorte</a>
           <a href="#technik">Technik</a>
-          <a href="#/login">Login</a>
+          <a
+            href="#/dashboard"
+            onClick={(e) => {
+              e.preventDefault();
+              onDashboardOeffnen();
+            }}
+          >
+            Dashboard
+          </a>
+
+          {user ? (
+            <>
+              <span className="landingpage-user-badge">👤 {user.name}</span>
+              {onLogout && (
+                <button
+                  type="button"
+                  className="landingpage-nav-btn"
+                  onClick={onLogout}
+                >
+                  Abmelden
+                </button>
+              )}
+            </>
+          ) : (
+            <a
+              href="#/login"
+              onClick={(e) => {
+                if (onLoginOeffnen) {
+                  e.preventDefault();
+                  onLoginOeffnen();
+                }
+              }}
+            >
+              Login
+            </a>
+          )}
         </nav>
       </header>
+
 
       <section className="landingpage-hero" id="start">
         <div className="landingpage-hero-text">

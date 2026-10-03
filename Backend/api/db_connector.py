@@ -14,12 +14,12 @@ load_dotenv(ENV_PATH)
 class DBConnector:
     def __init__(self):
         # holt die komplette influx-konfiguration aus der .env
-        self.url = os.getenv("INFLUX_URL", "").rstrip("/")
-        self.token = os.getenv("INFLUX_TOKEN", "")
-        self.org = os.getenv("INFLUX_ORG", "")
-        self.bucket = os.getenv("INFLUX_BUCKET", "")
+        self.url = os.getenv("INFLUX_URL_TEST", "").rstrip("/")
+        self.token = os.getenv("INFLUX_TOKEN_TEST", "")
+        self.org = os.getenv("INFLUX_ORG_TEST", "")
+        self.bucket = os.getenv("INFLUX_BUCKET_TEST", "")
         self.measurement = os.getenv("INFLUX_MEASUREMENT", "")
-        self.bed_tag = os.getenv("INFLUX_DEVICE_TAG", "")
+        self.bed_tag = os.getenv("INFLUX_DEVICE_TAG_TEST", "")
         self.timeout = int(os.getenv("INFLUX_TIMEOUT_MS", "5000"))
 
         # links steht der name für die api und rechts das echte feld aus influx
@@ -54,6 +54,91 @@ class DBConnector:
         result = self.get_latest_values_by_ids([sensor_id])
         return result.get(sensor_id)
 
+    def get_history_by_id(self, sensor_id, time_range="-5d"):
+        # holt alle historischen werte für eine einzelne sensor-id aus influx
+        result = self.get_history_by_ids([sensor_id], time_range=time_range)
+        return result.get(sensor_id, [])
+
+    def get_dashboard_history(self, sensor_ids, time_range="-5d"):
+        # holt alle historischen werte für das dashboard (liste aller sensor-ids) aus influx
+        return self.get_history_by_ids(sensor_ids, time_range=time_range)
+
+    def get_history_by_ids(self, sensor_ids, time_range="-5d"):
+        # holt alle historischen werte für eine liste von sensor-ids aus influx
+        self._check_settings()
+
+        if not sensor_ids:
+            return {}
+
+        start_range = time_range.strip()
+        if not start_range.startswith("-") and not (start_range.startswith('"') or start_range.startswith("'")):
+            start_range = f"-{start_range}"
+
+        # baut die listen für die beiden influx-filter zusammen
+        id_values = ", ".join(self._text(sid) for sid in sensor_ids)
+        field_values = ", ".join(
+            self._text(name) for name in self.fields.values()
+        )
+
+        measurement_filter = ""
+        if self.measurement:
+            measurement_filter = (
+                "  |> filter(fn: (r) => r._measurement == "
+                f"{self._text(self.measurement)})\n"
+            )
+
+        query = f'''\
+from(bucket: {self._text(self.bucket)})
+  |> range(start: {start_range})
+{measurement_filter}\
+  |> filter(fn: (r) => exists r[{self._text(self.bed_tag)}] and contains(value: r[{self._text(self.bed_tag)}], set: [{id_values}]))
+  |> filter(fn: (r) => contains(value: r._field, set: [{field_values}]))
+  |> group(columns: [{self._text(self.bed_tag)}, "_field"])
+  |> sort(columns: ["_time"])'''.strip()
+
+        with self._client() as client:
+            tables = client.query_api().query(
+                query=query,
+                org=self.org,
+            )
+
+        history_by_sensor = {sid: {} for sid in sensor_ids}
+        field_by_db_name = {
+            db_name: api_name
+            for api_name, db_name in self.fields.items()
+        }
+
+        for table in tables:
+            for record in table.records:
+                sid = record.values.get(self.bed_tag)
+                api_name = field_by_db_name.get(record.get_field())
+
+                if sid not in history_by_sensor or api_name is None:
+                    continue
+
+                record_time = record.get_time()
+                if not record_time:
+                    continue
+
+                time_str = record_time.isoformat()
+                if time_str not in history_by_sensor[sid]:
+                    history_by_sensor[sid][time_str] = {
+                        "timestamp": time_str,
+                        "values": {api_name: None for api_name in self.fields},
+                    }
+
+                history_by_sensor[sid][time_str]["values"][api_name] = record.get_value()
+
+        result = {}
+        for sid in sensor_ids:
+            sorted_points = sorted(
+                history_by_sensor[sid].values(),
+                key=lambda point: point["timestamp"],
+            )
+            result[sid] = sorted_points
+
+        return result
+
     def get_latest_values_by_ids(self, sensor_ids):
         # holt die neuesten werte für eine liste von sensor-ids aus influx
         # prüft erst die .env, damit fehlende einträge direkt auffallen
@@ -77,14 +162,14 @@ class DBConnector:
             )
 
         # holt pro sensor-id und feld genau den neuesten vorhandenen wert
+        # sort() ist vor last() überflüssig, da influx daten bereits nach zeit sortiert sind
         query = f'''\
 from(bucket: {self._text(self.bucket)})
-  |> range(start: -30d)
+  |> range(start: -3d)
 {measurement_filter}\
   |> filter(fn: (r) => exists r[{self._text(self.bed_tag)}] and contains(value: r[{self._text(self.bed_tag)}], set: [{id_values}]))
   |> filter(fn: (r) => contains(value: r._field, set: [{field_values}]))
   |> group(columns: [{self._text(self.bed_tag)}, "_field"])
-  |> sort(columns: ["_time"])
   |> last()'''.strip()
 
         # schickt eine gemeinsame abfrage für alle sensor-ids an influx
@@ -138,11 +223,11 @@ from(bucket: {self._text(self.bucket)})
     def _check_settings(self):
         # measurement darf leer bleiben, alle anderen werte werden gebraucht
         settings = {
-                    "INFLUX_URL": self.url,
-                    "INFLUX_TOKEN": self.token,
-                    "INFLUX_ORG": self.org,
-                    "INFLUX_BUCKET": self.bucket,
-                    "INFLUX_DEVICE_TAG": self.bed_tag,
+                    "INFLUX_URL_TEST": self.url,
+                    "INFLUX_TOKEN_TEST": self.token,
+                    "INFLUX_ORG_TEST": self.org,
+                    "INFLUX_BUCKET_TEST": self.bucket,
+                    "INFLUX_DEVICE_TAG_TEST": self.bed_tag,
                     "INFLUX_FIELD_TEMPERATURE": self.fields["soil_temperature"],
                     "INFLUX_FIELD_SOIL_MOISTURE": self.fields["soil_moisture"],
                     "INFLUX_FIELD_SOIL_EC": self.fields["soil_ec"],

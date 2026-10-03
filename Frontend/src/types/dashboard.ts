@@ -32,3 +32,29 @@ export type DashboardResponse = {
 };
 
 export type SensorPosition = "oben" | "unten";
+
+export type HistoricalSensorPoint = {
+  timestamp: string;
+  values: Messwerte;
+};
+
+export type SensorHistoryDaten = Omit<SensorDaten, "values" | "updated_at"> & {
+  history: HistoricalSensorPoint[];
+  count: number;
+};
+
+export type BeetHistoryDaten = {
+  name: string;
+  substrate: string;
+  time_range: string;
+  sensors: SensorHistoryDaten[];
+};
+
+export type DashboardHistoryResponse = {
+  database: {
+    type: string;
+    connected: boolean;
+  };
+  time_range: string;
+  beds: BeetHistoryDaten[];
+};

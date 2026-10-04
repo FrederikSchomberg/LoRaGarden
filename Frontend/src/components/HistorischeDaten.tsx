@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { Dispatch, SetStateAction, ChangeEvent } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -9,6 +10,26 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+
+type ChartPoint = {
+  timestamp: string;
+  value: number;
+  bed?: string;
+};
+
+type ChartDataPoint = {
+  timestamp: string;
+  [key: string]: string | number | null | undefined;
+};
+
+type HistorischeDatenProps = {
+  selectedBeds: string[];
+  setSelectedBeds: Dispatch<SetStateAction<string[]>>;
+  selectedMeasurements: string[];
+  setSelectedMeasurements: Dispatch<SetStateAction<string[]>>;
+  zeitraum: string;
+  setZeitraum: Dispatch<SetStateAction<string>>;
+};
 
 /*
  * =========================================================
@@ -24,7 +45,7 @@ import {
  * API / Datenbank
  */
 
-const MOCK_DATA = {
+const MOCK_DATA: Record<string, any> = {
   Carla: {
     temperature: {
       oben: [
@@ -181,6 +202,7 @@ const MOCK_DATA = {
         { timestamp: "2026-09-30T12:00:00", value: 14.2 },
         { timestamp: "2026-09-30T16:00:00", value: 16.0 },
       ],
+
       unten: [
         { timestamp: "2026-09-25T08:00:00", value: 11.4 },
         { timestamp: "2026-09-25T12:00:00", value: 13.1 },
@@ -202,6 +224,7 @@ const MOCK_DATA = {
         { timestamp: "2026-09-30T16:00:00", value: 16.0 },
       ],
     },
+
     soil_moisture: {
       oben: [
         { timestamp: "2026-09-25T08:00:00", value: 32 },
@@ -223,6 +246,7 @@ const MOCK_DATA = {
         { timestamp: "2026-09-30T12:00:00", value: 33 },
         { timestamp: "2026-09-30T16:00:00", value: 31 },
       ],
+
       unten: [
         { timestamp: "2026-09-25T08:00:00", value: 32 },
         { timestamp: "2026-09-25T12:00:00", value: 30 },
@@ -244,6 +268,7 @@ const MOCK_DATA = {
         { timestamp: "2026-09-30T16:00:00", value: 31 },
       ],
     },
+
     conductivity: {
       oben: [
         { timestamp: "2026-09-25T08:00:00", value: 1.1 },
@@ -265,6 +290,7 @@ const MOCK_DATA = {
         { timestamp: "2026-09-30T12:00:00", value: 1.2 },
         { timestamp: "2026-09-30T16:00:00", value: 2.3 },
       ],
+
       unten: [
         { timestamp: "2026-09-25T08:00:00", value: 1.1 },
         { timestamp: "2026-09-25T12:00:00", value: 1.2 },
@@ -310,6 +336,7 @@ const MOCK_DATA = {
         { timestamp: "2026-09-30T12:00:00", value: 19.2 },
         { timestamp: "2026-09-30T16:00:00", value: 21.0 },
       ],
+
       unten: [
         { timestamp: "2026-09-25T08:00:00", value: 16.4 },
         { timestamp: "2026-09-25T12:00:00", value: 18.1 },
@@ -331,6 +358,7 @@ const MOCK_DATA = {
         { timestamp: "2026-09-30T16:00:00", value: 21.0 },
       ],
     },
+
     soil_moisture: {
       oben: [
         { timestamp: "2026-09-25T08:00:00", value: 27 },
@@ -352,6 +380,7 @@ const MOCK_DATA = {
         { timestamp: "2026-09-30T12:00:00", value: 28 },
         { timestamp: "2026-09-30T16:00:00", value: 26 },
       ],
+
       unten: [
         { timestamp: "2026-09-25T08:00:00", value: 27 },
         { timestamp: "2026-09-25T12:00:00", value: 25 },
@@ -373,6 +402,7 @@ const MOCK_DATA = {
         { timestamp: "2026-09-30T16:00:00", value: 26 },
       ],
     },
+
     conductivity: {
       oben: [
         { timestamp: "2026-09-25T08:00:00", value: 1.7 },
@@ -394,6 +424,7 @@ const MOCK_DATA = {
         { timestamp: "2026-09-30T12:00:00", value: 2.2 },
         { timestamp: "2026-09-30T16:00:00", value: 1.6 },
       ],
+
       unten: [
         { timestamp: "2026-09-25T08:00:00", value: 1.7 },
         { timestamp: "2026-09-25T12:00:00", value: 1.2 },
@@ -418,14 +449,13 @@ const MOCK_DATA = {
   },
 };
 
-
 /*
  * =========================================================
  * BEET-KONFIGURATION
  * =========================================================
  */
 
-const beetConfig = {
+const beetConfig: Record<string, { label: string; description: string }> = {
   Carla: {
     label: "Carla",
     description: "10 % Pflanzenkohle",
@@ -442,30 +472,32 @@ const beetConfig = {
   },
 };
 
-const measurementConfig = {
+const measurementConfig: Record<string, { label: string; unit: string }> = {
   temperature: {
     label: "Temperatur",
     unit: "°C",
   },
+
   soil_moisture: {
     label: "Bodenfeuchtigkeit",
     unit: "%",
   },
+
   conductivity: {
     label: "Leitfähigkeit",
     unit: "mS/cm",
   },
 };
 
-const BED_COLORS = {
+const BED_COLORS: Record<string, string> = {
   Carla: "#2563eb",
   Berta: "#16a34a",
   Ilse: "#ea580c",
 };
 
-const BED_NAMES = ["Carla", "Berta", "Ilse"];
+const BED_NAMES: string[] = ["Carla", "Berta", "Ilse"];
 
-const MEASUREMENTS = [
+const MEASUREMENTS: { key: string; label: string }[] = [
   {
     key: "temperature",
     label: "Temperatur",
@@ -480,7 +512,7 @@ const MEASUREMENTS = [
   },
 ];
 
-const ZEITRAEUME = [
+const ZEITRAEUME: { value: string; label: string }[] = [
   {
     value: "24h",
     label: "Letzte 24 Stunden",
@@ -499,7 +531,7 @@ const ZEITRAEUME = [
   // },
 ];
 
-function formatDate(timestamp) {
+function formatDate(timestamp: string) {
   const date = new Date(timestamp);
 
   if (Number.isNaN(date.getTime())) {
@@ -512,7 +544,7 @@ function formatDate(timestamp) {
   });
 }
 
-function formatTooltipDate(timestamp) {
+function formatTooltipDate(timestamp: string) {
   const date = new Date(timestamp);
 
   if (Number.isNaN(date.getTime())) {
@@ -527,7 +559,7 @@ function formatTooltipDate(timestamp) {
   });
 }
 
-function getZeitraumMillis(zeitraum) {
+function getZeitraumMillis(zeitraum: string) {
   switch (zeitraum) {
     case "24h":
       return 24 * 60 * 60 * 1000;
@@ -560,14 +592,19 @@ function getZeitraumMillis(zeitraum) {
  *   }
  * ]
  */
-function buildChartData(selectedBeds, measurement, position, zeitraum) {
-  const allePunkte = [];
+function buildChartData(
+  selectedBeds: string[],
+  measurement: string,
+  position: string,
+  zeitraum: string
+): ChartDataPoint[] {
+  const allePunkte: ChartPoint[] = [];
 
   selectedBeds.forEach((bed) => {
     const messwerte =
       MOCK_DATA[bed]?.[measurement]?.[position] ?? [];
 
-    messwerte.forEach((punkt) => {
+    messwerte.forEach((punkt: ChartPoint) => {
       allePunkte.push({
         ...punkt,
         bed,
@@ -580,7 +617,7 @@ function buildChartData(selectedBeds, measurement, position, zeitraum) {
   }
 
   const letzterZeitpunkt = Math.max(
-    ...allePunkte.map((punkt) => new Date(punkt.timestamp).getTime()),
+    ...allePunkte.map((punkt) => new Date(punkt.timestamp).getTime())
   );
 
   const zeitraumMillis = getZeitraumMillis(zeitraum);
@@ -592,7 +629,7 @@ function buildChartData(selectedBeds, measurement, position, zeitraum) {
     return zeit >= startZeitpunkt && zeit <= letzterZeitpunkt;
   });
 
-  const gruppiert = new Map();
+  const gruppiert = new Map<string, ChartDataPoint>();
 
   gefiltertePunkte.forEach((punkt) => {
     if (!gruppiert.has(punkt.timestamp)) {
@@ -601,17 +638,27 @@ function buildChartData(selectedBeds, measurement, position, zeitraum) {
       });
     }
 
-    gruppiert.get(punkt.timestamp)[punkt.bed] = punkt.value;
+    gruppiert.get(punkt.timestamp)![punkt.bed!] = punkt.value;
   });
 
   return Array.from(gruppiert.values()).sort(
     (a, b) =>
       new Date(a.timestamp).getTime() -
-      new Date(b.timestamp).getTime(),
+      new Date(b.timestamp).getTime()
   );
 }
 
-function CustomTooltip({ active, payload, label, unit }) {
+function CustomTooltip({
+  active,
+  payload,
+  label,
+  unit,
+}: {
+  active?: boolean;
+  payload?: any[];
+  label?: string;
+  unit: string;
+}) {
   if (!active || !payload || payload.length === 0) {
     return null;
   }
@@ -632,7 +679,7 @@ function CustomTooltip({ active, payload, label, unit }) {
           marginBottom: "6px",
         }}
       >
-        {formatTooltipDate(label)}
+        {formatTooltipDate(label ?? "")}
       </div>
 
       {payload.map((entry) => (
@@ -656,6 +703,12 @@ function HistoryChart({
   unit,
   selectedBeds,
   showOutsideTemperature,
+}: {
+  title: string;
+  data: ChartDataPoint[];
+  unit: string;
+  selectedBeds: string[];
+  showOutsideTemperature: boolean;
 }) {
   return (
     <section className="historische-chart">
@@ -754,50 +807,55 @@ function HistoryChart({
     </section>
   );
 }
+
 // Wenn tatsächlich eine Verbindung zur DB vorhanden ist
 // function getDateRange(zeitraum) {
 //   const end = new Date();
 //   const start = new Date(end);
-
+//
 //   switch (zeitraum) {
 //     case "24h":
 //       start.setHours(start.getHours() - 24);
 //       break;
-
+//
 //     case "7d":
 //       start.setDate(start.getDate() - 7);
 //       break;
-
+//
 //     case "30d":
 //       start.setDate(start.getDate() - 30);
 //       break;
-
+//
 //     case "90d":
 //       start.setDate(start.getDate() - 90);
 //       break;
-
+//
 //     default:
 //       start.setDate(start.getDate() - 7);
 //   }
-
+//
 //   return {
 //     start,
 //     end,
 //   };
 // }
 
-function getDateRange(zeitraum) {
+function getDateRange(
+  zeitraum: string
+): { start: Date; end: Date } {
   return {
     start: new Date("2026-09-25T00:00:00"),
     end: new Date("2026-09-30T23:59:59"),
   };
 }
 
-function formatDateForApi(date) {
+function formatDateForApi(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
-async function fetchWeatherData(zeitraum) {
+async function fetchWeatherData(
+  zeitraum: string
+): Promise<ChartPoint[]> {
   const { start, end } = getDateRange(zeitraum);
 
   const startDate = formatDateForApi(start);
@@ -824,14 +882,17 @@ async function fetchWeatherData(zeitraum) {
 
   const data = await response.json();
 
-  return data.hourly.time.map((timestamp, index) => ({
+  return data.hourly.time.map((timestamp: string, index: number) => ({
     timestamp,
     value: data.hourly.temperature_2m[index],
   }));
 }
 
-function addWeatherData(chartData, weatherData) {
-  const weatherMap = new Map();
+function addWeatherData(
+  chartData: ChartDataPoint[],
+  weatherData: ChartPoint[]
+): ChartDataPoint[] {
+  const weatherMap = new Map<string, number>();
 
   weatherData.forEach((point) => {
     weatherMap.set(
@@ -849,7 +910,7 @@ function addWeatherData(chartData, weatherData) {
   }));
 }
 
-function normalizeTimestamp(timestamp) {
+function normalizeTimestamp(timestamp: string) {
   const date = new Date(timestamp);
 
   return date.toISOString().slice(0, 13);
@@ -862,14 +923,13 @@ export default function HistorischeDaten({
   setSelectedMeasurements,
   zeitraum,
   setZeitraum,
-}) {
-
-  const [weatherData, setWeatherData] = useState([]);
+}: HistorischeDatenProps) {
+  const [weatherData, setWeatherData] = useState<ChartPoint[]>([]);
   const [weatherLoading, setWeatherLoading] = useState(false);
-  const [weatherError, setWeatherError] = useState(null);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
 
-  const toggleBed = (bed) => {
-    setSelectedBeds((aktuell) => {
+  const toggleBed = (bed: string) => {
+    setSelectedBeds((aktuell: string[]) => {
       if (aktuell.includes(bed)) {
         return aktuell.filter((item) => item !== bed);
       }
@@ -878,8 +938,8 @@ export default function HistorischeDaten({
     });
   };
 
-  const toggleMeasurement = (measurement) => {
-    setSelectedMeasurements((aktuell) => {
+  const toggleMeasurement = (measurement: string) => {
+    setSelectedMeasurements((aktuell: string[]) => {
       if (aktuell.includes(measurement)) {
         return aktuell.filter((item) => item !== measurement);
       }
@@ -889,29 +949,32 @@ export default function HistorischeDaten({
   };
 
   useEffect(() => {
-  async function loadWeatherData() {
-    try {
-      setWeatherLoading(true);
-      setWeatherError(null);
+    async function loadWeatherData() {
+      try {
+        setWeatherLoading(true);
+        setWeatherError(null);
 
-      const data = await fetchWeatherData(zeitraum);
+        const data = await fetchWeatherData(zeitraum);
 
-      setWeatherData(data);
-    } catch (error) {
-      console.error(error);
-      setWeatherError(
-        "Die Wetterdaten konnten nicht geladen werden."
-      );
-    } finally {
-      setWeatherLoading(false);
+        setWeatherData(data);
+      } catch (error: unknown) {
+        console.error(error);
+        setWeatherError(
+          "Die Wetterdaten konnten nicht geladen werden."
+        );
+      } finally {
+        setWeatherLoading(false);
+      }
     }
-  }
 
-  loadWeatherData();
-}, [zeitraum]);
+    loadWeatherData();
+  }, [zeitraum]);
 
   const chartData = useMemo(() => {
-    const ergebnis = {
+    const ergebnis: {
+      oben: Record<string, ChartDataPoint[]>;
+      unten: Record<string, ChartDataPoint[]>;
+    } = {
       oben: {},
       unten: {},
     };
@@ -921,14 +984,14 @@ export default function HistorischeDaten({
         selectedBeds,
         measurement,
         "oben",
-        zeitraum,
+        zeitraum
       );
 
       let unten = buildChartData(
         selectedBeds,
         measurement,
         "unten",
-        zeitraum,
+        zeitraum
       );
 
       if (measurement === "temperature") {
@@ -950,12 +1013,12 @@ export default function HistorischeDaten({
 
   return (
     <section className="historische-date">
-        <div className="historische-übersichtNeu">
-          <p>
-            Vergleiche historische Messwerte mehrerer Beete
-            und Messgrößen.
-          </p>
-        </div>
+      <div className="historische-übersichtNeu">
+        <p>
+          Vergleiche historische Messwerte mehrerer Beete
+          und Messgrößen.
+        </p>
+      </div>
 
       <section className="historische-filter">
         <div className="historische-filter-gruppe">
@@ -998,7 +1061,7 @@ export default function HistorischeDaten({
                 <input
                   type="checkbox"
                   checked={selectedMeasurements.includes(
-                    measurement.key,
+                    measurement.key
                   )}
                   onChange={() =>
                     toggleMeasurement(measurement.key)
@@ -1017,7 +1080,7 @@ export default function HistorischeDaten({
           <select
             className="historische-auswahl"
             value={zeitraum}
-            onChange={(event) =>
+            onChange={(event: ChangeEvent<HTMLSelectElement>) =>
               setZeitraum(event.target.value)
             }
           >
@@ -1099,17 +1162,24 @@ export default function HistorischeDaten({
         </>
       )}
 
-      <div class="weather-attribution">
+      <div className="weather-attribution">
         Externe Wetterdaten (Außentemperatur) von&nbsp;
-        <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">
-            Open-Meteo.com&nbsp;
+        <a
+          href="https://open-meteo.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Open-Meteo.com&nbsp;
         </a>
         •&nbsp;
-        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">
-            CC BY 4.0
+        <a
+          href="https://creativecommons.org/licenses/by/4.0/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          CC BY 4.0
         </a>
       </div>
     </section>
-    
   );
 }

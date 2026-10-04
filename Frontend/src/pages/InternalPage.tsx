@@ -6,11 +6,13 @@ import soilSensorIcon from "../assets/soil-sensor.svg";
 type InternalPageProps = {
   onDashboardOeffnen: () => void;
   onNeleOeffnen: () => void;
+  onLogout: () => void;
 };
 
 export function InternalPage({
   onDashboardOeffnen,
   onNeleOeffnen,
+  onLogout,
 }: InternalPageProps) {
   return (
     <div className="intern-seite">
@@ -20,7 +22,7 @@ export function InternalPage({
           <h1>Interner Bereich</h1>
         </div>
 
-        <button type="button" disabled>
+        <button type="button" onClick={onLogout}>
           Abmelden
         </button>
       </header>

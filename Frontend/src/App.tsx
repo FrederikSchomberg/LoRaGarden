@@ -149,6 +149,11 @@ function Dashboard({
 function App() {
   const [user, setUser] = useState<User | null>(null);
 
+  const authBypass =
+    import.meta.env.DEV && import.meta.env.VITE_AUTH_BYPASS === "true";
+
+  const [loginPrueft, setLoginPrueft] = useState(!authBypass);
+
   const seiteAusUrl = () => {
     const hash = window.location.hash;
     if (hash === "#/dashboard" || hash === "#dashboard") {
@@ -174,19 +179,47 @@ function App() {
     "landingpage" | "dashboard" | "login" | "intern" | "nele"
   >(seiteAusUrl);
 
-  // Beim Start prüfen, ob der User bereits eingeloggt ist (Cookie prüfen)
+  // login-status bei jedem seitenwechsel prüfen
   useEffect(() => {
     let aktiv = true;
-    getCurrentUser().then((currentUser) => {
-      if (aktiv && currentUser) {
-        setUser(currentUser);
+
+    const loginStatusPruefen = async () => {
+      if (authBypass) {
+        setLoginPrueft(false);
+        return;
       }
-    });
+
+      setLoginPrueft(true);
+
+      const currentUser = await getCurrentUser();
+
+      if (!aktiv) {
+        return;
+      }
+
+      setUser(currentUser);
+
+      const interneSeite = seite === "intern" || seite === "nele";
+
+      if (interneSeite && !currentUser) {
+        window.location.hash = "/login";
+        setSeite("login");
+      }
+
+      if (seite === "login" && currentUser) {
+        window.location.hash = "/intern";
+        setSeite("intern");
+      }
+
+      setLoginPrueft(false);
+    };
+
+    void loginStatusPruefen();
 
     return () => {
       aktiv = false;
     };
-  }, []);
+  }, [seite, authBypass]);
 
   useEffect(() => {
     const reagiereAufUrlAenderung = () => {
@@ -218,10 +251,11 @@ function App() {
   const abmelden = async () => {
     try {
       await logoutUser();
-    } catch (error) {
-      console.error("Logout Fehler:", error);
-    } finally {
+
       setUser(null);
+      loginOeffnen();
+    } catch (error) {
+      console.error("logout fehlgeschlagen:", error);
     }
   };
 
@@ -235,13 +269,19 @@ function App() {
     setSeite("nele");
   };
 
+  const interneSeite = seite === "intern" || seite === "nele";
+
+  if (interneSeite && loginPrueft && !authBypass) {
+    return null;
+  }
+
   if (seite === "login") {
     return (
       <LoginPage
         onZurueck={startseiteOeffnen}
         onLoginErfolg={(eingeloggterUser) => {
           setUser(eingeloggterUser);
-          dashboardOeffnen();
+          internOeffnen();
         }}
       />
     );
@@ -252,6 +292,7 @@ function App() {
       <InternalPage
         onDashboardOeffnen={dashboardOeffnen}
         onNeleOeffnen={neleOeffnen}
+        onLogout={abmelden}
       />
     );
   }
@@ -282,4 +323,3 @@ function App() {
 }
 
 export default App;
-

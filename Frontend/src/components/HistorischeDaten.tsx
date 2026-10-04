@@ -449,29 +449,6 @@ const MOCK_DATA: Record<string, any> = {
   },
 };
 
-/*
- * =========================================================
- * BEET-KONFIGURATION
- * =========================================================
- */
-
-const beetConfig: Record<string, { label: string; description: string }> = {
-  Carla: {
-    label: "Carla",
-    description: "10 % Pflanzenkohle",
-  },
-
-  Berta: {
-    label: "Berta",
-    description: "5 % Pflanzenkohle",
-  },
-
-  Ilse: {
-    label: "Ilse",
-    description: "Sand",
-  },
-};
-
 const measurementConfig: Record<string, { label: string; unit: string }> = {
   temperature: {
     label: "Temperatur",
@@ -925,8 +902,6 @@ export default function HistorischeDaten({
   setZeitraum,
 }: HistorischeDatenProps) {
   const [weatherData, setWeatherData] = useState<ChartPoint[]>([]);
-  const [weatherLoading, setWeatherLoading] = useState(false);
-  const [weatherError, setWeatherError] = useState<string | null>(null);
 
   const toggleBed = (bed: string) => {
     setSelectedBeds((aktuell: string[]) => {
@@ -951,19 +926,11 @@ export default function HistorischeDaten({
   useEffect(() => {
     async function loadWeatherData() {
       try {
-        setWeatherLoading(true);
-        setWeatherError(null);
-
         const data = await fetchWeatherData(zeitraum);
 
         setWeatherData(data);
       } catch (error: unknown) {
         console.error(error);
-        setWeatherError(
-          "Die Wetterdaten konnten nicht geladen werden."
-        );
-      } finally {
-        setWeatherLoading(false);
       }
     }
 

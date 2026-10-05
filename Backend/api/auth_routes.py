@@ -37,8 +37,16 @@ def _set_token_cookie(response: Response, token: str):
 
 
 def _get_current_user(request: Request) -> dict:
-    # liest den user aus dem jwt-cookie
-    token = request.cookies.get(COOKIE_NAME)
+    # Authorization Header nach Bearer prüfen
+    token = None
+    auth_header = request.headers.get("Authorization") or request.headers.get("authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ", 1)[1].strip()
+
+    # Liest den user aus dem jwt-cookie
+    if not token:
+        token = request.cookies.get(COOKIE_NAME)
+
     if not token:
         raise HTTPException(
             status_code=401,
@@ -90,6 +98,7 @@ async def login(body: LoginRequest, response: Response):
 
     return {
         "message": "Login erfolgreich.",
+        "token": token,
         "user": {
             "username": user["username"],
             "name": user["name"],

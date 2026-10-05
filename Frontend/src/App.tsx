@@ -73,8 +73,8 @@ function Dashboard({
   useEffect(() => {
     const start = window.setTimeout(() => void holeDaten(), 0);
 
-    // im 2min intervall wird die seite neu geladen
-    const timer = window.setInterval(() => void holeDaten(), 120000);
+    // im 15 min intervall wird die seite neu geladen
+    const timer = window.setInterval(() => void holeDaten(), 900000);
 
     return () => {
       window.clearTimeout(start);

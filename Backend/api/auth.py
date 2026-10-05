@@ -170,6 +170,11 @@ def create_default_users():
             "name": "Nachhaltigkeit",
             "password": os.getenv("NACHHALTIGKEIT_PASSWORD", ""),
         },
+        {
+            "username": "loragarden",
+            "name": "Loragarden",
+            "password": os.getenv("LORAGARDEN_PASSWORD", ""),
+        }
     ]
 
     for user in users:

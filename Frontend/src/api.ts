@@ -68,10 +68,16 @@ export async function loginUser(payload: LoginPayload): Promise<AuthResponse> {
     throw new Error(fehler);
   }
 
-  return antwort.json();
+  const daten: AuthResponse = await antwort.json();
+  if (daten.token) {
+    localStorage.setItem("access_token", daten.token);
+  }
+  return daten;
 }
 
 export async function logoutUser(): Promise<void> {
+  localStorage.removeItem("access_token");
+
   const antwort = await fetch(`${API_URL}/api/auth/logout`, {
     method: "POST",
     credentials: "include",
@@ -88,12 +94,22 @@ export async function logoutUser(): Promise<void> {
 
 export async function getCurrentUser(): Promise<User | null> {
   try {
+    const token = localStorage.getItem("access_token");
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const antwort = await fetch(`${API_URL}/api/auth/me`, {
       method: "GET",
+      headers,
       credentials: "include",
     });
 
     if (!antwort.ok) {
+      if (antwort.status === 401) {
+        localStorage.removeItem("access_token");
+      }
       return null;
     }
 

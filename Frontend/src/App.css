@@ -547,3 +547,61 @@ tbody td span {
   border: 5px solid var(--linie);
   border-radius: 8px;
 }
+
+/* ---------------------------------------------
+   Historische Daten Neu
+--------------------------------------------- */
+
+.historische-übersichtNeu p {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.historische-filter-gruppe {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 200px;
+}
+
+.historische-filter {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.historische-bereich-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@media (max-width: 700px) {
+  .historische-filter-gruppe {
+    flex-direction: column;
+  }
+
+  .historische-filter {
+    padding: 0.75rem;
+  }
+
+  .historische-bereich-header {
+    height: 250px;
+  }
+}
+
+.weather-attribution {
+  font-size: 0.75rem;
+  color: #777;
+  margin-top: 8px;
+}
+
+.weather-attribution a {
+  color: inherit;
+  text-decoration: underline;
+}

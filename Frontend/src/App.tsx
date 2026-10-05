@@ -16,6 +16,7 @@ import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { InternalPage } from "./pages/InternalPage";
 import { NeleDashboard } from "./pages/NeleDashboard";
+import HistorischeDaten from "./components/HistorischeDaten";
 
 type DashboardProps = {
   user: User | null;
@@ -45,9 +46,17 @@ function Dashboard({
   const [laedt, setLaedt] = useState(false);
 
   // Aktiver Tab
-  const [aktiverTab, setAktiverTab] = useState<"aktuell" | "historisch">(
-    "aktuell",
-  );
+  const [aktiverTab, setAktiverTab] = useState<
+    "aktuell" | "historisch" | "historischNeu"
+  >("aktuell");
+
+  const [historischeBeete, setHistorischeBeete] = useState<string[]>(["Carla"]);
+
+  const [historischeMesswerte, setHistorischeMesswerte] = useState<string[]>([
+    "temperature",
+  ]);
+
+  const [historischerZeitraum, setHistorischerZeitraum] = useState("7d");
 
   const holeDaten = useCallback(async () => {
     setLaedt(true);
@@ -116,6 +125,15 @@ function Dashboard({
         >
           Historische Daten
         </button>
+        <button
+          type="button"
+          className={aktiverTab === "historischNeu" ? "tab aktiv" : "tab"}
+          onClick={() => {
+            setAktiverTab("historischNeu");
+          }}
+        >
+          Historische Daten (Neu)
+        </button>
       </nav>
 
       {/* Aktuelle Daten */}
@@ -142,6 +160,18 @@ function Dashboard({
 
       {/* Historische Daten */}
       {aktiverTab === "historisch" && <GrafanaHistorischeDaten />}
+
+      {/* Historische Daten */}
+      {aktiverTab === "historischNeu" && (
+        <HistorischeDaten
+          selectedBeds={historischeBeete}
+          setSelectedBeds={setHistorischeBeete}
+          selectedMeasurements={historischeMesswerte}
+          setSelectedMeasurements={setHistorischeMesswerte}
+          zeitraum={historischerZeitraum}
+          setZeitraum={setHistorischerZeitraum}
+        />
+      )}
     </main>
   );
 }

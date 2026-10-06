@@ -9,14 +9,6 @@ Die Kommunikation mit dem MKR WAN 1310 erfolgt über I2C. Dafür werden die Leit
 
 Die feste I2C-Adresse des SHT40 ist `0x44`.
 
-## Anschluss
-
-| SHT40 | MKR WAN 1310 |
-|---|---|
-| VCC | 3.3 V |
-| GND | GND |
-| SDA | SDA |
-| SCL | SCL |
 
 ## Verwendete Bibliotheken
 

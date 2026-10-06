@@ -1,4 +1,3 @@
-````markdown
 # SHT40
 
 ## Beschreibung
@@ -122,4 +121,3 @@ void loop() {
     delay(2000);
 }
 ```
-````

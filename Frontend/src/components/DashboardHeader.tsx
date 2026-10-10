@@ -34,27 +34,29 @@ export function DashboardHeader({
       </div>
 
       <div className="kopf-rechts">
-        <div className={demo ? "daten-status demo" : "daten-status live"}>
-          <span />
-          {demo ? "Beispieldaten" : "Live"}
+        <div className="kopf-status">
+          <button type="button" onClick={onNeuLaden} disabled={laedt}>
+            {laedt ? "wird geladen ..." : "Daten neu laden"}
+          </button>
+
+          <div className={demo ? "daten-status demo" : "daten-status live"}>
+            <span />
+            {demo ? "Beispieldaten" : "Live"}
+          </div>
         </div>
 
         <p>{demo ? "" : `Letzter Stand: ${formatiereZeit(letzterStand)}`}</p>
 
         <div className="kopf-aktionen">
-          <button type="button" onClick={onNeuLaden} disabled={laedt}>
-            {laedt ? "wird geladen ..." : "Daten neu laden"}
-          </button>
-
           {user ? (
             <div className="kopf-benutzer">
               <span className="kopf-benutzer-name">👤 {user.name}</span>
+
               {onLogout && (
                 <button
                   type="button"
                   className="btn-abmelden"
                   onClick={onLogout}
-                  title="Abmelden"
                 >
                   Abmelden
                 </button>

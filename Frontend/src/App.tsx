@@ -94,85 +94,94 @@ function Dashboard({
   const letzterStand = letzteMessung(daten.beds);
 
   return (
-    <main className="app">
-      <DashboardHeader
-        demo={demo}
-        letzterStand={letzterStand}
-        laedt={laedt}
-        onNeuLaden={holeDaten}
-        user={user}
-        onLogout={onLogout}
-        onLoginOeffnen={onLoginOeffnen}
-        onStartseiteOeffnen={onStartseiteOeffnen}
-      />
+    <div className="dashboard-page">
+      <div className="dashboard-background" aria-hidden="true">
+        <div className="green-orb green-orb-1" />
+        <div className="green-orb green-orb-2" />
+        <div className="green-orb green-orb-3" />
+        <div className="green-orb green-orb-4" />
+      </div>
 
-      {/* Navigation zwischen aktuellem und historischem Dashboard */}
-      <nav className="tabs" aria-label="Dashboard Navigation">
-        <button
-          type="button"
-          className={aktiverTab === "aktuell" ? "tab aktiv" : "tab"}
-          onClick={() => setAktiverTab("aktuell")}
-        >
-          Aktuelle Daten
-        </button>
-
-        <button
-          type="button"
-          className={aktiverTab === "historisch" ? "tab aktiv" : "tab"}
-          onClick={() => {
-            setAktiverTab("historisch");
-          }}
-        >
-          Historische Daten
-        </button>
-        <button
-          type="button"
-          className={aktiverTab === "historischNeu" ? "tab aktiv" : "tab"}
-          onClick={() => {
-            setAktiverTab("historischNeu");
-          }}
-        >
-          Historische Daten (Neu)
-        </button>
-      </nav>
-
-      {/* Aktuelle Daten */}
-      {aktiverTab === "aktuell" && (
-        <>
-          {demo && <DemoNotice fehler={fehler} />}
-
-          <SummaryCards beete={daten.beds} />
-
-          <section className="beet-grid" aria-label="Beete">
-            {daten.beds.map((beet) => (
-              <BedCard key={beet.name} beet={beet} demo={demo} />
-            ))}
-          </section>
-
-          <ComparisonTable beete={daten.beds} />
-
-          <StatusFooter
-            demo={demo}
-            datenbankVerbunden={daten.database.connected}
-          />
-        </>
-      )}
-
-      {/* Historische Daten */}
-      {aktiverTab === "historisch" && <GrafanaHistorischeDaten />}
-
-      {/* Historische Daten */}
-      {aktiverTab === "historischNeu" && (
-        <HistorischeDaten
-          selectedBeds={historischeBeete}
-          setSelectedBeds={setHistorischeBeete}
-          selectedMeasurements={historischeMesswerte}
-          setSelectedMeasurements={setHistorischeMesswerte}
-          zeitraum={historischerZeitraum}
-          setZeitraum={setHistorischerZeitraum}
+      <main className="app">
+        <DashboardHeader
+          demo={demo}
+          letzterStand={letzterStand}
+          laedt={laedt}
+          onNeuLaden={holeDaten}
+          user={user}
+          onLogout={onLogout}
+          onLoginOeffnen={onLoginOeffnen}
+          onStartseiteOeffnen={onStartseiteOeffnen}
         />
-      )}
-    </main>
+
+        {/* Navigation zwischen aktuellem und historischem Dashboard */}
+        <nav className="tabs" aria-label="Dashboard Navigation">
+          <button
+            type="button"
+            className={aktiverTab === "aktuell" ? "tab aktiv" : "tab"}
+            onClick={() => setAktiverTab("aktuell")}
+          >
+            Aktuelle Daten
+          </button>
+
+          <button
+            type="button"
+            className={aktiverTab === "historisch" ? "tab aktiv" : "tab"}
+            onClick={() => {
+              setAktiverTab("historisch");
+            }}
+          >
+            Historische Daten
+          </button>
+          <button
+            type="button"
+            className={aktiverTab === "historischNeu" ? "tab aktiv" : "tab"}
+            onClick={() => {
+              setAktiverTab("historischNeu");
+            }}
+          >
+            Historische Daten (Neu)
+          </button>
+        </nav>
+
+        {/* Aktuelle Daten */}
+        {aktiverTab === "aktuell" && (
+          <>
+            {demo && <DemoNotice fehler={fehler} />}
+
+            <SummaryCards beete={daten.beds} />
+
+            <section className="beet-grid" aria-label="Beete">
+              {daten.beds.map((beet) => (
+                <BedCard key={beet.name} beet={beet} demo={demo} />
+              ))}
+            </section>
+
+            <ComparisonTable beete={daten.beds} />
+
+            <StatusFooter
+              demo={demo}
+              datenbankVerbunden={daten.database.connected}
+            />
+          </>
+        )}
+
+        {/* Historische Daten */}
+        {aktiverTab === "historisch" && <GrafanaHistorischeDaten />}
+
+        {/* Historische Daten */}
+        {aktiverTab === "historischNeu" && (
+          <HistorischeDaten
+            selectedBeds={historischeBeete}
+            setSelectedBeds={setHistorischeBeete}
+            selectedMeasurements={historischeMesswerte}
+            setSelectedMeasurements={setHistorischeMesswerte}
+            zeitraum={historischerZeitraum}
+            setZeitraum={setHistorischerZeitraum}
+          />
+        )}
+      </main>
+    </div>
   );
 }
 

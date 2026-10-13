@@ -3,7 +3,8 @@ import boaseBild from "../assets/boase.jpg";
 import botanischerGartenBild from "../assets/botanischer_garten.jpg";
 import chinesischerGartenBild from "../assets/chinesischer_garten.jpg";
 import databaseIcon from "../assets/database.svg";
-import draginoGarden from "../assets/dragino_garden.png";
+//import draginoGarden from "../assets/dragino_garden.png";
+import sproutIcon from "../assets/sprout.svg";
 import dropletsIcon from "../assets/droplets.svg";
 //import grafanaLogo from "../assets/grafana_icon.svg";
 //import hsBoLogo from "../assets/hs-bo_logo.svg";
@@ -31,6 +32,10 @@ export function LandingPage({
   return (
     <div className="landingpage">
       <header className="landingpage-navigation">
+        <a className="landingpage-marke" href="#start">
+          <img src={sproutIcon} alt="" aria-hidden="true" />
+          <span>Smart Gardening</span>
+        </a>
         {/*} <a
           className="landingpage-logo-link"
           href="https://www.hochschule-bochum.de/"
@@ -73,6 +78,7 @@ export function LandingPage({
             </>
           ) : (
             <a
+              className="landingpage-login"
               href="#/login"
               onClick={(e) => {
                 if (onLoginOeffnen) {
@@ -87,10 +93,13 @@ export function LandingPage({
         </nav>
       </header>
 
-
       <section className="landingpage-hero" id="start">
         <div className="landingpage-hero-text">
-          <h1>Smart Gardening</h1>
+          <h1>
+            Smart
+            <br />
+            Gardening
+          </h1>
 
           <p className="landingpage-untertitel">
             Digitale Bodendaten für Forschung und nachhaltige Bewässerung
@@ -102,25 +111,6 @@ export function LandingPage({
             Messwerte werden zentral gespeichert und für Forschung, Lehre und
             eine ressourcenschonende Bewässerung aufbereitet.
           </p>
-
-          {/*
-          <a
-            className="grafana-link"
-            href="http://sr-labor.ddns.net:3088/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img src={grafanaLogo} alt="" aria-hidden="true" />
-            <span>Grafana öffnen</span>
-          </a>
-          */}
-        </div>
-
-        <div className="landingpage-hero-bild">
-          <img
-            src={draginoGarden}
-            alt="Dragino-Bodensensoren und LoRaWAN-Gateway in einem Gartenbeet"
-          />
         </div>
       </section>
 
@@ -195,9 +185,7 @@ export function LandingPage({
 
               <div>
                 <h3>Leitwert</h3>
-                <p>
-                  Misst die elektrische Leitfähigkeit des Bodens.
-                </p>
+                <p>Misst die elektrische Leitfähigkeit des Bodens.</p>
               </div>
             </article>
           </div>
@@ -330,7 +318,44 @@ export function LandingPage({
       </section>
 
       <footer className="landingpage-fuss">
-        Smart Gardening – Softwarepraktikum der Hochschule Bochum
+        <div className="landingpage-fuss-kopf">
+          <a className="landingpage-marke" href="#start">
+            <img src={sproutIcon} alt="" aria-hidden="true" />
+            <span>Smart Gardening</span>
+          </a>
+
+          <nav aria-label="Navigation im Fußbereich">
+            <a href="#projekt">Projekt</a>
+            <a href="#standorte">Standorte</a>
+            <a href="#technik">Technik</a>
+
+            <a
+              href="#/dashboard"
+              onClick={(e) => {
+                e.preventDefault();
+                onDashboardOeffnen();
+              }}
+            >
+              Dashboard
+            </a>
+
+            {!user && (
+              <a
+                href="#/login"
+                onClick={(e) => {
+                  if (onLoginOeffnen) {
+                    e.preventDefault();
+                    onLoginOeffnen();
+                  }
+                }}
+              >
+                Login
+              </a>
+            )}
+          </nav>
+        </div>
+
+        <p>Smart Gardening – Softwarepraktikum der Hochschule Bochum</p>
       </footer>
     </div>
   );

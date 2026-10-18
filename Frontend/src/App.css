@@ -37,6 +37,7 @@
 .kopf-text {
   flex: 3 1 600px;
 }
+
 .kopf-rechts {
   flex: 1 1 220px;
   text-align: right;
@@ -104,9 +105,11 @@
 .punkt.an {
   background: #29935b;
 }
+
 .daten-status.demo span {
   background: #d7a62e;
 }
+
 .punkt.aus {
   background: #c75d52;
 }
@@ -235,6 +238,7 @@
   color: var(--dunkel);
   font-size: 1.45rem;
 }
+
 .kurz-grid small {
   margin-top: 4px;
   color: var(--grau);
@@ -271,7 +275,7 @@
   font-size: 1.7rem;
 }
 
-.beet-kopf > span {
+.beet-kopf>span {
   max-width: 145px;
   padding: 7px 9px;
   border-radius: 4px;
@@ -288,11 +292,9 @@
 
   border-radius: 10px;
 
-  background: linear-gradient(
-    135deg,
-    rgba(236, 247, 240, 0.95),
-    rgba(228, 240, 233, 0.9)
-  );
+  background: linear-gradient(135deg,
+      rgba(236, 247, 240, 0.95),
+      rgba(228, 240, 233, 0.9));
 
   border: 1px solid rgba(47, 118, 84, 0.12);
 }
@@ -356,6 +358,7 @@ tbody td span {
   color: var(--grau);
   font-size: 0.7rem;
 }
+
 .mini-werte strong {
   color: var(--dunkel);
   font-size: 0.95rem;
@@ -374,16 +377,18 @@ tbody td span {
   border-bottom: 1px solid var(--linie);
 }
 
-.messstelle > div {
+.messstelle>div {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 .messstelle strong {
   min-width: 43px;
   color: var(--dunkel);
   text-transform: capitalize;
 }
+
 .messstelle small {
   color: var(--grau);
   font-size: 0.7rem;
@@ -413,11 +418,13 @@ tbody td span {
 .vergleich-kopf h2 {
   font-size: 1.4rem;
 }
-.vergleich-kopf > p {
+
+.vergleich-kopf>p {
   margin: 0;
   color: var(--grau);
   font-size: 0.8rem;
 }
+
 .tabelle-wrap {
   overflow-x: auto;
 }
@@ -439,14 +446,17 @@ thead th {
   background: #edf2ee;
   color: var(--dunkel);
 }
+
 tbody th {
   width: 180px;
   color: #465048;
 }
+
 tbody td strong {
   margin-bottom: 5px;
   color: var(--dunkel);
 }
+
 tbody td span {
   margin-top: 2px;
   color: var(--grau);
@@ -473,18 +483,23 @@ tbody td span {
   .app {
     padding: 12px;
   }
+
   .kopf {
     padding: 21px;
   }
+
   .kopf-rechts {
     text-align: left;
   }
+
   .kopf-aktionen {
     justify-content: flex-start;
   }
+
   .beet-grid {
     grid-template-columns: 1fr;
   }
+
   .beet-karte,
   .vergleich {
     padding: 17px;
@@ -826,13 +841,11 @@ tbody td span {
   min-height: 100vh;
   overflow-x: hidden;
 
-  background: linear-gradient(
-    135deg,
-    #0d1f17 0%,
-    #11281d 40%,
-    #0f241a 70%,
-    #0b1b14 100%
-  );
+  background: linear-gradient(135deg,
+      #0d1f17 0%,
+      #11281d 40%,
+      #0f241a 70%,
+      #0b1b14 100%);
 }
 
 /* hintergrund-animation */
@@ -913,12 +926,10 @@ tbody td span {
   top: 55%;
   left: 12%;
 
-  background: radial-gradient(
-    circle,
-    rgba(80, 255, 140, 0.85) 0%,
-    rgba(30, 170, 80, 0.45) 45%,
-    transparent 75%
-  );
+  background: radial-gradient(circle,
+      rgba(80, 255, 140, 0.85) 0%,
+      rgba(30, 170, 80, 0.45) 45%,
+      transparent 75%);
 
   filter: blur(75px);
 

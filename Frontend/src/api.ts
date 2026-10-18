@@ -50,6 +50,209 @@ export async function holeDashboardHistorie(timeRange = "5d"): Promise<Dashboard
   return daten;
 }
 
+
+/*
+ * =========================================================
+ * CHUNKED HISTORY (progressives Laden)
+ * =========================================================
+ *
+ * Große Zeiträume (ab 30 Tagen) werden automatisch in
+ * Monats-Chunks aufgeteilt. Jeder Chunk wird einzeln von
+ * der API abgefragt, und das Ergebnis wird sofort per
+ * Callback ans Frontend gemeldet. So füllt sich der Chart
+ * Stück für Stück, ohne dass das Backend überlastet wird.
+ */
+
+// Schwelle: Ab dieser Anzahl Tage wird in Chunks aufgeteilt
+const CHUNK_THRESHOLD_DAYS = 30;
+
+// Maximale Chunk-Größe in Tagen (≈ 1 Monat)
+const CHUNK_SIZE_DAYS = 30;
+
+
+export type ChunkInfo = {
+  /** 0-basierter Index des aktuellen Chunks */
+  chunkIndex: number;
+  /** Gesamtanzahl der Chunks */
+  totalChunks: number;
+  /** Start-Datum dieses Chunks */
+  startDate: string;
+  /** End-Datum dieses Chunks */
+  endDate: string;
+};
+
+export type ChunkedHistoryCallback = (
+  data: DashboardHistoryResponse,
+  chunk: ChunkInfo,
+) => void;
+
+
+/**
+ * Berechnet, wie viele Tage ein Zeitraum-String wie "5d", "2w" etc. enthält.
+ */
+function zeitraumZuTagen(zeitraum: string): number {
+  const clean = zeitraum.replace(/^-/, "").trim();
+  const match = clean.match(/^(\d+)(s|m|h|d|w|M|mo|y)$/i);
+
+  if (!match) return 7;
+
+  const wert = parseInt(match[1], 10);
+  const einheit = match[2].toLowerCase();
+
+  switch (einheit) {
+    case "s": return wert / 86400;
+    case "m": return wert / 1440;
+    case "h": return wert / 24;
+    case "d": return wert;
+    case "w": return wert * 7;
+    case "mo": return wert * 30;
+    case "y": return wert * 365;
+    default: return wert;
+  }
+}
+
+
+/**
+ * Teilt einen Zeitraum in Monats-Chunks auf.
+ * Gibt ein Array von { start, end } ISO-Strings zurück.
+ */
+export function berechneChunks(zeitraum: string): { start: string; end: string }[] {
+  const tage = zeitraumZuTagen(zeitraum);
+  const jetzt = new Date();
+  const startDatum = new Date(jetzt.getTime() - tage * 24 * 60 * 60 * 1000);
+
+  // Wenn der Zeitraum unter der Schwelle liegt, ein einziger Chunk
+  if (tage < CHUNK_THRESHOLD_DAYS) {
+    return [{
+      start: startDatum.toISOString(),
+      end: jetzt.toISOString(),
+    }];
+  }
+
+  const chunks: { start: string; end: string }[] = [];
+  let cursor = new Date(startDatum);
+
+  while (cursor < jetzt) {
+    const chunkEnd = new Date(
+      Math.min(
+        cursor.getTime() + CHUNK_SIZE_DAYS * 24 * 60 * 60 * 1000,
+        jetzt.getTime(),
+      ),
+    );
+
+    chunks.push({
+      start: cursor.toISOString(),
+      end: chunkEnd.toISOString(),
+    });
+
+    cursor = chunkEnd;
+  }
+
+  return chunks;
+}
+
+
+/**
+ * Fragt einen einzelnen Chunk von der API ab – optional gefiltert nach Beeten und Feldern.
+ */
+export async function holeHistorieChunkFiltered(
+  startDate: string,
+  endDate: string,
+  beds?: string[],
+  fields?: string[],
+  abortSignal?: AbortSignal,
+): Promise<DashboardHistoryResponse> {
+  const params = new URLSearchParams({
+    start_date: startDate,
+    end_date: endDate,
+  });
+
+  if (beds && beds.length > 0) {
+    params.set("beds", beds.join(","));
+  }
+
+  if (fields && fields.length > 0) {
+    params.set("fields", fields.join(","));
+  }
+
+  const antwort = await fetch(
+    `${API_URL}/api/dashboard/history/chunk?${params.toString()}`,
+    { signal: abortSignal },
+  );
+
+  if (!antwort.ok) {
+    const fehler = await extrahiereFehlermeldung(
+      antwort,
+      `Chunk ${startDate} – ${endDate} konnte nicht geladen werden`,
+    );
+    throw new Error(fehler);
+  }
+
+  return antwort.json();
+}
+
+/**
+ * Fragt einen einzelnen Chunk von der API ab.
+ */
+async function holeHistorieChunk(
+  startDate: string,
+  endDate: string,
+): Promise<DashboardHistoryResponse> {
+  return holeHistorieChunkFiltered(startDate, endDate);
+}
+
+
+/**
+ * Lädt historische Daten progressiv in Chunks.
+ *
+ * - Zeiträume < 30 Tage → ein einzelner API Call (normaler Endpunkt)
+ * - Zeiträume ≥ 30 Tage → aufgeteilt in ~30 Tage Blöcke
+ *
+ * Nach jedem geladenen Chunk wird `onChunk` aufgerufen,
+ * damit das Frontend die Daten sofort im Chart nachtragen kann.
+ *
+ * @returns Die Gesamtanzahl der Chunks
+ */
+export async function holeDashboardHistorieChunked(
+  zeitraum: string,
+  onChunk: ChunkedHistoryCallback,
+  abortSignal?: AbortSignal,
+): Promise<number> {
+  const tage = zeitraumZuTagen(zeitraum);
+
+  // Kleine Zeiträume ganz normal laden (kein Chunking)
+  if (tage < CHUNK_THRESHOLD_DAYS) {
+    const daten = await holeDashboardHistorie(zeitraum);
+    onChunk(daten, {
+      chunkIndex: 0,
+      totalChunks: 1,
+      startDate: new Date(Date.now() - tage * 86400000).toISOString(),
+      endDate: new Date().toISOString(),
+    });
+    return 1;
+  }
+
+  // Große Zeiträume: in Chunks aufteilen und sequentiell abfragen
+  const chunks = berechneChunks(zeitraum);
+
+  for (let i = 0; i < chunks.length; i++) {
+    // Abbruch, falls die Komponente unmounted oder der Zeitraum gewechselt wurde
+    if (abortSignal?.aborted) break;
+
+    const chunk = chunks[i];
+    const daten = await holeHistorieChunk(chunk.start, chunk.end);
+
+    onChunk(daten, {
+      chunkIndex: i,
+      totalChunks: chunks.length,
+      startDate: chunk.start,
+      endDate: chunk.end,
+    });
+  }
+
+  return chunks.length;
+}
+
 export async function loginUser(payload: LoginPayload): Promise<AuthResponse> {
   const antwort = await fetch(`${API_URL}/api/auth/login`, {
     method: "POST",

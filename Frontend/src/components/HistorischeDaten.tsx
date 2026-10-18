@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { historyCache, downsampleData, type ChartDataPoint } from "../utils/historyCache";
 import type { Dispatch, SetStateAction, ChangeEvent } from "react";
 import {
   ResponsiveContainer,
@@ -17,10 +18,6 @@ type ChartPoint = {
   bed?: string;
 };
 
-type ChartDataPoint = {
-  timestamp: string;
-  [key: string]: string | number | null | undefined;
-};
 
 type HistorischeDatenProps = {
   selectedBeds: string[];
@@ -498,14 +495,18 @@ const ZEITRAEUME: { value: string; label: string }[] = [
     value: "7d",
     label: "Letzte 7 Tage",
   },
-  // {
-  //   value: "30d",
-  //   label: "Letzte 30 Tage",
-  // },
-  // {
-  //   value: "90d",
-  //   label: "Letzte 90 Tage",
-  // },
+  {
+    value: "30d",
+    label: "Letzte 30 Tage",
+  },
+  {
+    value: "90d",
+    label: "Letzte 90 Tage",
+  },
+  {
+    value: "6mo",
+    label: "Letzte 6 Monate",
+  },
 ];
 
 function formatDate(timestamp: string) {
@@ -549,6 +550,9 @@ function getZeitraumMillis(zeitraum: string) {
 
     case "90d":
       return 90 * 24 * 60 * 60 * 1000;
+
+    case "6mo":
+      return 180 * 24 * 60 * 60 * 1000;
 
     default:
       return 7 * 24 * 60 * 60 * 1000;
@@ -749,31 +753,33 @@ function HistoryChart({
               {selectedBeds.map((bed) => (
                 <Line
                   key={bed}
-                  type="monotone"
+                  type={data.length > 150 ? "linear" : "monotone"}
                   dataKey={bed}
                   name={bed}
                   stroke={BED_COLORS[bed]}
-                  strokeWidth={2.5}
-                  dot={{
-                    r: 3,
-                    fill: BED_COLORS[bed],
-                  }}
+                  strokeWidth={2}
+                  dot={false}
                   activeDot={{
                     r: 5,
                   }}
+                  isAnimationActive={false}
                   connectNulls
                 />
               ))}
 
               {showOutsideTemperature && (
                 <Line
-                  type="monotone"
+                  type={data.length > 150 ? "linear" : "monotone"}
                   dataKey="outsideTemperature"
                   name="Außentemperatur"
                   stroke="#111827"
                   strokeWidth={2}
                   strokeDasharray="6 4"
                   dot={false}
+                  activeDot={{
+                    r: 4,
+                  }}
+                  isAnimationActive={false}
                   connectNulls
                 />
               )}
@@ -784,6 +790,7 @@ function HistoryChart({
     </section>
   );
 }
+
 
 // Wenn tatsächlich eine Verbindung zur DB vorhanden ist
 // function getDateRange(zeitraum) {
@@ -830,9 +837,13 @@ function formatDateForApi(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
+const weatherCache = new Map<string, ChartPoint[]>();
+
 async function fetchWeatherData(
   zeitraum: string
 ): Promise<ChartPoint[]> {
+  if (weatherCache.has(zeitraum)) return weatherCache.get(zeitraum)!;
+
   const { start, end } = getDateRange(zeitraum);
 
   const startDate = formatDateForApi(start);
@@ -859,10 +870,12 @@ async function fetchWeatherData(
 
   const data = await response.json();
 
-  return data.hourly.time.map((timestamp: string, index: number) => ({
+  const result = data.hourly.time.map((timestamp: string, index: number) => ({
     timestamp,
     value: data.hourly.temperature_2m[index],
   }));
+  weatherCache.set(zeitraum, result);
+  return result;
 }
 
 function addWeatherData(
@@ -903,6 +916,9 @@ export default function HistorischeDaten({
 }: HistorischeDatenProps) {
   const [weatherData, setWeatherData] = useState<ChartPoint[]>([]);
 
+  const [cacheVersion, setCacheVersion] = useState(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const toggleBed = (bed: string) => {
     setSelectedBeds((aktuell: string[]) => {
       if (aktuell.includes(bed)) {
@@ -937,6 +953,53 @@ export default function HistorischeDaten({
     loadWeatherData();
   }, [zeitraum]);
 
+  // Stabiles Zeitfenster (auf ganze Stunde gerundet für wiederverwendbare Chunks)
+  const { targetStart, targetEnd } = useMemo(() => {
+    const end = Math.ceil(Date.now() / 3600000) * 3600000;
+    const start = end - getZeitraumMillis(zeitraum);
+    return { targetStart: start, targetEnd: end };
+  }, [zeitraum]);
+
+  /*
+   * Intelligentes Frontend-Caching:
+   * Prüft selbstständig, welche Daten (Beete, Messwerte, Zeitfenster) bereits
+   * im Cache vorliegen, und fordert nur die noch fehlenden Chunks an.
+   */
+  useEffect(() => {
+    if (selectedBeds.length === 0 || selectedMeasurements.length === 0) {
+      return;
+    }
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    historyCache
+      .fetchMissingData(
+        selectedBeds,
+        selectedMeasurements,
+        targetStart,
+        targetEnd,
+        () => {
+          // Neuer Chunk eingetroffen -> Re-Render auslösen
+          setCacheVersion((v) => v + 1);
+        },
+        controller.signal,
+      )
+      .catch((err) => {
+        if (!controller.signal.aborted) {
+          console.error("Fehler beim Abrufen fehlender Daten:", err);
+        }
+      });
+
+    return () => {
+      controller.abort();
+    };
+  }, [selectedBeds, selectedMeasurements, targetStart, targetEnd]);
+
   const chartData = useMemo(() => {
     const ergebnis: {
       oben: Record<string, ChartDataPoint[]>;
@@ -947,19 +1010,49 @@ export default function HistorischeDaten({
     };
 
     selectedMeasurements.forEach((measurement) => {
-      let oben = buildChartData(
+      let oben: ChartDataPoint[];
+      let unten: ChartDataPoint[];
+
+      // Prüfe, ob für diese Auswahl echte Daten im Cache vorliegen
+      const hasOben = historyCache.hasAnyData(
         selectedBeds,
         measurement,
         "oben",
-        zeitraum
+        targetStart,
+        targetEnd,
       );
-
-      let unten = buildChartData(
+      const hasUnten = historyCache.hasAnyData(
         selectedBeds,
         measurement,
         "unten",
-        zeitraum
+        targetStart,
+        targetEnd,
       );
+
+      if (hasOben || hasUnten) {
+        oben = historyCache.getChartData(
+          selectedBeds,
+          measurement,
+          "oben",
+          targetStart,
+          targetEnd,
+        );
+        unten = historyCache.getChartData(
+          selectedBeds,
+          measurement,
+          "unten",
+          targetStart,
+          targetEnd,
+        );
+      } else {
+        // Fallback auf Mockdaten, falls noch keine Daten vorliegen oder DB offline
+        oben = buildChartData(selectedBeds, measurement, "oben", zeitraum);
+        unten = buildChartData(selectedBeds, measurement, "unten", zeitraum);
+      }
+
+      // Reduziert die Renderlast im SVG-Canvas auf ca. 350 Punkte für 60 FPS
+      oben = downsampleData(oben, 350);
+      unten = downsampleData(unten, 350);
 
       if (measurement === "temperature") {
         oben = addWeatherData(oben, weatherData);
@@ -976,6 +1069,9 @@ export default function HistorischeDaten({
     selectedMeasurements,
     zeitraum,
     weatherData,
+    targetStart,
+    targetEnd,
+    cacheVersion,
   ]);
 
   return (
@@ -1064,7 +1160,7 @@ export default function HistorischeDaten({
       </section>
 
       {selectedBeds.length === 0 ||
-      selectedMeasurements.length === 0 ? (
+        selectedMeasurements.length === 0 ? (
         <div className="historische-leerzustand">
           <h2>Keine Auswahl</h2>
 

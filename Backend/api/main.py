@@ -1,3 +1,4 @@
+from typing import Optional
 from contextlib import asynccontextmanager
 import re
 
@@ -418,3 +419,72 @@ async def get_dashboard_history(
     valid_range = validate_time_range(time_range)
     all_history = query_all_sensors_history_from_database(time_range=valid_range)
     return build_dashboard_history_response(all_history, time_range)
+
+# liefert historische daten in chunks für bestimmte zeitblöcke
+@app.get("/api/dashboard/history/chunk")
+async def get_dashboard_history_chunk(
+    start_date: str = Query(
+        description="ISO-8601 Startdatum des Chunks, z. B. 2026-07-01T00:00:00Z",
+    ),
+    end_date: str = Query(
+        description="ISO-8601 Enddatum des Chunks, z. B. 2026-08-01T00:00:00Z",
+    ),
+    beds: Optional[str] = Query(
+        None,
+        description="Kommagetrennte Liste der Beete, z.B. berta,ilse. Wenn nicht angegeben, alle Beete.",
+    ),
+    fields: Optional[str] = Query(
+        None,
+        description="Kommagetrennte Liste der Messwerte, z.B. soil_temperature,soil_moisture. Wenn nicht angegeben, alle Messwerte.",
+    ),
+):
+    try:
+        if beds:
+            requested_beds = {b.strip().lower() for b in beds.split(",") if b.strip()}
+            active_beds = {k: v for k, v in BEDS.items() if k.lower() in requested_beds}
+        else:
+            active_beds = BEDS
+
+        sensor_ids = []
+        for bed_cfg in active_beds.values():
+            for pos in ("oben", "unten"):
+                sid = bed_cfg.get(pos)
+                if sid:
+                    sensor_ids.append(sid)
+
+        field_list = [f.strip() for f in fields.split(",") if f.strip()] if fields else None
+
+        all_history = db_connector.get_history_by_ids_range(
+            sensor_ids,
+            start_iso=start_date,
+            stop_iso=end_date,
+            fields=field_list,
+        )
+    except Exception as error:
+        print(f"influxdb-abfrage fehlgeschlagen (chunk): {error}")
+        raise HTTPException(
+            status_code=503,
+            detail="InfluxDB ist gerade nicht erreichbar.",
+        ) from error
+
+    # gleiche antwortstruktur wie der normale history-endpoint, gefiltert nach den angeforderten Beeten
+    beds_response = []
+    for bed_name, bed_config in active_beds.items():
+        beds_response.append(build_bed_history_response(
+            bed_name, bed_config, all_history,
+            time_range=f"{start_date} - {end_date}",
+        ))
+
+    return {
+        "database": {
+            "type": "InfluxDB",
+            "connected": True,
+        },
+        "chunk": {
+            "start_date": start_date,
+            "end_date": end_date,
+            "beds": list(active_beds.keys()),
+            "fields": field_list,
+        },
+        "beds": beds_response,
+    }

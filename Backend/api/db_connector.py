@@ -252,6 +252,99 @@ from(bucket: {self._text(self.bucket)})
             timeout=self.timeout,
         )
 
+    def get_history_by_ids_range(self, sensor_ids, start_iso, stop_iso, fields=None):
+        # holt historische werte für eine liste von sensor-ids aus influx
+        self._check_settings()
+
+        if not sensor_ids:
+            return {}
+
+        name_alias = {
+            "temperature": "soil_temperature",
+            "soil_temperature": "soil_temperature",
+            "soil_moisture": "soil_moisture",
+            "conductivity": "soil_ec",
+            "soil_ec": "soil_ec",
+        }
+
+        if fields:
+            resolved_fields = {name_alias.get(f, f) for f in fields}
+            target_fields = {
+                api_name: db_name
+                for api_name, db_name in self.fields.items()
+                if api_name in resolved_fields or db_name in resolved_fields
+            }
+        else:
+            target_fields = self.fields
+
+        if not target_fields:
+            return {sid: [] for sid in sensor_ids}
+
+        # baut die listen für die beiden influx-filter zusammen
+        id_values = ", ".join(self._text(sid) for sid in sensor_ids)
+        field_values = ", ".join(
+            self._text(name) for name in target_fields.values()
+        )
+
+        measurement_filter = ""
+        if self.measurement:
+            measurement_filter = (
+                "  |> filter(fn: (r) => r._measurement == "
+                f"{self._text(self.measurement)})\n"
+            )
+
+        query = f'''\
+from(bucket: {self._text(self.bucket)})
+  |> range(start: {start_iso}, stop: {stop_iso})
+{measurement_filter}\
+  |> filter(fn: (r) => exists r[{self._text(self.bed_tag)}] and contains(value: r[{self._text(self.bed_tag)}], set: [{id_values}]))
+  |> filter(fn: (r) => contains(value: r._field, set: [{field_values}]))
+  |> group(columns: [{self._text(self.bed_tag)}, "_field"])
+  |> sort(columns: ["_time"])'''.strip()
+
+        with self._client() as client:
+            tables = client.query_api().query(
+                query=query,
+                org=self.org,
+            )
+
+        history_by_sensor = {sid: {} for sid in sensor_ids}
+        field_by_db_name = {
+            db_name: api_name
+            for api_name, db_name in target_fields.items()
+        }
+
+        for table in tables:
+            for record in table.records:
+                sid = record.values.get(self.bed_tag)
+                api_name = field_by_db_name.get(record.get_field())
+
+                if sid not in history_by_sensor or api_name is None:
+                    continue
+
+                record_time = record.get_time()
+                if not record_time:
+                    continue
+
+                time_str = record_time.isoformat()
+                if time_str not in history_by_sensor[sid]:
+                    history_by_sensor[sid][time_str] = {
+                        "timestamp": time_str,
+                        "values": {api_name: None for api_name in self.fields},
+                    }
+
+                history_by_sensor[sid][time_str]["values"][api_name] = record.get_value()
+
+        result = {}
+        for sid in sensor_ids:
+            sorted_points = sorted(
+                history_by_sensor[sid].values(),
+                key=lambda point: point["timestamp"],
+            )
+            result[sid] = sorted_points
+
+        return result
+
     @staticmethod
     def _text(value):
         # setzt strings sicher in flux ein, auch wenn ein feld ein % enthält

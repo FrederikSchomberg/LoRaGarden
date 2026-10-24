@@ -2,6 +2,7 @@ import "./InternalPage.css";
 import grafanaIcon from "../assets/grafana_icon.svg";
 import monitorIcon from "../assets/monitor-up.svg";
 import soilSensorIcon from "../assets/soil-sensor.svg";
+import sproutIcon from "../assets/sprout.svg";
 
 type InternalPageProps = {
   onDashboardOeffnen: () => void;
@@ -18,7 +19,11 @@ export function InternalPage({
     <div className="intern-seite">
       <header className="intern-kopf">
         <div>
-          <p className="intern-klein">Smart Gardening</p>
+          <p className="intern-klein">
+            <img src={sproutIcon} alt="" aria-hidden="true" />
+            <span>Smart Gardening</span>
+          </p>
+
           <h1>Interner Bereich</h1>
         </div>
 

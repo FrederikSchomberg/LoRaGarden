@@ -5,10 +5,7 @@
   padding: 24px;
 
   background:
-    linear-gradient(
-      rgba(24, 61, 44, 0.35),
-      rgba(24, 61, 44, 0.35)
-    ),
+    linear-gradient(rgba(24, 61, 44, 0.35), rgba(24, 61, 44, 0.35)),
     url("../assets/LoginBackground.png");
 
   background-position: center;
@@ -126,7 +123,6 @@
   cursor: pointer;
 }
 
-
 @media (max-width: 500px) {
   .login-seite {
     padding: 14px;
@@ -135,4 +131,86 @@
   .login-box {
     padding: 24px 20px;
   }
+}
+
+/* login karte im dunklen dashboard design */
+.login-box {
+  background: #132d21;
+  border: 1px solid #365948;
+  border-top: 4px solid #79e6a4;
+  color: #edf4ef;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+/* ueberschrift und beschreibung */
+.login-box h1 {
+  color: #edf4ef;
+}
+
+.login-klein {
+  color: #79e6a4;
+}
+
+.login-text {
+  color: #a9bcb0;
+}
+
+/* benutzername und passwort */
+.login-box label {
+  color: #edf4ef;
+}
+
+.login-box input {
+  background: #0b2017;
+  border: 1px solid #365948;
+  color: #edf4ef;
+}
+
+.login-box input:focus {
+  border-color: #79e6a4;
+  outline: 2px solid rgba(121, 230, 164, 0.2);
+}
+
+/* anmelden button */
+.login-box form button {
+  background: #286b4b;
+  color: #ffffff;
+  border: 1px solid #365948;
+}
+
+.login-box form button:hover:not(:disabled) {
+  background: #34865e;
+}
+
+/* zurueck zur startseite */
+.login-zurueck {
+  color: #79e6a4;
+  background: transparent;
+}
+
+.login-zurueck:hover {
+  color: #b4f5cc;
+}
+
+/* fehlermeldungen und erfolgsmeldungen */
+.login-fehler {
+  color: #ffb4a8;
+}
+
+.login-erfolg {
+  color: #79e6a4;
+}
+
+/* logo auf der login seite */
+.login-klein {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.login-klein img {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }

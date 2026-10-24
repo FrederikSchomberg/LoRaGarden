@@ -3,16 +3,14 @@ import type { FormEvent } from "react";
 import { loginUser } from "../api";
 import type { User } from "../types/auth";
 import "./LoginPage.css";
+import sproutIcon from "../assets/sprout.svg";
 
 type LoginPageProps = {
   onZurueck: () => void;
   onLoginErfolg?: (user: User) => void;
 };
 
-export function LoginPage({
-  onZurueck,
-  onLoginErfolg,
-}: LoginPageProps) {
+export function LoginPage({ onZurueck, onLoginErfolg }: LoginPageProps) {
   const [benutzername, setBenutzername] = useState("");
   const [passwort, setPasswort] = useState("");
 
@@ -54,7 +52,10 @@ export function LoginPage({
   return (
     <main className="login-seite">
       <section className="login-box">
-        <p className="login-klein">Smart Gardening</p>
+        <p className="login-klein">
+          <img src={sproutIcon} alt="" aria-hidden="true" />
+          <span>Smart Gardening</span>
+        </p>
 
         <h1>Anmelden</h1>
 
@@ -94,11 +95,7 @@ export function LoginPage({
           </button>
         </form>
 
-        <button
-          className="login-zurueck"
-          type="button"
-          onClick={onZurueck}
-        >
+        <button className="login-zurueck" type="button" onClick={onZurueck}>
           Zurück zur Startseite
         </button>
       </section>

@@ -2,8 +2,7 @@
   display: flex;
   min-height: 100vh;
   flex-direction: column;
-  background:
-    url("../assets/internalBackground.png");
+  background: url("../assets/internalBackground.png");
   background-position: center;
   background-size: cover;
   background-attachment: fixed;
@@ -58,7 +57,6 @@
   padding: 40px 24px 70px;
   box-sizing: border-box;
 }
-
 
 .intern-einleitung h2 {
   margin: 0 0 10px;
@@ -159,4 +157,56 @@
   .intern-inhalt {
     padding: 40px 16px;
   }
+}
+
+/* interne karten im dunklen dashboard design */
+.intern-karte {
+  background: #132d21;
+  border: 1px solid #365948;
+  border-top: 3px solid #79e6a4;
+  color: #edf4ef;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* ueberschriften der karten */
+.intern-karte h2,
+.intern-karte h3 {
+  color: #edf4ef;
+}
+
+/* beschreibungstexte */
+.intern-karte p {
+  color: #a9bcb0;
+}
+
+/* hover effekt */
+.intern-karte:hover {
+  background: #193a2b;
+  border-color: #79e6a4;
+}
+
+/* oberen bereich farblich angleichen */
+.intern-kopf {
+  background: #132d21;
+}
+
+/* footer farblich an header anpassen */
+.intern-fuss {
+  background: #132d21;
+  border-top: 1px solid #294a39;
+  color: #edf4ef;
+}
+
+/* logo im internen header */
+.intern-klein {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.intern-klein img {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }

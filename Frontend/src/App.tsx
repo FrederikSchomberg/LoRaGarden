@@ -17,6 +17,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { InternalPage } from "./pages/InternalPage";
 import { NeleDashboard } from "./pages/NeleDashboard";
 import HistorischeDaten from "./components/HistorischeDaten";
+import { DataFlowPage } from "./pages/DataFlowPage";
 
 type DashboardProps = {
   user: User | null;
@@ -211,11 +212,15 @@ function App() {
       return "nele";
     }
 
+    if (hash === "#/datenfluss") {
+      return "datenfluss";
+    }
+
     return "landingpage";
   };
 
   const [seite, setSeite] = useState<
-    "landingpage" | "dashboard" | "login" | "intern" | "nele"
+    "landingpage" | "dashboard" | "login" | "intern" | "nele" | "datenfluss"
   >(seiteAusUrl);
 
   // login-status bei jedem seitenwechsel prüfen
@@ -338,6 +343,10 @@ function App() {
 
   if (seite === "nele") {
     return <NeleDashboard onZurueck={internOeffnen} />;
+  }
+
+  if (seite === "datenfluss") {
+    return <DataFlowPage onZurueck={startseiteOeffnen} />;
   }
 
   if (seite === "landingpage") {

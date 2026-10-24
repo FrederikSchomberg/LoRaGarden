@@ -1,5 +1,6 @@
 import type { User } from "../types/auth";
 import { formatiereZeit } from "../dashboardUtils";
+import sproutIcon from "../assets/sprout.svg";
 
 type DashboardHeaderProps = {
   demo: boolean;
@@ -25,7 +26,10 @@ export function DashboardHeader({
   return (
     <header className="kopf">
       <div className="kopf-text">
-        <h1>Smart Gardening</h1>
+        <h1 className="kopf-marke">
+          <img src={sproutIcon} alt="" aria-hidden="true" />
+          <span>Dashboard</span>
+        </h1>
 
         <p className="kopf-beschreibung">
           Carla, Berta und Ilse auf einen Blick. Die großen Werte sind immer der

@@ -1,0 +1,20 @@
+/* Gemeinsame Kartenfarben */
+.dashboard-karte {
+  --dunkel: #edf4ef;
+  --gruen: #79e6a4;
+  --grau: #a0b2a6;
+  --linie: #294a39;
+
+  --karten-flaeche: #10271d;
+  --karten-innen: #0b2017;
+}
+
+.dashboard-karte.beet-karte,
+.dashboard-karte.vergleich,
+.kurz-grid article.dashboard-karte {
+  background: linear-gradient(135deg, #142f23, var(--karten-flaeche));
+  color: var(--dunkel);
+  border: 1px solid var(--linie);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px #00000026;
+}

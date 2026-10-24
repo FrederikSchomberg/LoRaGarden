@@ -275,7 +275,7 @@
   font-size: 1.7rem;
 }
 
-.beet-kopf>span {
+.beet-kopf > span {
   max-width: 145px;
   padding: 7px 9px;
   border-radius: 4px;
@@ -292,9 +292,11 @@
 
   border-radius: 10px;
 
-  background: linear-gradient(135deg,
-      rgba(236, 247, 240, 0.95),
-      rgba(228, 240, 233, 0.9));
+  background: linear-gradient(
+    135deg,
+    rgba(236, 247, 240, 0.95),
+    rgba(228, 240, 233, 0.9)
+  );
 
   border: 1px solid rgba(47, 118, 84, 0.12);
 }
@@ -377,7 +379,7 @@ tbody td span {
   border-bottom: 1px solid var(--linie);
 }
 
-.messstelle>div {
+.messstelle > div {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -419,7 +421,7 @@ tbody td span {
   font-size: 1.4rem;
 }
 
-.vergleich-kopf>p {
+.vergleich-kopf > p {
   margin: 0;
   color: var(--grau);
   font-size: 0.8rem;
@@ -841,11 +843,13 @@ tbody td span {
   min-height: 100vh;
   overflow-x: hidden;
 
-  background: linear-gradient(135deg,
-      #0d1f17 0%,
-      #11281d 40%,
-      #0f241a 70%,
-      #0b1b14 100%);
+  background: linear-gradient(
+    135deg,
+    #0d1f17 0%,
+    #11281d 40%,
+    #0f241a 70%,
+    #0b1b14 100%
+  );
 }
 
 /* hintergrund-animation */
@@ -926,10 +930,12 @@ tbody td span {
   top: 55%;
   left: 12%;
 
-  background: radial-gradient(circle,
-      rgba(80, 255, 140, 0.85) 0%,
-      rgba(30, 170, 80, 0.45) 45%,
-      transparent 75%);
+  background: radial-gradient(
+    circle,
+    rgba(80, 255, 140, 0.85) 0%,
+    rgba(30, 170, 80, 0.45) 45%,
+    transparent 75%
+  );
 
   filter: blur(75px);
 
@@ -992,4 +998,31 @@ tbody td span {
   100% {
     transform: translate3d(220px, 40px, 0) scale(1);
   }
+}
+
+/* dashboard header */
+.kopf {
+  background: #132d21;
+  border: 1px solid #294a39;
+  color: #edf4ef;
+  box-shadow: none;
+}
+
+/* logo im dashboard header */
+.kopf .kopf-marke {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: #edf4ef;
+  font-size: clamp(1.5rem, 3vw, 1.9rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.kopf-marke img {
+  display: block;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
 }

@@ -1,0 +1,16 @@
+.dashboard-karte.vergleich thead th {
+  background: #193e2c;
+  color: #edf4ef;
+}
+
+.dashboard-karte.vergleich tbody th {
+  color: #c2d5c8;
+}
+
+.dashboard-karte.vergleich tbody tr:hover {
+  background: #193e2c80;
+}
+
+.dashboard-karte.vergleich tbody tr:last-child > * {
+  border-bottom: 0;
+}

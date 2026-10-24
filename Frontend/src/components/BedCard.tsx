@@ -5,6 +5,8 @@ import {
   mittelwert,
 } from "../dashboardUtils";
 import type { BeetDaten, SensorPosition } from "../types/dashboard";
+import "./DashboardCard.css";
+import "./BedCard.css";
 
 type BedCardProps = {
   beet: BeetDaten;
@@ -19,11 +21,10 @@ export function BedCard({ beet, demo }: BedCardProps) {
   const ec = mittelwert(beet, "soil_ec");
   const batterie = mittelwert(beet, "battery_voltage");
 
-  const balken =
-    feuchte === null ? 0 : Math.min(100, Math.max(0, feuchte));
+  const balken = feuchte === null ? 0 : Math.min(100, Math.max(0, feuchte));
 
   return (
-    <article className="beet-karte">
+    <article className="beet-karte dashboard-karte">
       <div className="beet-kopf">
         <div>
           <p className="karten-label">Beet</p>

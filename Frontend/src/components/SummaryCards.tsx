@@ -4,6 +4,8 @@ import {
   mittelwert,
 } from "../dashboardUtils";
 import type { BeetDaten } from "../types/dashboard";
+import "./DashboardCard.css";
+import "./SummaryCards.css";
 
 type SummaryCardsProps = {
   beete: BeetDaten[];
@@ -37,19 +39,19 @@ export function SummaryCards({ beete }: SummaryCardsProps) {
 
   return (
     <section className="kurz-grid" aria-label="Schneller Vergleich">
-      <article>
+      <article className="dashboard-karte">
         <span>Trockenstes Beet</span>
         <strong>{trockenesBeet ? beetName(trockenesBeet) : "-"}</strong>
         <small>{formatiereZahl(trockenWert, " %", 1)} im Durchschnitt</small>
       </article>
 
-      <article>
+      <article className="dashboard-karte">
         <span>Wärmstes Beet</span>
         <strong>{warmesBeet ? beetName(warmesBeet) : "-"}</strong>
         <small>{formatiereZahl(warmWert, " °C", 1)} im Durchschnitt</small>
       </article>
 
-      <article>
+      <article className="dashboard-karte">
         <span>Messstellen</span>
         <strong>{sensorAnzahl} Sensoren</strong>
         <small>jeweils oben und unten im Beet</small>

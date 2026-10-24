@@ -1,0 +1,12 @@
+.kurz-grid article.dashboard-karte {
+  border-top: 2px solid #355c43;
+}
+
+.kurz-grid .dashboard-karte > span {
+  color: #a0b2a6;
+  letter-spacing: 0.04em;
+}
+
+.kurz-grid .dashboard-karte > strong {
+  color: #edf4ef;
+}

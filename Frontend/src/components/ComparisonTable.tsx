@@ -5,6 +5,8 @@ import {
   mittelwert,
 } from "../dashboardUtils";
 import type { BeetDaten, Messwerte } from "../types/dashboard";
+import "./DashboardCard.css";
+import "./ComparisonTable.css";
 
 type ComparisonTableProps = {
   beete: BeetDaten[];
@@ -46,7 +48,7 @@ const zeilen: Vergleichszeile[] = [
 
 export function ComparisonTable({ beete }: ComparisonTableProps) {
   return (
-    <section className="vergleich">
+    <section className="vergleich dashboard-karte">
       <div className="vergleich-kopf">
         <div>
           <p className="karten-label">Direkter Vergleich</p>

@@ -1,23 +1,22 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { historyCache, downsampleData, type ChartDataPoint } from "../utils/historyCache";
-import type { Dispatch, SetStateAction, ChangeEvent } from "react";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { ChangeEvent, Dispatch, SetStateAction } from "react";
 import {
-  ResponsiveContainer,
-  LineChart,
+  CartesianGrid,
+  Legend,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
 } from "recharts";
 
-type ChartPoint = {
-  timestamp: string;
-  value: number;
-  bed?: string;
-};
-
+import {
+  historyCache,
+  downsampleMultiSeriesData,
+  type ChartDataPoint,
+} from "../utils/historyCache";
 
 type HistorischeDatenProps = {
   selectedBeds: string[];
@@ -28,516 +27,52 @@ type HistorischeDatenProps = {
   setZeitraum: Dispatch<SetStateAction<string>>;
 };
 
-/*
- * =========================================================
- * MOCKDATEN
- * =========================================================
- *
- * Diese Daten werden später durch die Antwort der API ersetzt.
- *
- * Aktuell:
- * MOCK_DATA
- *
- * Später:
- * API / Datenbank
- */
-
-const MOCK_DATA: Record<string, any> = {
-  Carla: {
-    temperature: {
-      oben: [
-        { timestamp: "2026-09-25T08:00:00", value: 21.4 },
-        { timestamp: "2026-09-25T12:00:00", value: 23.1 },
-        { timestamp: "2026-09-25T16:00:00", value: 24.3 },
-        { timestamp: "2026-09-26T08:00:00", value: 20.8 },
-        { timestamp: "2026-09-26T12:00:00", value: 22.7 },
-        { timestamp: "2026-09-26T16:00:00", value: 25.1 },
-        { timestamp: "2026-09-27T08:00:00", value: 21.2 },
-        { timestamp: "2026-09-27T12:00:00", value: 24.0 },
-        { timestamp: "2026-09-27T16:00:00", value: 26.2 },
-        { timestamp: "2026-09-28T08:00:00", value: 21.7 },
-        { timestamp: "2026-09-28T12:00:00", value: 23.8 },
-        { timestamp: "2026-09-28T16:00:00", value: 25.7 },
-        { timestamp: "2026-09-29T08:00:00", value: 20.9 },
-        { timestamp: "2026-09-29T12:00:00", value: 23.4 },
-        { timestamp: "2026-09-29T16:00:00", value: 24.9 },
-        { timestamp: "2026-09-30T08:00:00", value: 21.5 },
-        { timestamp: "2026-09-30T12:00:00", value: 24.2 },
-        { timestamp: "2026-09-30T16:00:00", value: 26.0 },
-      ],
-
-      unten: [
-        { timestamp: "2026-09-25T08:00:00", value: 19.8 },
-        { timestamp: "2026-09-25T12:00:00", value: 21.2 },
-        { timestamp: "2026-09-25T16:00:00", value: 22.4 },
-        { timestamp: "2026-09-26T08:00:00", value: 19.3 },
-        { timestamp: "2026-09-26T12:00:00", value: 21.0 },
-        { timestamp: "2026-09-26T16:00:00", value: 23.0 },
-        { timestamp: "2026-09-27T08:00:00", value: 19.6 },
-        { timestamp: "2026-09-27T12:00:00", value: 21.9 },
-        { timestamp: "2026-09-27T16:00:00", value: 23.8 },
-        { timestamp: "2026-09-28T08:00:00", value: 20.0 },
-        { timestamp: "2026-09-28T12:00:00", value: 21.7 },
-        { timestamp: "2026-09-28T16:00:00", value: 23.4 },
-        { timestamp: "2026-09-29T08:00:00", value: 19.5 },
-        { timestamp: "2026-09-29T12:00:00", value: 21.5 },
-        { timestamp: "2026-09-29T16:00:00", value: 22.9 },
-        { timestamp: "2026-09-30T08:00:00", value: 20.1 },
-        { timestamp: "2026-09-30T12:00:00", value: 22.0 },
-        { timestamp: "2026-09-30T16:00:00", value: 24.1 },
-      ],
-    },
-
-    soil_moisture: {
-      oben: [
-        { timestamp: "2026-09-25T08:00:00", value: 42 },
-        { timestamp: "2026-09-25T12:00:00", value: 40 },
-        { timestamp: "2026-09-25T16:00:00", value: 38 },
-        { timestamp: "2026-09-26T08:00:00", value: 43 },
-        { timestamp: "2026-09-26T12:00:00", value: 41 },
-        { timestamp: "2026-09-26T16:00:00", value: 39 },
-        { timestamp: "2026-09-27T08:00:00", value: 44 },
-        { timestamp: "2026-09-27T12:00:00", value: 42 },
-        { timestamp: "2026-09-27T16:00:00", value: 40 },
-        { timestamp: "2026-09-28T08:00:00", value: 45 },
-        { timestamp: "2026-09-28T12:00:00", value: 43 },
-        { timestamp: "2026-09-28T16:00:00", value: 41 },
-        { timestamp: "2026-09-29T08:00:00", value: 46 },
-        { timestamp: "2026-09-29T12:00:00", value: 44 },
-        { timestamp: "2026-09-29T16:00:00", value: 42 },
-        { timestamp: "2026-09-30T08:00:00", value: 45 },
-        { timestamp: "2026-09-30T12:00:00", value: 43 },
-        { timestamp: "2026-09-30T16:00:00", value: 41 },
-      ],
-
-      unten: [
-        { timestamp: "2026-09-25T08:00:00", value: 48 },
-        { timestamp: "2026-09-25T12:00:00", value: 46 },
-        { timestamp: "2026-09-25T16:00:00", value: 44 },
-        { timestamp: "2026-09-26T08:00:00", value: 49 },
-        { timestamp: "2026-09-26T12:00:00", value: 47 },
-        { timestamp: "2026-09-26T16:00:00", value: 45 },
-        { timestamp: "2026-09-27T08:00:00", value: 50 },
-        { timestamp: "2026-09-27T12:00:00", value: 48 },
-        { timestamp: "2026-09-27T16:00:00", value: 46 },
-        { timestamp: "2026-09-28T08:00:00", value: 51 },
-        { timestamp: "2026-09-28T12:00:00", value: 49 },
-        { timestamp: "2026-09-28T16:00:00", value: 47 },
-        { timestamp: "2026-09-29T08:00:00", value: 52 },
-        { timestamp: "2026-09-29T12:00:00", value: 50 },
-        { timestamp: "2026-09-29T16:00:00", value: 48 },
-        { timestamp: "2026-09-30T08:00:00", value: 51 },
-        { timestamp: "2026-09-30T12:00:00", value: 49 },
-        { timestamp: "2026-09-30T16:00:00", value: 47 },
-      ],
-    },
-
-    conductivity: {
-      oben: [
-        { timestamp: "2026-09-25T08:00:00", value: 1.2 },
-        { timestamp: "2026-09-25T12:00:00", value: 1.3 },
-        { timestamp: "2026-09-25T16:00:00", value: 1.4 },
-        { timestamp: "2026-09-26T08:00:00", value: 1.2 },
-        { timestamp: "2026-09-26T12:00:00", value: 1.5 },
-        { timestamp: "2026-09-26T16:00:00", value: 1.6 },
-        { timestamp: "2026-09-27T08:00:00", value: 1.3 },
-        { timestamp: "2026-09-27T12:00:00", value: 1.6 },
-        { timestamp: "2026-09-27T16:00:00", value: 1.7 },
-        { timestamp: "2026-09-28T08:00:00", value: 1.4 },
-        { timestamp: "2026-09-28T12:00:00", value: 1.7 },
-        { timestamp: "2026-09-28T16:00:00", value: 1.8 },
-        { timestamp: "2026-09-29T08:00:00", value: 1.5 },
-        { timestamp: "2026-09-29T12:00:00", value: 1.8 },
-        { timestamp: "2026-09-29T16:00:00", value: 1.9 },
-        { timestamp: "2026-09-30T08:00:00", value: 1.6 },
-        { timestamp: "2026-09-30T12:00:00", value: 1.9 },
-        { timestamp: "2026-09-30T16:00:00", value: 2.0 },
-      ],
-
-      unten: [
-        { timestamp: "2026-09-25T08:00:00", value: 1.0 },
-        { timestamp: "2026-09-25T12:00:00", value: 1.1 },
-        { timestamp: "2026-09-25T16:00:00", value: 1.2 },
-        { timestamp: "2026-09-26T08:00:00", value: 1.0 },
-        { timestamp: "2026-09-26T12:00:00", value: 1.2 },
-        { timestamp: "2026-09-26T16:00:00", value: 1.3 },
-        { timestamp: "2026-09-27T08:00:00", value: 1.1 },
-        { timestamp: "2026-09-27T12:00:00", value: 1.3 },
-        { timestamp: "2026-09-27T16:00:00", value: 1.4 },
-        { timestamp: "2026-09-28T08:00:00", value: 1.2 },
-        { timestamp: "2026-09-28T12:00:00", value: 1.4 },
-        { timestamp: "2026-09-28T16:00:00", value: 1.5 },
-        { timestamp: "2026-09-29T08:00:00", value: 1.3 },
-        { timestamp: "2026-09-29T12:00:00", value: 1.5 },
-        { timestamp: "2026-09-29T16:00:00", value: 1.6 },
-        { timestamp: "2026-09-30T08:00:00", value: 1.4 },
-        { timestamp: "2026-09-30T12:00:00", value: 1.6 },
-        { timestamp: "2026-09-30T16:00:00", value: 1.7 },
-      ],
-    },
-  },
-
-  Berta: {
-    temperature: {
-      oben: [
-        { timestamp: "2026-09-25T08:00:00", value: 11.4 },
-        { timestamp: "2026-09-25T12:00:00", value: 13.1 },
-        { timestamp: "2026-09-25T16:00:00", value: 14.3 },
-        { timestamp: "2026-09-26T08:00:00", value: 10.8 },
-        { timestamp: "2026-09-26T12:00:00", value: 12.7 },
-        { timestamp: "2026-09-26T16:00:00", value: 15.1 },
-        { timestamp: "2026-09-27T08:00:00", value: 11.2 },
-        { timestamp: "2026-09-27T12:00:00", value: 14.0 },
-        { timestamp: "2026-09-27T16:00:00", value: 16.2 },
-        { timestamp: "2026-09-28T08:00:00", value: 11.7 },
-        { timestamp: "2026-09-28T12:00:00", value: 13.8 },
-        { timestamp: "2026-09-28T16:00:00", value: 15.7 },
-        { timestamp: "2026-09-29T08:00:00", value: 10.9 },
-        { timestamp: "2026-09-29T12:00:00", value: 13.4 },
-        { timestamp: "2026-09-29T16:00:00", value: 14.9 },
-        { timestamp: "2026-09-30T08:00:00", value: 11.5 },
-        { timestamp: "2026-09-30T12:00:00", value: 14.2 },
-        { timestamp: "2026-09-30T16:00:00", value: 16.0 },
-      ],
-
-      unten: [
-        { timestamp: "2026-09-25T08:00:00", value: 11.4 },
-        { timestamp: "2026-09-25T12:00:00", value: 13.1 },
-        { timestamp: "2026-09-25T16:00:00", value: 14.3 },
-        { timestamp: "2026-09-26T08:00:00", value: 10.8 },
-        { timestamp: "2026-09-26T12:00:00", value: 12.7 },
-        { timestamp: "2026-09-26T16:00:00", value: 15.1 },
-        { timestamp: "2026-09-27T08:00:00", value: 11.2 },
-        { timestamp: "2026-09-27T12:00:00", value: 14.0 },
-        { timestamp: "2026-09-27T16:00:00", value: 16.2 },
-        { timestamp: "2026-09-28T08:00:00", value: 11.7 },
-        { timestamp: "2026-09-28T12:00:00", value: 13.8 },
-        { timestamp: "2026-09-28T16:00:00", value: 15.7 },
-        { timestamp: "2026-09-29T08:00:00", value: 10.9 },
-        { timestamp: "2026-09-29T12:00:00", value: 13.4 },
-        { timestamp: "2026-09-29T16:00:00", value: 14.9 },
-        { timestamp: "2026-09-30T08:00:00", value: 11.5 },
-        { timestamp: "2026-09-30T12:00:00", value: 14.2 },
-        { timestamp: "2026-09-30T16:00:00", value: 16.0 },
-      ],
-    },
-
-    soil_moisture: {
-      oben: [
-        { timestamp: "2026-09-25T08:00:00", value: 32 },
-        { timestamp: "2026-09-25T12:00:00", value: 30 },
-        { timestamp: "2026-09-25T16:00:00", value: 28 },
-        { timestamp: "2026-09-26T08:00:00", value: 33 },
-        { timestamp: "2026-09-26T12:00:00", value: 31 },
-        { timestamp: "2026-09-26T16:00:00", value: 29 },
-        { timestamp: "2026-09-27T08:00:00", value: 34 },
-        { timestamp: "2026-09-27T12:00:00", value: 32 },
-        { timestamp: "2026-09-27T16:00:00", value: 30 },
-        { timestamp: "2026-09-28T08:00:00", value: 35 },
-        { timestamp: "2026-09-28T12:00:00", value: 33 },
-        { timestamp: "2026-09-28T16:00:00", value: 31 },
-        { timestamp: "2026-09-29T08:00:00", value: 36 },
-        { timestamp: "2026-09-29T12:00:00", value: 34 },
-        { timestamp: "2026-09-29T16:00:00", value: 32 },
-        { timestamp: "2026-09-30T08:00:00", value: 35 },
-        { timestamp: "2026-09-30T12:00:00", value: 33 },
-        { timestamp: "2026-09-30T16:00:00", value: 31 },
-      ],
-
-      unten: [
-        { timestamp: "2026-09-25T08:00:00", value: 32 },
-        { timestamp: "2026-09-25T12:00:00", value: 30 },
-        { timestamp: "2026-09-25T16:00:00", value: 28 },
-        { timestamp: "2026-09-26T08:00:00", value: 33 },
-        { timestamp: "2026-09-26T12:00:00", value: 31 },
-        { timestamp: "2026-09-26T16:00:00", value: 29 },
-        { timestamp: "2026-09-27T08:00:00", value: 34 },
-        { timestamp: "2026-09-27T12:00:00", value: 32 },
-        { timestamp: "2026-09-27T16:00:00", value: 30 },
-        { timestamp: "2026-09-28T08:00:00", value: 35 },
-        { timestamp: "2026-09-28T12:00:00", value: 33 },
-        { timestamp: "2026-09-28T16:00:00", value: 31 },
-        { timestamp: "2026-09-29T08:00:00", value: 36 },
-        { timestamp: "2026-09-29T12:00:00", value: 34 },
-        { timestamp: "2026-09-29T16:00:00", value: 32 },
-        { timestamp: "2026-09-30T08:00:00", value: 35 },
-        { timestamp: "2026-09-30T12:00:00", value: 33 },
-        { timestamp: "2026-09-30T16:00:00", value: 31 },
-      ],
-    },
-
-    conductivity: {
-      oben: [
-        { timestamp: "2026-09-25T08:00:00", value: 1.1 },
-        { timestamp: "2026-09-25T12:00:00", value: 1.2 },
-        { timestamp: "2026-09-25T16:00:00", value: 1.3 },
-        { timestamp: "2026-09-26T08:00:00", value: 1.1 },
-        { timestamp: "2026-09-26T12:00:00", value: 1.4 },
-        { timestamp: "2026-09-26T16:00:00", value: 1.3 },
-        { timestamp: "2026-09-27T08:00:00", value: 1.2 },
-        { timestamp: "2026-09-27T12:00:00", value: 1.4 },
-        { timestamp: "2026-09-27T16:00:00", value: 1.4 },
-        { timestamp: "2026-09-28T08:00:00", value: 1.2 },
-        { timestamp: "2026-09-28T12:00:00", value: 1.4 },
-        { timestamp: "2026-09-28T16:00:00", value: 1.5 },
-        { timestamp: "2026-09-29T08:00:00", value: 1.3 },
-        { timestamp: "2026-09-29T12:00:00", value: 1.5 },
-        { timestamp: "2026-09-29T16:00:00", value: 1.6 },
-        { timestamp: "2026-09-30T08:00:00", value: 1.2 },
-        { timestamp: "2026-09-30T12:00:00", value: 1.2 },
-        { timestamp: "2026-09-30T16:00:00", value: 2.3 },
-      ],
-
-      unten: [
-        { timestamp: "2026-09-25T08:00:00", value: 1.1 },
-        { timestamp: "2026-09-25T12:00:00", value: 1.2 },
-        { timestamp: "2026-09-25T16:00:00", value: 1.3 },
-        { timestamp: "2026-09-26T08:00:00", value: 1.1 },
-        { timestamp: "2026-09-26T12:00:00", value: 1.4 },
-        { timestamp: "2026-09-26T16:00:00", value: 1.3 },
-        { timestamp: "2026-09-27T08:00:00", value: 1.2 },
-        { timestamp: "2026-09-27T12:00:00", value: 1.4 },
-        { timestamp: "2026-09-27T16:00:00", value: 1.4 },
-        { timestamp: "2026-09-28T08:00:00", value: 1.2 },
-        { timestamp: "2026-09-28T12:00:00", value: 1.4 },
-        { timestamp: "2026-09-28T16:00:00", value: 1.5 },
-        { timestamp: "2026-09-29T08:00:00", value: 1.3 },
-        { timestamp: "2026-09-29T12:00:00", value: 1.5 },
-        { timestamp: "2026-09-29T16:00:00", value: 1.6 },
-        { timestamp: "2026-09-30T08:00:00", value: 1.2 },
-        { timestamp: "2026-09-30T12:00:00", value: 1.2 },
-        { timestamp: "2026-09-30T16:00:00", value: 2.3 },
-      ],
-    },
-  },
-
-  Ilse: {
-    temperature: {
-      oben: [
-        { timestamp: "2026-09-25T08:00:00", value: 16.4 },
-        { timestamp: "2026-09-25T12:00:00", value: 18.1 },
-        { timestamp: "2026-09-25T16:00:00", value: 19.3 },
-        { timestamp: "2026-09-26T08:00:00", value: 15.8 },
-        { timestamp: "2026-09-26T12:00:00", value: 17.7 },
-        { timestamp: "2026-09-26T16:00:00", value: 20.1 },
-        { timestamp: "2026-09-27T08:00:00", value: 16.2 },
-        { timestamp: "2026-09-27T12:00:00", value: 19.0 },
-        { timestamp: "2026-09-27T16:00:00", value: 21.2 },
-        { timestamp: "2026-09-28T08:00:00", value: 16.7 },
-        { timestamp: "2026-09-28T12:00:00", value: 18.8 },
-        { timestamp: "2026-09-28T16:00:00", value: 20.7 },
-        { timestamp: "2026-09-29T08:00:00", value: 15.9 },
-        { timestamp: "2026-09-29T12:00:00", value: 18.4 },
-        { timestamp: "2026-09-29T16:00:00", value: 19.9 },
-        { timestamp: "2026-09-30T08:00:00", value: 16.5 },
-        { timestamp: "2026-09-30T12:00:00", value: 19.2 },
-        { timestamp: "2026-09-30T16:00:00", value: 21.0 },
-      ],
-
-      unten: [
-        { timestamp: "2026-09-25T08:00:00", value: 16.4 },
-        { timestamp: "2026-09-25T12:00:00", value: 18.1 },
-        { timestamp: "2026-09-25T16:00:00", value: 19.3 },
-        { timestamp: "2026-09-26T08:00:00", value: 15.8 },
-        { timestamp: "2026-09-26T12:00:00", value: 17.7 },
-        { timestamp: "2026-09-26T16:00:00", value: 20.1 },
-        { timestamp: "2026-09-27T08:00:00", value: 16.2 },
-        { timestamp: "2026-09-27T12:00:00", value: 19.0 },
-        { timestamp: "2026-09-27T16:00:00", value: 21.2 },
-        { timestamp: "2026-09-28T08:00:00", value: 16.7 },
-        { timestamp: "2026-09-28T12:00:00", value: 18.8 },
-        { timestamp: "2026-09-28T16:00:00", value: 20.7 },
-        { timestamp: "2026-09-29T08:00:00", value: 15.9 },
-        { timestamp: "2026-09-29T12:00:00", value: 18.4 },
-        { timestamp: "2026-09-29T16:00:00", value: 19.9 },
-        { timestamp: "2026-09-30T08:00:00", value: 16.5 },
-        { timestamp: "2026-09-30T12:00:00", value: 19.2 },
-        { timestamp: "2026-09-30T16:00:00", value: 21.0 },
-      ],
-    },
-
-    soil_moisture: {
-      oben: [
-        { timestamp: "2026-09-25T08:00:00", value: 27 },
-        { timestamp: "2026-09-25T12:00:00", value: 25 },
-        { timestamp: "2026-09-25T16:00:00", value: 23 },
-        { timestamp: "2026-09-26T08:00:00", value: 28 },
-        { timestamp: "2026-09-26T12:00:00", value: 26 },
-        { timestamp: "2026-09-26T16:00:00", value: 24 },
-        { timestamp: "2026-09-27T08:00:00", value: 29 },
-        { timestamp: "2026-09-27T12:00:00", value: 27 },
-        { timestamp: "2026-09-27T16:00:00", value: 25 },
-        { timestamp: "2026-09-28T08:00:00", value: 30 },
-        { timestamp: "2026-09-28T12:00:00", value: 28 },
-        { timestamp: "2026-09-28T16:00:00", value: 26 },
-        { timestamp: "2026-09-29T08:00:00", value: 31 },
-        { timestamp: "2026-09-29T12:00:00", value: 29 },
-        { timestamp: "2026-09-29T16:00:00", value: 27 },
-        { timestamp: "2026-09-30T08:00:00", value: 30 },
-        { timestamp: "2026-09-30T12:00:00", value: 28 },
-        { timestamp: "2026-09-30T16:00:00", value: 26 },
-      ],
-
-      unten: [
-        { timestamp: "2026-09-25T08:00:00", value: 27 },
-        { timestamp: "2026-09-25T12:00:00", value: 25 },
-        { timestamp: "2026-09-25T16:00:00", value: 23 },
-        { timestamp: "2026-09-26T08:00:00", value: 28 },
-        { timestamp: "2026-09-26T12:00:00", value: 26 },
-        { timestamp: "2026-09-26T16:00:00", value: 24 },
-        { timestamp: "2026-09-27T08:00:00", value: 29 },
-        { timestamp: "2026-09-27T12:00:00", value: 27 },
-        { timestamp: "2026-09-27T16:00:00", value: 25 },
-        { timestamp: "2026-09-28T08:00:00", value: 30 },
-        { timestamp: "2026-09-28T12:00:00", value: 28 },
-        { timestamp: "2026-09-28T16:00:00", value: 26 },
-        { timestamp: "2026-09-29T08:00:00", value: 31 },
-        { timestamp: "2026-09-29T12:00:00", value: 29 },
-        { timestamp: "2026-09-29T16:00:00", value: 27 },
-        { timestamp: "2026-09-30T08:00:00", value: 30 },
-        { timestamp: "2026-09-30T12:00:00", value: 28 },
-        { timestamp: "2026-09-30T16:00:00", value: 26 },
-      ],
-    },
-
-    conductivity: {
-      oben: [
-        { timestamp: "2026-09-25T08:00:00", value: 1.7 },
-        { timestamp: "2026-09-25T12:00:00", value: 1.2 },
-        { timestamp: "2026-09-25T16:00:00", value: 1.9 },
-        { timestamp: "2026-09-26T08:00:00", value: 1.4 },
-        { timestamp: "2026-09-26T12:00:00", value: 2.1 },
-        { timestamp: "2026-09-26T16:00:00", value: 1.6 },
-        { timestamp: "2026-09-27T08:00:00", value: 1.1 },
-        { timestamp: "2026-09-27T12:00:00", value: 1.8 },
-        { timestamp: "2026-09-27T16:00:00", value: 2.3 },
-        { timestamp: "2026-09-28T08:00:00", value: 1.5 },
-        { timestamp: "2026-09-28T12:00:00", value: 2.0 },
-        { timestamp: "2026-09-28T16:00:00", value: 1.3 },
-        { timestamp: "2026-09-29T08:00:00", value: 1.9 },
-        { timestamp: "2026-09-29T12:00:00", value: 2.4 },
-        { timestamp: "2026-09-29T16:00:00", value: 1.7 },
-        { timestamp: "2026-09-30T08:00:00", value: 1.2 },
-        { timestamp: "2026-09-30T12:00:00", value: 2.2 },
-        { timestamp: "2026-09-30T16:00:00", value: 1.6 },
-      ],
-
-      unten: [
-        { timestamp: "2026-09-25T08:00:00", value: 1.7 },
-        { timestamp: "2026-09-25T12:00:00", value: 1.2 },
-        { timestamp: "2026-09-25T16:00:00", value: 1.9 },
-        { timestamp: "2026-09-26T08:00:00", value: 1.4 },
-        { timestamp: "2026-09-26T12:00:00", value: 2.1 },
-        { timestamp: "2026-09-26T16:00:00", value: 1.6 },
-        { timestamp: "2026-09-27T08:00:00", value: 1.1 },
-        { timestamp: "2026-09-27T12:00:00", value: 1.8 },
-        { timestamp: "2026-09-27T16:00:00", value: 2.3 },
-        { timestamp: "2026-09-28T08:00:00", value: 1.5 },
-        { timestamp: "2026-09-28T12:00:00", value: 2.0 },
-        { timestamp: "2026-09-28T16:00:00", value: 1.3 },
-        { timestamp: "2026-09-29T08:00:00", value: 1.9 },
-        { timestamp: "2026-09-29T12:00:00", value: 2.4 },
-        { timestamp: "2026-09-29T16:00:00", value: 1.7 },
-        { timestamp: "2026-09-30T08:00:00", value: 1.2 },
-        { timestamp: "2026-09-30T12:00:00", value: 2.2 },
-        { timestamp: "2026-09-30T16:00:00", value: 1.6 },
-      ],
-    },
-  },
-};
-
-const measurementConfig: Record<string, { label: string; unit: string }> = {
-  temperature: {
-    label: "Temperatur",
-    unit: "°C",
-  },
-
-  soil_moisture: {
-    label: "Bodenfeuchtigkeit",
-    unit: "%",
-  },
-
-  conductivity: {
-    label: "Leitfähigkeit",
-    unit: "mS/cm",
-  },
-};
-
 const BED_COLORS: Record<string, string> = {
   Carla: "#2563eb",
   Berta: "#16a34a",
   Ilse: "#ea580c",
 };
 
-const BED_NAMES: string[] = ["Carla", "Berta", "Ilse"];
+const BED_NAMES = ["Carla", "Berta", "Ilse"];
 
-const MEASUREMENTS: { key: string; label: string }[] = [
-  {
-    key: "temperature",
+const MEASUREMENTS = [
+  { key: "temperature", label: "Temperatur" },
+  { key: "soil_moisture", label: "Bodenfeuchtigkeit" },
+  { key: "conductivity", label: "Leitfähigkeit" },
+  // { key: "battery_voltage", label: "Batteriespannung" },
+];
+
+const MEASUREMENT_CONFIG: Record<
+  string,
+  { label: string; unit: string }
+> = {
+  temperature: {
     label: "Temperatur",
+    unit: "°C",
   },
-  {
-    key: "soil_moisture",
+  soil_moisture: {
     label: "Bodenfeuchtigkeit",
+    unit: "%",
   },
-  {
-    key: "conductivity",
+  conductivity: {
     label: "Leitfähigkeit",
+    unit: "mS/cm",
   },
+  // battery_voltage: {
+  //   label: "Batteriespannung",
+  //   unit: "V",
+  // },
+};
+
+const ZEITRAEUME = [
+  { value: "24h", label: "Letzte 24 Stunden" },
+  { value: "7d", label: "Letzte 7 Tage" },
+  { value: "30d", label: "Letzte 30 Tage" },
+  { value: "90d", label: "Letzte 90 Tage" },
+  { value: "6mo", label: "Letzte 6 Monate" },
 ];
 
-const ZEITRAEUME: { value: string; label: string }[] = [
-  {
-    value: "24h",
-    label: "Letzte 24 Stunden",
-  },
-  {
-    value: "7d",
-    label: "Letzte 7 Tage",
-  },
-  {
-    value: "30d",
-    label: "Letzte 30 Tage",
-  },
-  {
-    value: "90d",
-    label: "Letzte 90 Tage",
-  },
-  {
-    value: "6mo",
-    label: "Letzte 6 Monate",
-  },
-];
-
-function formatDate(timestamp: string) {
-  const date = new Date(timestamp);
-
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  return date.toLocaleDateString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-  });
-}
-
-function formatTooltipDate(timestamp: string) {
-  const date = new Date(timestamp);
-
-  if (Number.isNaN(date.getTime())) {
-    return timestamp;
-  }
-
-  return date.toLocaleString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function getZeitraumMillis(zeitraum: string) {
+function getZeitraumMillis(zeitraum: string): number {
   switch (zeitraum) {
     case "24h":
       return 24 * 60 * 60 * 1000;
@@ -552,169 +87,113 @@ function getZeitraumMillis(zeitraum: string) {
       return 90 * 24 * 60 * 60 * 1000;
 
     case "6mo":
-      return 180 * 24 * 60 * 60 * 1000;
+      return 183 * 24 * 60 * 60 * 1000;
 
     default:
       return 7 * 24 * 60 * 60 * 1000;
   }
 }
 
-/*
- * Baut die Daten für genau einen Messwert und eine Position
- * (oben oder unten) zusammen.
- *
- * Ergebnis beispielsweise:
- *
- * [
- *   {
- *     timestamp: "...",
- *     Carla: 18.2,
- *     Berta: 19.1
- *   }
- * ]
- */
-function buildChartData(
-  selectedBeds: string[],
-  measurement: string,
-  position: string,
-  zeitraum: string
-): ChartDataPoint[] {
-  const allePunkte: ChartPoint[] = [];
+function formatDate(timestamp: string): string {
+  const date = new Date(timestamp);
 
-  selectedBeds.forEach((bed) => {
-    const messwerte =
-      MOCK_DATA[bed]?.[measurement]?.[position] ?? [];
-
-    messwerte.forEach((punkt: ChartPoint) => {
-      allePunkte.push({
-        ...punkt,
-        bed,
-      });
-    });
-  });
-
-  if (allePunkte.length === 0) {
-    return [];
+  if (Number.isNaN(date.getTime())) {
+    return "";
   }
 
-  const letzterZeitpunkt = Math.max(
-    ...allePunkte.map((punkt) => new Date(punkt.timestamp).getTime())
-  );
-
-  const zeitraumMillis = getZeitraumMillis(zeitraum);
-  const startZeitpunkt = letzterZeitpunkt - zeitraumMillis;
-
-  const gefiltertePunkte = allePunkte.filter((punkt) => {
-    const zeit = new Date(punkt.timestamp).getTime();
-
-    return zeit >= startZeitpunkt && zeit <= letzterZeitpunkt;
+  return date.toLocaleString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   });
-
-  const gruppiert = new Map<string, ChartDataPoint>();
-
-  gefiltertePunkte.forEach((punkt) => {
-    if (!gruppiert.has(punkt.timestamp)) {
-      gruppiert.set(punkt.timestamp, {
-        timestamp: punkt.timestamp,
-      });
-    }
-
-    gruppiert.get(punkt.timestamp)![punkt.bed!] = punkt.value;
-  });
-
-  return Array.from(gruppiert.values()).sort(
-    (a, b) =>
-      new Date(a.timestamp).getTime() -
-      new Date(b.timestamp).getTime()
-  );
 }
+
+type CustomTooltipProps = {
+  active?: boolean;
+  payload?: Array<{
+    dataKey?: string;
+    name?: string;
+    value?: number | string | null;
+    color?: string;
+  }>;
+  label?: string;
+  unit: string;
+};
 
 function CustomTooltip({
   active,
   payload,
   label,
   unit,
-}: {
-  active?: boolean;
-  payload?: any[];
-  label?: string;
-  unit: string;
-}) {
-  if (!active || !payload || payload.length === 0) {
+}: CustomTooltipProps) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  const validEntries = payload.filter(
+    (item) =>
+      item.value !== null &&
+      item.value !== undefined &&
+      item.value !== ""
+  );
+
+  if (validEntries.length === 0) {
     return null;
   }
 
   return (
-    <div
-      style={{
-        background: "#ffffff",
-        border: "1px solid #d1d5db",
-        borderRadius: "8px",
-        padding: "10px 12px",
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
-      }}
-    >
-      <div
-        style={{
-          fontWeight: 600,
-          marginBottom: "6px",
-        }}
-      >
-        {formatTooltipDate(label ?? "")}
-      </div>
+    <div className="historische-tooltip">
+      <strong>
+        {label ? formatDate(label) : ""}
+      </strong>
 
-      {payload.map((entry) => (
+      {validEntries.map((item) => (
         <div
-          key={entry.dataKey}
-          style={{
-            color: entry.color,
-            marginTop: "3px",
-          }}
+          key={String(item.dataKey)}
+          style={{ color: item.color }}
         >
-          {entry.name}: {entry.value} {unit}
+          {item.name}:{" "}
+          {typeof item.value === "number"
+            ? item.value.toLocaleString("de-DE")
+            : item.value}{" "}
+          {unit}
         </div>
       ))}
     </div>
   );
 }
 
+type HistoryChartProps = {
+  title: string;
+  unit: string;
+  data: ChartDataPoint[];
+  selectedBeds: string[];
+};
+
 function HistoryChart({
   title,
-  data,
   unit,
+  data,
   selectedBeds,
-  showOutsideTemperature,
-}: {
-  title: string;
-  data: ChartDataPoint[];
-  unit: string;
-  selectedBeds: string[];
-  showOutsideTemperature: boolean;
-}) {
+}: HistoryChartProps) {
   return (
     <section className="historische-chart">
-      <div className="historische-chart-header">
+      <header className="historische-chart-header">
         <h3>{title}</h3>
 
         <span className="historische-chart-einheit">
           {unit}
         </span>
-      </div>
+      </header>
 
       {data.length === 0 ? (
         <div className="historische-chart-leer">
-          <p>
-            Für die ausgewählten Beete und den gewählten Zeitraum
-            sind keine Daten vorhanden.
-          </p>
+          Für diese Auswahl wurden keine Messwerte im Zeitraum gefunden.
         </div>
       ) : (
-        <div
-          style={{
-            width: "100%",
-            height: 360,
-          }}
-        >
+        <div style={{ width: "100%", height: 360 }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={data}
@@ -734,18 +213,14 @@ function HistoryChart({
               />
 
               <YAxis
-                width={55}
-                tickFormatter={(value) =>
-                  typeof value === "number"
-                    ? value.toLocaleString("de-DE")
-                    : value
+                width={60}
+                tickFormatter={(value: number) =>
+                  value.toLocaleString("de-DE")
                 }
               />
 
               <Tooltip
-                content={
-                  <CustomTooltip unit={unit} />
-                }
+                content={<CustomTooltip unit={unit} />}
               />
 
               <Legend />
@@ -753,157 +228,23 @@ function HistoryChart({
               {selectedBeds.map((bed) => (
                 <Line
                   key={bed}
-                  type={data.length > 150 ? "linear" : "monotone"}
+                  type="linear"
                   dataKey={bed}
                   name={bed}
-                  stroke={BED_COLORS[bed]}
+                  stroke={BED_COLORS[bed] ?? "#64748b"}
                   strokeWidth={2}
                   dot={false}
-                  activeDot={{
-                    r: 5,
-                  }}
+                  activeDot={{ r: 5 }}
                   isAnimationActive={false}
-                  connectNulls
+                  connectNulls={true}
                 />
               ))}
-
-              {showOutsideTemperature && (
-                <Line
-                  type={data.length > 150 ? "linear" : "monotone"}
-                  dataKey="outsideTemperature"
-                  name="Außentemperatur"
-                  stroke="#111827"
-                  strokeWidth={2}
-                  strokeDasharray="6 4"
-                  dot={false}
-                  activeDot={{
-                    r: 4,
-                  }}
-                  isAnimationActive={false}
-                  connectNulls
-                />
-              )}
             </LineChart>
           </ResponsiveContainer>
         </div>
       )}
     </section>
   );
-}
-
-
-// Wenn tatsächlich eine Verbindung zur DB vorhanden ist
-// function getDateRange(zeitraum) {
-//   const end = new Date();
-//   const start = new Date(end);
-//
-//   switch (zeitraum) {
-//     case "24h":
-//       start.setHours(start.getHours() - 24);
-//       break;
-//
-//     case "7d":
-//       start.setDate(start.getDate() - 7);
-//       break;
-//
-//     case "30d":
-//       start.setDate(start.getDate() - 30);
-//       break;
-//
-//     case "90d":
-//       start.setDate(start.getDate() - 90);
-//       break;
-//
-//     default:
-//       start.setDate(start.getDate() - 7);
-//   }
-//
-//   return {
-//     start,
-//     end,
-//   };
-// }
-
-function getDateRange(
-  zeitraum: string
-): { start: Date; end: Date } {
-  return {
-    start: new Date("2026-09-25T00:00:00"),
-    end: new Date("2026-09-30T23:59:59"),
-  };
-}
-
-function formatDateForApi(date: Date) {
-  return date.toISOString().slice(0, 10);
-}
-
-const weatherCache = new Map<string, ChartPoint[]>();
-
-async function fetchWeatherData(
-  zeitraum: string
-): Promise<ChartPoint[]> {
-  if (weatherCache.has(zeitraum)) return weatherCache.get(zeitraum)!;
-
-  const { start, end } = getDateRange(zeitraum);
-
-  const startDate = formatDateForApi(start);
-  const endDate = formatDateForApi(end);
-
-  const latitude = 51.4817;
-  const longitude = 7.2165;
-
-  const url =
-    `https://archive-api.open-meteo.com/v1/archive` +
-    `?latitude=${latitude}` +
-    `&longitude=${longitude}` +
-    `&start_date=${startDate}` +
-    `&end_date=${endDate}` +
-    `&hourly=temperature_2m` +
-    `&models=dwd_icon_seamless` +
-    `&timezone=Europe%2FBerlin`;
-
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error("Open-Meteo Anfrage fehlgeschlagen.");
-  }
-
-  const data = await response.json();
-
-  const result = data.hourly.time.map((timestamp: string, index: number) => ({
-    timestamp,
-    value: data.hourly.temperature_2m[index],
-  }));
-  weatherCache.set(zeitraum, result);
-  return result;
-}
-
-function addWeatherData(
-  chartData: ChartDataPoint[],
-  weatherData: ChartPoint[]
-): ChartDataPoint[] {
-  const weatherMap = new Map<string, number>();
-
-  weatherData.forEach((point) => {
-    weatherMap.set(
-      normalizeTimestamp(point.timestamp),
-      point.value
-    );
-  });
-
-  return chartData.map((point) => ({
-    ...point,
-    outsideTemperature:
-      weatherMap.get(
-        normalizeTimestamp(point.timestamp)
-      ) ?? null,
-  }));
-}
-
-function normalizeTimestamp(timestamp: string) {
-  const date = new Date(timestamp);
-
-  return date.toISOString().slice(0, 13);
 }
 
 export default function HistorischeDaten({
@@ -914,68 +255,42 @@ export default function HistorischeDaten({
   zeitraum,
   setZeitraum,
 }: HistorischeDatenProps) {
-  const [weatherData, setWeatherData] = useState<ChartPoint[]>([]);
-
   const [cacheVersion, setCacheVersion] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(
+    null
+  );
+
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const toggleBed = (bed: string) => {
-    setSelectedBeds((aktuell: string[]) => {
-      if (aktuell.includes(bed)) {
-        return aktuell.filter((item) => item !== bed);
-      }
-
-      return [...aktuell, bed];
-    });
-  };
-
-  const toggleMeasurement = (measurement: string) => {
-    setSelectedMeasurements((aktuell: string[]) => {
-      if (aktuell.includes(measurement)) {
-        return aktuell.filter((item) => item !== measurement);
-      }
-
-      return [...aktuell, measurement];
-    });
-  };
-
-  useEffect(() => {
-    async function loadWeatherData() {
-      try {
-        const data = await fetchWeatherData(zeitraum);
-
-        setWeatherData(data);
-      } catch (error: unknown) {
-        console.error(error);
-      }
-    }
-
-    loadWeatherData();
-  }, [zeitraum]);
-
-  // Stabiles Zeitfenster (auf ganze Stunde gerundet für wiederverwendbare Chunks)
+  // Berechnet den Start- und Endzeitpunkt des ausgewählten Zeitraums.
   const { targetStart, targetEnd } = useMemo(() => {
-    const end = Math.ceil(Date.now() / 3600000) * 3600000;
-    const start = end - getZeitraumMillis(zeitraum);
-    return { targetStart: start, targetEnd: end };
+    const end = Date.now();
+
+    return {
+      targetStart: end - getZeitraumMillis(zeitraum),
+      targetEnd: end,
+    };
   }, [zeitraum]);
 
-  /*
-   * Intelligentes Frontend-Caching:
-   * Prüft selbstständig, welche Daten (Beete, Messwerte, Zeitfenster) bereits
-   * im Cache vorliegen, und fordert nur die noch fehlenden Chunks an.
-   */
+  // Lädt fehlende historische Daten aus dem Cache beziehungsweise Backend.
   useEffect(() => {
-    if (selectedBeds.length === 0 || selectedMeasurements.length === 0) {
+    if (
+      selectedBeds.length === 0 ||
+      selectedMeasurements.length === 0
+    ) {
+      setLoading(false);
+      setErrorMessage(null);
       return;
     }
 
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
+    abortControllerRef.current?.abort();
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
+
+    setLoading(true);
+    setErrorMessage(null);
 
     historyCache
       .fetchMissingData(
@@ -984,24 +299,44 @@ export default function HistorischeDaten({
         targetStart,
         targetEnd,
         () => {
-          // Neuer Chunk eingetroffen -> Re-Render auslösen
-          setCacheVersion((v) => v + 1);
+          setCacheVersion((version) => version + 1);
         },
         controller.signal,
+        (error) => {
+          console.error(
+            "Historische Daten konnten nicht geladen werden:",
+            error
+          );
+
+          setErrorMessage(
+            error instanceof Error
+              ? error.message
+              : "Unbekannter Fehler beim Laden der Historie."
+          );
+        }
       )
-      .catch((err) => {
+      .finally(() => {
         if (!controller.signal.aborted) {
-          console.error("Fehler beim Abrufen fehlender Daten:", err);
+          setLoading(false);
         }
       });
 
     return () => {
       controller.abort();
     };
-  }, [selectedBeds, selectedMeasurements, targetStart, targetEnd]);
+  }, [
+    selectedBeds,
+    selectedMeasurements,
+    targetStart,
+    targetEnd,
+  ]);
 
+  // Bereitet die Diagrammdaten vor.
+  // Wichtig: Beim Downsampling werden die Messpunkte aller ausgewählten
+  // Beete berücksichtigt, statt die gemeinsame Zeitreihe pauschal
+  // auf eine feste Anzahl von Zeilen zu reduzieren.
   const chartData = useMemo(() => {
-    const ergebnis: {
+    const result: {
       oben: Record<string, ChartDataPoint[]>;
       unten: Record<string, ChartDataPoint[]>;
     } = {
@@ -1009,80 +344,77 @@ export default function HistorischeDaten({
       unten: {},
     };
 
-    selectedMeasurements.forEach((measurement) => {
-      let oben: ChartDataPoint[];
-      let unten: ChartDataPoint[];
+    const seriesKeys = selectedBeds.map((bed) => {
+      return bed.charAt(0).toUpperCase() + bed.slice(1);
+    });
 
-      // Prüfe, ob für diese Auswahl echte Daten im Cache vorliegen
-      const hasOben = historyCache.hasAnyData(
+    for (const measurement of selectedMeasurements) {
+      const obenData = historyCache.getChartData(
         selectedBeds,
         measurement,
         "oben",
         targetStart,
-        targetEnd,
+        targetEnd
       );
-      const hasUnten = historyCache.hasAnyData(
+
+      const untenData = historyCache.getChartData(
         selectedBeds,
         measurement,
         "unten",
         targetStart,
-        targetEnd,
+        targetEnd
       );
 
-      if (hasOben || hasUnten) {
-        oben = historyCache.getChartData(
-          selectedBeds,
-          measurement,
-          "oben",
-          targetStart,
-          targetEnd,
-        );
-        unten = historyCache.getChartData(
-          selectedBeds,
-          measurement,
-          "unten",
-          targetStart,
-          targetEnd,
-        );
-      } else {
-        // Fallback auf Mockdaten, falls noch keine Daten vorliegen oder DB offline
-        oben = buildChartData(selectedBeds, measurement, "oben", zeitraum);
-        unten = buildChartData(selectedBeds, measurement, "unten", zeitraum);
-      }
+      result.oben[measurement] = downsampleMultiSeriesData(
+        obenData,
+        seriesKeys,
+        350
+      );
 
-      // Reduziert die Renderlast im SVG-Canvas auf ca. 350 Punkte für 60 FPS
-      oben = downsampleData(oben, 350);
-      unten = downsampleData(unten, 350);
+      result.unten[measurement] = downsampleMultiSeriesData(
+        untenData,
+        seriesKeys,
+        350
+      );
+    }
 
-      if (measurement === "temperature") {
-        oben = addWeatherData(oben, weatherData);
-        unten = addWeatherData(unten, weatherData);
-      }
-
-      ergebnis.oben[measurement] = oben;
-      ergebnis.unten[measurement] = unten;
-    });
-
-    return ergebnis;
+    return result;
   }, [
     selectedBeds,
     selectedMeasurements,
-    zeitraum,
-    weatherData,
     targetStart,
     targetEnd,
     cacheVersion,
   ]);
 
+  // Aktiviert oder deaktiviert ein Beet.
+  const toggleBed = (bed: string) => {
+    setSelectedBeds((current) =>
+      current.includes(bed)
+        ? current.filter((item) => item !== bed)
+        : [...current, bed]
+    );
+  };
+
+  // Aktiviert oder deaktiviert einen Messwert.
+  const toggleMeasurement = (measurement: string) => {
+    setSelectedMeasurements((current) =>
+      current.includes(measurement)
+        ? current.filter((item) => item !== measurement)
+        : [...current, measurement]
+    );
+  };
+
   return (
     <section className="historische-date">
       <div className="historische-übersichtNeu">
         <p>
-          Vergleiche historische Messwerte mehrerer Beete
-          und Messgrößen.
+          Vergleiche historische Messwerte mehrerer Beete und
+          Messgrößen aus der InfluxDB.
         </p>
       </div>
 
+      {/* Filter für Beete, Messwerte und Zeitraum */}
       <section className="historische-filter">
         <div className="historische-filter-gruppe">
           <h2>Beete</h2>
@@ -1143,9 +475,9 @@ export default function HistorischeDaten({
           <select
             className="historische-auswahl"
             value={zeitraum}
-            onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-              setZeitraum(event.target.value)
-            }
+            onChange={(
+              event: ChangeEvent<HTMLSelectElement>
+            ) => setZeitraum(event.target.value)}
           >
             {ZEITRAEUME.map((option) => (
               <option
@@ -1159,90 +491,71 @@ export default function HistorischeDaten({
         </div>
       </section>
 
+      {/* Lade- und Fehlermeldungen */}
+      {loading && (
+        <p role="status">
+          Historische Daten werden geladen …
+        </p>
+      )}
+
+      {errorMessage && (
+        <p
+          className="historische-fehler"
+          role="alert"
+        >
+          Fehler beim Laden: {errorMessage}
+        </p>
+      )}
+
+      {/* Diagramme oder Hinweis bei fehlender Auswahl */}
       {selectedBeds.length === 0 ||
-        selectedMeasurements.length === 0 ? (
+      selectedMeasurements.length === 0 ? (
         <div className="historische-leerzustand">
           <h2>Keine Auswahl</h2>
 
           <p>
-            Bitte wähle mindestens ein Beet und einen Messwert
-            aus.
+            Bitte wähle mindestens ein Beet und einen Messwert aus.
           </p>
         </div>
       ) : (
         <>
-          <section className="historische-bereich">
-            <div className="historische-bereich-header">
-              <h2>Oben</h2>
-            </div>
+          {(["oben", "unten"] as const).map((position) => (
+            <section
+              className="historische-bereich"
+              key={position}
+            >
+              <div className="historische-bereich-header">
+                <h2>
+                  {position === "oben" ? "Oben" : "Unten"}
+                </h2>
+              </div>
 
-            <div className="historische-charts">
-              {selectedMeasurements.map((measurement) => {
-                const config =
-                  measurementConfig[measurement];
+              <div className="historische-charts">
+                {selectedMeasurements.map((measurement) => {
+                  const config =
+                    MEASUREMENT_CONFIG[measurement];
 
-                return (
-                  <HistoryChart
-                    key={`oben-${measurement}`}
-                    title={config.label}
-                    unit={config.unit}
-                    data={
-                      chartData.oben[measurement] ?? []
-                    }
-                    selectedBeds={selectedBeds}
-                    showOutsideTemperature={measurement === "temperature"}
-                  />
-                );
-              })}
-            </div>
-          </section>
+                  if (!config) {
+                    return null;
+                  }
 
-          <section className="historische-bereich">
-            <div className="historische-bereich-header">
-              <h2>Unten</h2>
-            </div>
-
-            <div className="historische-charts">
-              {selectedMeasurements.map((measurement) => {
-                const config =
-                  measurementConfig[measurement];
-
-                return (
-                  <HistoryChart
-                    key={`unten-${measurement}`}
-                    title={config.label}
-                    unit={config.unit}
-                    data={
-                      chartData.unten[measurement] ?? []
-                    }
-                    selectedBeds={selectedBeds}
-                    showOutsideTemperature={measurement === "temperature"}
-                  />
-                );
-              })}
-            </div>
-          </section>
+                  return (
+                    <HistoryChart
+                      key={`${position}-${measurement}`}
+                      title={config.label}
+                      unit={config.unit}
+                      data={
+                        chartData[position][measurement] ?? []
+                      }
+                      selectedBeds={selectedBeds}
+                    />
+                  );
+                })}
+              </div>
+            </section>
+          ))}
         </>
       )}
-
-      <div className="weather-attribution">
-        Externe Wetterdaten (Außentemperatur) von&nbsp;
-        <a
-          href="https://open-meteo.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Open-Meteo.com&nbsp;
-        </a>
-        •&nbsp;
-        <a
-          href="https://creativecommons.org/licenses/by/4.0/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          CC BY 4.0
-        </a>
-      </div>
     </section>
   );
 }

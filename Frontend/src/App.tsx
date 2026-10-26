@@ -50,11 +50,9 @@ function Dashboard({
     "aktuell" | "historisch" | "historischNeu"
   >("aktuell");
 
-  const [historischeBeete, setHistorischeBeete] = useState<string[]>(["Carla"]);
+  const [historischeBeete, setHistorischeBeete] = useState<string[]>([]);
 
-  const [historischeMesswerte, setHistorischeMesswerte] = useState<string[]>([
-    "temperature",
-  ]);
+  const [historischeMesswerte, setHistorischeMesswerte] = useState<string[]>([]);
 
   const [historischerZeitraum, setHistorischerZeitraum] = useState("7d");
 
@@ -63,7 +61,28 @@ function Dashboard({
 
     try {
       const neu = await holeDashboard();
-      console.log("Neue Daten:", neu);
+      // console.log("Neue Daten:", neu);
+      // console.log(
+      //   "Sensor-Zeitstempel:",
+      //   neu.beds.flatMap((beet) =>
+      //     beet.sensors.map((sensor) => ({
+      //       beet: beet.name,
+      //       sensor: sensor,
+      //       updated_at: sensor.updated_at,
+      //     })),
+      //   ),
+      // );
+
+      // console.table(
+      //   neu.beds.flatMap((beet) =>
+      //     beet.sensors.map((sensor) => ({
+      //       beet: beet.name,
+      //       sensorId: sensor.sensor_id,
+      //       updated_at: sensor.updated_at,
+      //       ...sensor.values,
+      //     })),
+      //   ),
+      // );
 
       setDaten(neu);
       setDemo(false);

@@ -30,7 +30,7 @@ type HistorischeDatenProps = {
 const BED_COLORS: Record<string, string> = {
   Carla: "#2563eb",
   Berta: "#16a34a",
-  Ilse: "#ea580c",
+  Ilse: "#ea0c0c",
 };
 
 const BED_NAMES = ["Carla", "Berta", "Ilse"];
@@ -235,7 +235,7 @@ function HistoryChart({
                   strokeWidth={2}
                   dot={false}
                   activeDot={{ r: 5 }}
-                  isAnimationActive={false}
+                  isAnimationActive={true}
                   connectNulls={true}
                 />
               ))}
@@ -263,7 +263,6 @@ export default function HistorischeDaten({
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Berechnet den Start- und Endzeitpunkt des ausgewählten Zeitraums.
   const { targetStart, targetEnd } = useMemo(() => {
     const end = Date.now();
 
@@ -273,7 +272,6 @@ export default function HistorischeDaten({
     };
   }, [zeitraum]);
 
-  // Lädt fehlende historische Daten aus dem Cache beziehungsweise Backend.
   useEffect(() => {
     if (
       selectedBeds.length === 0 ||
@@ -331,10 +329,6 @@ export default function HistorischeDaten({
     targetEnd,
   ]);
 
-  // Bereitet die Diagrammdaten vor.
-  // Wichtig: Beim Downsampling werden die Messpunkte aller ausgewählten
-  // Beete berücksichtigt, statt die gemeinsame Zeitreihe pauschal
-  // auf eine feste Anzahl von Zeilen zu reduzieren.
   const chartData = useMemo(() => {
     const result: {
       oben: Record<string, ChartDataPoint[]>;
@@ -387,7 +381,6 @@ export default function HistorischeDaten({
     cacheVersion,
   ]);
 
-  // Aktiviert oder deaktiviert ein Beet.
   const toggleBed = (bed: string) => {
     setSelectedBeds((current) =>
       current.includes(bed)
@@ -396,7 +389,6 @@ export default function HistorischeDaten({
     );
   };
 
-  // Aktiviert oder deaktiviert einen Messwert.
   const toggleMeasurement = (measurement: string) => {
     setSelectedMeasurements((current) =>
       current.includes(measurement)
@@ -493,9 +485,10 @@ export default function HistorischeDaten({
 
       {/* Lade- und Fehlermeldungen */}
       {loading && (
-        <p role="status">
-          Historische Daten werden geladen …
-        </p>
+        <div className="historische-daten-laden" role="status">
+          <span className="lade-spinner" aria-hidden="true" />
+          <span>Historische Daten werden geladen …</span>
+        </div>
       )}
 
       {errorMessage && (
@@ -511,9 +504,8 @@ export default function HistorischeDaten({
       {selectedBeds.length === 0 ||
       selectedMeasurements.length === 0 ? (
         <div className="historische-leerzustand">
-          <h2>Keine Auswahl</h2>
-
           <p>
+            <center>Keine Auswahl</center>
             Bitte wähle mindestens ein Beet und einen Messwert aus.
           </p>
         </div>

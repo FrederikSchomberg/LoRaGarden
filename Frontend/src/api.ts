@@ -90,26 +90,50 @@ export type ChunkedHistoryCallback = (
 /**
  * Berechnet, wie viele Tage ein Zeitraum-String wie "5d", "2w" etc. enthält.
  */
+// function zeitraumZuTagen(zeitraum: string): number {
+//   const clean = zeitraum.replace(/^-/, "").trim();
+//   const match = clean.match(/^(\d+)(s|m|h|d|w|M|mo|y)$/i);
+
+//   if (!match) return 7;
+
+//   const wert = parseInt(match[1], 10);
+//   const einheit = match[2].toLowerCase();
+
+//   switch (einheit) {
+//     case "s": return wert / 86400;
+//     case "m": return wert / 1440;
+//     case "h": return wert / 24;
+//     case "d": return wert;
+//     case "w": return wert * 7;
+//     case "mo": return wert * 30;
+//     case "y": return wert * 365;
+//     default: return wert;
+//   }
+// }
+
+
 function zeitraumZuTagen(zeitraum: string): number {
   const clean = zeitraum.replace(/^-/, "").trim();
-  const match = clean.match(/^(\d+)(s|m|h|d|w|M|mo|y)$/i);
+  const match = clean.match(/^(\d+)(s|m|h|d|w|M|mo|y)$/);
 
   if (!match) return 7;
 
-  const wert = parseInt(match[1], 10);
-  const einheit = match[2].toLowerCase();
+  const wert = Number(match[1]);
+  const einheit = match[2];
 
   switch (einheit) {
-    case "s": return wert / 86400;
-    case "m": return wert / 1440;
-    case "h": return wert / 24;
-    case "d": return wert;
-    case "w": return wert * 7;
+    case "s":  return wert / 86400;
+    case "m":  return wert / 1440;
+    case "h":  return wert / 24;
+    case "d":  return wert;
+    case "w":  return wert * 7;
+    case "M":
     case "mo": return wert * 30;
-    case "y": return wert * 365;
-    default: return wert;
+    case "y":  return wert * 365;
+    default:   return 7;
   }
 }
+
 
 
 /**
@@ -194,11 +218,24 @@ export async function holeHistorieChunkFiltered(
 /**
  * Fragt einen einzelnen Chunk von der API ab.
  */
+// async function holeHistorieChunk(
+//   startDate: string,
+//   endDate: string,
+// ): Promise<DashboardHistoryResponse> {
+//   return holeHistorieChunkFiltered(startDate, endDate);
+// }
 async function holeHistorieChunk(
   startDate: string,
   endDate: string,
+  abortSignal?: AbortSignal,
 ): Promise<DashboardHistoryResponse> {
-  return holeHistorieChunkFiltered(startDate, endDate);
+  return holeHistorieChunkFiltered(
+    startDate,
+    endDate,
+    undefined,
+    undefined,
+    abortSignal,
+  );
 }
 
 
@@ -240,7 +277,7 @@ export async function holeDashboardHistorieChunked(
     if (abortSignal?.aborted) break;
 
     const chunk = chunks[i];
-    const daten = await holeHistorieChunk(chunk.start, chunk.end);
+    const daten = await holeHistorieChunk(chunk.start, chunk.end, abortSignal);
 
     onChunk(daten, {
       chunkIndex: i,

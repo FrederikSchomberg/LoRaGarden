@@ -58,3 +58,17 @@ export type DashboardHistoryResponse = {
   time_range: string;
   beds: BeetHistoryDaten[];
 };
+
+export type DashboardHistoryChunkResponse = {
+  database: {
+    type: string;
+    connected: boolean;
+  };
+  chunk: {
+    start_date: string;
+    end_date: string;
+    beds: string[];
+    fields: string[] | null;
+  };
+  beds: BeetHistoryDaten[];
+};

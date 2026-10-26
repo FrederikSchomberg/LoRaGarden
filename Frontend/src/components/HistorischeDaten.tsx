@@ -18,6 +18,11 @@ import {
   type ChartDataPoint,
 } from "../utils/historyCache";
 
+import {
+  getWeatherData,
+  type WeatherPoint,
+} from "../utils/weatherCache";
+
 type HistorischeDatenProps = {
   selectedBeds: string[];
   setSelectedBeds: Dispatch<SetStateAction<string[]>>;
@@ -25,11 +30,6 @@ type HistorischeDatenProps = {
   setSelectedMeasurements: Dispatch<SetStateAction<string[]>>;
   zeitraum: string;
   setZeitraum: Dispatch<SetStateAction<string>>;
-};
-
-type ChartPoint = {
-  timestamp: string;
-  value: number | null;
 };
 
 const BED_COLORS: Record<string, string> = {
@@ -289,57 +289,9 @@ function normalizeTimestamp(timestamp: string): string {
   return `${year}-${month}-${day}`;
 }
 
-async function fetchWeatherData(
-  targetStart: number,
-  targetEnd: number,
-  signal?: AbortSignal
-): Promise<ChartPoint[]> {
-  const startDate = formatDateForApi(
-    new Date(targetStart)
-  );
-
-  const endDate = formatDateForApi(
-    new Date(targetEnd)
-  );
-
-  const latitude = 51.481846;
-  const longitude = 7.216236;
-
-  const params = new URLSearchParams({
-    latitude: String(latitude),
-    longitude: String(longitude),
-    start_date: startDate,
-    end_date: endDate,
-    hourly: "temperature_2m",
-    timezone: "Europe/Berlin",
-  });
-
-  const url =
-    `https://archive-api.open-meteo.com/v1/archive?${params.toString()}`;
-
-  const response = await fetch(url, { signal });
-
-  if (!response.ok) {
-    throw new Error(
-      "Die Außentemperatur konnte nicht geladen werden."
-    );
-  }
-
-  const data = await response.json();
-
-  const dates: string[] = data.hourly?.time ?? [];
-  const temperatures: Array<number | null> =
-    data.hourly?.temperature_2m ?? [];
-
-  return dates.map((timestamp, index) => ({
-    timestamp,
-    value: temperatures[index] ?? null,
-  }));
-}
-
 function addWeatherData(
   chartData: ChartDataPoint[],
-  weatherData: ChartPoint[],
+  weatherData: WeatherPoint[],
   selectedBeds: string[] = []
 ): ChartDataPoint[] {
   const rows = new Map<string, ChartDataPoint>();
@@ -379,7 +331,7 @@ export default function HistorischeDaten({
   const [errorMessage, setErrorMessage] = useState<string | null>(
     null
   );
-  const [weatherData, setWeatherData] = useState<ChartPoint[]>([]);
+  const [weatherData, setWeatherData] = useState<WeatherPoint[]>([]);
   const [weatherError, setWeatherError] = useState<string | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -451,47 +403,42 @@ export default function HistorischeDaten({
   ]);
 
   useEffect(() => {
-  if (!selectedMeasurements.includes("temperature")) {
-    setWeatherData([]);
-    setWeatherError(null);
-    return;
-  }
-
-  const controller = new AbortController();
-
-  setWeatherError(null);
-
-  fetchWeatherData(
-    targetStart,
-    targetEnd,
-    controller.signal
-  )
-    .then((data) => {
-      setWeatherData(data);
-    })
-    .catch((error: unknown) => {
-      if (controller.signal.aborted) {
-        return;
-      }
-
-      console.error(
-        "Außentemperatur konnte nicht geladen werden:",
-        error
-      );
+    if (!selectedMeasurements.includes("temperature")) {
       setWeatherData([]);
-      setWeatherError(
-        "Die Außentemperatur konnte nicht geladen werden."
-      );
-    });
+      setWeatherError(null);
+      return;
+    }
 
-  return () => {
-    controller.abort();
-  };
-}, [
-  selectedMeasurements,
-  targetStart,
-  targetEnd,
-]);
+    const controller = new AbortController();
+
+    setWeatherError(null);
+
+    getWeatherData(
+      targetStart,
+      targetEnd,
+      controller.signal
+    )
+      .then((data) => {
+        setWeatherData(data);
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        console.error(
+          "Außentemperatur konnte nicht geladen werden:",
+          error
+        );
+        setWeatherError(
+          "Die Außentemperatur konnte nicht geladen werden."
+        );
+      });
+
+      return () => {
+      controller.abort();
+        };
+      }, [selectedMeasurements, targetStart, targetEnd]);
 
   const chartData = useMemo(() => {
     const result: {

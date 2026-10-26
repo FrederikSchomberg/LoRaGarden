@@ -250,13 +250,13 @@ function HistoryChart({
                 <Line
                   type="monotone"
                   dataKey="outsideTemperature"
-                  name="Außentemperatur (Tagesmittel)"
+                  name="Außentemperatur (stündlich)"
                   stroke="#111827"
                   strokeWidth={2}
                   strokeDasharray="6 4"
                   dot={false}
-                  connectNulls={false}
-                  isAnimationActive={false}
+                  connectNulls={true}
+                  isAnimationActive={true}
                 />
               )}
             </LineChart>
@@ -310,7 +310,7 @@ async function fetchWeatherData(
     longitude: String(longitude),
     start_date: startDate,
     end_date: endDate,
-    daily: "temperature_2m_mean",
+    hourly: "temperature_2m",
     timezone: "Europe/Berlin",
   });
 
@@ -327,9 +327,9 @@ async function fetchWeatherData(
 
   const data = await response.json();
 
-  const dates: string[] = data.daily?.time ?? [];
+  const dates: string[] = data.hourly?.time ?? [];
   const temperatures: Array<number | null> =
-    data.daily?.temperature_2m_mean ?? [];
+    data.hourly?.temperature_2m ?? [];
 
   return dates.map((timestamp, index) => ({
     timestamp,
@@ -339,28 +339,31 @@ async function fetchWeatherData(
 
 function addWeatherData(
   chartData: ChartDataPoint[],
-  weatherData: ChartPoint[]
+  weatherData: ChartPoint[],
+  selectedBeds: string[] = []
 ): ChartDataPoint[] {
-  const weatherMap = new Map<string, number | null>();
+  const rows = new Map<string, ChartDataPoint>();
 
-  weatherData.forEach((point) => {
-    const day = normalizeTimestamp(point.timestamp);
+  for (const point of chartData) {
+    rows.set(point.timestamp, { ...point, outsideTemperature: null });
+  }
 
-    if (day) {
-      weatherMap.set(day, point.value);
-    }
-  });
+  for (const weather of weatherData) {
+    const existing = rows.get(weather.timestamp);
 
-  return chartData.map((point) => {
-    const day = normalizeTimestamp(point.timestamp);
+    rows.set(weather.timestamp, {
+      ...(existing ?? 
+        { timestamp: weather.timestamp,
+          ...Object.fromEntries(selectedBeds.map((bed) => [bed, null]))
+         }),
+      outsideTemperature: weather.value,
+    } as ChartDataPoint);
+  }
 
-    return {
-      ...point,
-      outsideTemperature: day
-        ? weatherMap.get(day) ?? null
-        : null,
-    };
-  });
+  return Array.from(rows.values()).sort((a, b) =>
+    new Date(a.timestamp).getTime() -
+    new Date(b.timestamp).getTime()
+  );
 }
 
 export default function HistorischeDaten({
@@ -709,7 +712,11 @@ export default function HistorischeDaten({
                     weatherData.length > 0;
 
                   const data = showOutsideTemperature
-                    ? addWeatherData(baseData, weatherData)
+                    ? addWeatherData(
+                        baseData,
+                        weatherData,
+                        selectedBeds
+                      )
                     : baseData;
 
                   return (

@@ -874,7 +874,7 @@ tbody td span {
     border-color 0.2s ease;
 }
 
-.historische-leerzustand, .historische-übersichtNeu {
+.historische-leerzustand, .historische-übersichtNeu{
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -898,6 +898,20 @@ tbody td span {
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.22);
 
   color: white;
+}
+
+.weather-attribution{
+  justify-content: start;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-top: 16px;
+  padding: 12px 15px;
+  border: 1px solid var(--linie);
+  border-radius: 6px;
+  background: #edf0ed;
+  color: #526057;
+  font-size: 0.8rem;
 }
 
 .historische-checkbox:hover {

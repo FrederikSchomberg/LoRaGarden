@@ -548,6 +548,17 @@ export default function HistorischeDaten({
           ))}
         </>
       )}
+      
+      <footer className="weather-attribution">
+        Externe Wetterdaten (Außentemperatur) von&nbsp;
+        <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">
+            Open-Meteo.com&nbsp;
+        </a>
+        •&nbsp;
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">
+            CC BY 4.0
+        </a>
+      </footer>
     </section>
   );
 }

@@ -554,19 +554,6 @@ tbody td span {
   border-bottom-color: #4ade80;
 }
 
-.historische-daten {
-  width: 100%;
-}
-
-.historische-kontrollen {
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 25px;
-  margin: 30px auto;
-  flex-wrap: wrap;
-}
-
 .historische-auswahl {
   display: flex;
   flex-direction: column;
@@ -618,14 +605,6 @@ tbody td span {
 
 .historische-auswahl select:active {
   transform: translateY(1px);
-}
-
-.grafana-iframe {
-  display: block;
-  width: 100%;
-  min-height: 500px;
-  border: 5px solid var(--linie);
-  border-radius: 8px;
 }
 
 /* ---------------------------------------------

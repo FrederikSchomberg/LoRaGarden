@@ -9,7 +9,6 @@ import { StatusFooter } from "./components/StatusFooter";
 import { SummaryCards } from "./components/SummaryCards";
 import { letzteMessung } from "./dashboardUtils";
 import { beispielDaten } from "./data/mockData";
-import { GrafanaHistorischeDaten } from "./components/GrafanaHistorischeDaten";
 import type { DashboardResponse } from "./types/dashboard";
 import type { User } from "./types/auth";
 import { LandingPage } from "./pages/LandingPage";
@@ -47,7 +46,7 @@ function Dashboard({
 
   // Aktiver Tab
   const [aktiverTab, setAktiverTab] = useState<
-    "aktuell" | "historisch" | "historischNeu"
+    "aktuell" | "historisch"
   >("aktuell");
 
   const [historischeBeete, setHistorischeBeete] = useState<string[]>([]);
@@ -152,15 +151,6 @@ function Dashboard({
           >
             Historische Daten
           </button>
-          <button
-            type="button"
-            className={aktiverTab === "historischNeu" ? "tab aktiv" : "tab"}
-            onClick={() => {
-              setAktiverTab("historischNeu");
-            }}
-          >
-            Historische Daten (Neu)
-          </button>
         </nav>
 
         {/* Aktuelle Daten */}
@@ -186,10 +176,7 @@ function Dashboard({
         )}
 
         {/* Historische Daten */}
-        {aktiverTab === "historisch" && <GrafanaHistorischeDaten />}
-
-        {/* Historische Daten */}
-        {aktiverTab === "historischNeu" && (
+        {aktiverTab === "historisch" && (
           <HistorischeDaten
             selectedBeds={historischeBeete}
             setSelectedBeds={setHistorischeBeete}

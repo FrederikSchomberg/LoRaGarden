@@ -2,14 +2,14 @@
 .dashboard-karte .beet-kopf > span {
   background: #193e2c;
   color: #93e9b2;
-  border: 1px solid #355c43;
+  border: 1px solid var(--gradient-purple);
   border-radius: 6px;
 }
 
 /* Bodenfeuchtigkeit */
 .dashboard-karte .feuchte-block {
   background: linear-gradient(135deg, #193e2c, #10291e);
-  border: 1px solid #355c43;
+  border: 1px solid var(--gradient-purple);
 }
 
 .dashboard-karte .feuchte-block strong {
@@ -29,7 +29,7 @@
 .dashboard-karte .mini-werte > div {
   background: #294a39;
   border-radius: 7px;
-  border: 1px solid #355c43;
+  border: 1px solid var(--gradient-purple);
 }
 
 /* Sensor-IDs */

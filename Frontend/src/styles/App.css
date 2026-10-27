@@ -41,7 +41,7 @@
 
   background: var(--gruenDunkel);
 
-  border: 1px solid var(--grauDunkel);
+  border: 1px solid var(--gradient-purple);
 
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
@@ -322,7 +322,7 @@
     rgba(228, 240, 233, 0.9)
   );
 
-  border: 1px solid var(--gruenDunkel);
+  border: 1px solid var(--gradient-purple);
 }
 
 .feuchte-block p {
@@ -367,7 +367,7 @@
 
 .mini-werte div {
   padding: 10px 6px;
-  border: 1px solid var(--linie);
+  border: 1px solid var(--gradient-purple);
   border-radius: 5px;
   text-align: center;
 }
@@ -400,7 +400,7 @@ tbody td span {
   justify-content: space-between;
   gap: 8px;
   padding: 11px 1px;
-  border-bottom: 1px solid var(--linie);
+  border-bottom: 1px solid var(--gradient-purple);
 }
 
 .messstelle > div {
@@ -484,7 +484,7 @@ table tbody tr:hover {
 th,
 td {
   padding: 13px;
-  border-bottom: 1px solid var(--linie);
+  border-bottom: 1px solid var(--gradient-purple);
   text-align: left;
 }
 
@@ -653,7 +653,7 @@ tbody td span {
 
   cursor: pointer;
 
-   box-shadow: 0 15px 40px var(--shadow);
+  box-shadow: 0 15px 40px var(--shadow);
 
   transition:
     border-color 0.2s ease,
@@ -662,13 +662,13 @@ tbody td span {
 }
 
 .historische-auswahl select:hover {
-  border-color: #999;
+  border-color: var(--gradient-purple);
    box-shadow: 0 15px 40px var(--shadow);
 }
 
 .historische-auswahl select:focus {
   outline: none;
-  border-color: #555;
+  border-color: var(--gradient-purple);
   box-shadow: 0 15px 40px var(--shadow);
 }
 
@@ -692,7 +692,7 @@ tbody td span {
 
   padding: 10px 14px;
 
-  border: 1px solid var(--linie);
+  border: 1px solid var(--gradient-purple);
   border-radius: 8px;
 
   background: rgb(255, 255, 255);
@@ -940,11 +940,11 @@ tbody td span {
 
 .historische-checkbox:hover {
   background: #f5faf7;
-  border-color: #8ab69d;
+  border-color: var(--gradient-purple);
 }
 
 .historische-checkbox input {
-  accent-color: var(--gruen);
+  accent-color: var(--gradient-purple);
 }
 
 .historische-checkbox-farbe {
@@ -969,7 +969,7 @@ tbody td span {
 
   background: rgba(248, 251, 249, 0.95);
 
-  border: 1px solid var(--linie);
+  border: 1px solid var(--gradient-purple);
 
   box-shadow: 0 6px 20px var(--shadow);
 }

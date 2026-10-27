@@ -4,8 +4,8 @@ import {
   mittelwert,
 } from "../dashboardUtils";
 import type { BeetDaten } from "../types/dashboard";
-import "./DashboardCard.css";
-import "./SummaryCards.css";
+import "../styles/DashboardCard.css";
+import "../styles/SummaryCards.css";
 
 type SummaryCardsProps = {
   beete: BeetDaten[];

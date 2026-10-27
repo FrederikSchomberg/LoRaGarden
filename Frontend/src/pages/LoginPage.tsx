@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { loginUser } from "../api";
 import type { User } from "../types/auth";
-import "./LoginPage.css";
+import "../styles/LoginPage.css";
 import sproutIcon from "../assets/sprout.svg";
 
 type LoginPageProps = {

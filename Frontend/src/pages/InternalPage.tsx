@@ -1,4 +1,4 @@
-import "./InternalPage.css";
+import "../styles/InternalPage.css";
 import grafanaIcon from "../assets/grafana_icon.svg";
 import monitorIcon from "../assets/monitor-up.svg";
 import soilSensorIcon from "../assets/soil-sensor.svg";

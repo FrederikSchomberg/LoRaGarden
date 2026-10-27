@@ -5,8 +5,8 @@ import {
   mittelwert,
 } from "../dashboardUtils";
 import type { BeetDaten, Messwerte } from "../types/dashboard";
-import "./DashboardCard.css";
-import "./ComparisonTable.css";
+import "../styles/DashboardCard.css";
+import "../styles/ComparisonTable.css";
 
 type ComparisonTableProps = {
   beete: BeetDaten[];

@@ -1,0 +1,9 @@
+
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="48" height="48" viewBox="-10 -6 50 48"
+     fill="none" stroke="#80cbb4" stroke-width="1.6"
+     stroke-linecap="round" stroke-linejoin="round">
+  <g id="icon">
+    <path d="m7 4-11 10L7 24m13-20 11 10-11 10M17 0l-7 28"/>
+  </g>
+</svg>

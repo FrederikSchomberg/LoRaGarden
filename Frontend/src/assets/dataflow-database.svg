@@ -1,0 +1,10 @@
+
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="48" height="48" viewBox="-10 -6 50 48"
+     fill="none" stroke="#80cbb4" stroke-width="1.6"
+     stroke-linecap="round" stroke-linejoin="round">
+  <g id="icon">
+    <ellipse cx="13" cy="5" rx="15" ry="5"/>
+    <path d="M-2 5v22c0 7 30 7 30 0V5M-2 16c0 7 30 7 30 0"/>
+  </g>
+</svg>

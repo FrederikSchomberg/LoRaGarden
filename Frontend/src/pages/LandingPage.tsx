@@ -314,6 +314,22 @@ export function LandingPage({
               </div>
             </li>
           </ol>
+
+          <div className="ablauf-entdecken">
+            <div>
+              <h3>Begleite einen Messwert durch unser System</h3>
+
+              <p>
+                Wie gelangen die Messwerte vom Beet ins Dashboard? Entdecke den
+                Datenfluss Schritt für Schritt.
+              </p>
+            </div>
+
+            <a href="#/datenfluss" className="ablauf-entdecken-link">
+              Datenfluss entdecken
+              <span aria-hidden="true">→</span>
+            </a>
+          </div>
         </div>
       </section>
 

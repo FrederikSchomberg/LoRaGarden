@@ -1,0 +1,10 @@
+
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="48" height="48" viewBox="-10 -6 50 48"
+     fill="none" stroke="#80cbb4" stroke-width="1.6"
+     stroke-linecap="round" stroke-linejoin="round">
+  <g id="icon">
+    <path d="M0 0h18v24H0zM5 24v9M13 24v9M5 7h8M5 12h8"/>
+    <path d="M23 2q8 6 0 12m5-16q13 10 0 20"/>
+  </g>
+</svg>

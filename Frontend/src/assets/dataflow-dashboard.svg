@@ -1,0 +1,10 @@
+
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="48" height="48" viewBox="-10 -6 50 48"
+     fill="none" stroke="#80cbb4" stroke-width="1.6"
+     stroke-linecap="round" stroke-linejoin="round">
+  <g id="icon">
+    <rect x="-3" y="0" width="34" height="25" rx="3"/>
+    <path d="M14 25v7m-9 0h18M3 18V9m7 9V5m7 13v-7m7 7V7"/>
+  </g>
+</svg>

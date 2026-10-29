@@ -1,0 +1,687 @@
+.datenfluss-seite {
+  --df-text: #f0f4e9;
+  --df-muted: #a4b8a9;
+  --df-lime: #cef58b;
+
+  min-height: 100vh;
+  background: #0b1712;
+  color: var(--df-text);
+  color-scheme: dark;
+  font-family: Inter, system-ui, Arial, sans-serif;
+}
+
+.datenfluss-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 38px;
+}
+
+.datenfluss-seite button,
+.datenfluss-seite select {
+  font: inherit;
+}
+
+.datenfluss-seite button {
+  cursor: pointer;
+}
+
+.datenfluss-seite button:focus-visible,
+.datenfluss-seite a:focus-visible,
+.datenfluss-seite select:focus-visible,
+.datenfluss-scroll:focus-visible {
+  outline: 3px solid var(--df-lime);
+  outline-offset: 4px;
+}
+
+.datenfluss-kopf {
+  min-height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid #ffffff12;
+}
+
+.datenfluss-zurueck {
+  color: var(--df-muted);
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.datenfluss-zurueck:hover {
+  color: var(--df-lime);
+}
+
+.datenfluss-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  padding: 53px 0 32px;
+}
+
+.datenfluss-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  color: var(--df-lime);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.datenfluss-eyebrow > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--df-lime);
+}
+
+.datenfluss-hero h1 {
+  margin: 17px 0;
+  color: var(--df-text);
+  font-size: clamp(34px, 4.7vw, 62px);
+  font-weight: 550;
+  line-height: 1.08;
+  letter-spacing: -2.8px;
+}
+
+.datenfluss-hero h1 em {
+  color: var(--df-lime);
+  font-family: Georgia, serif;
+  font-weight: 400;
+}
+
+.datenfluss-einleitung {
+  max-width: 595px;
+  margin: 0;
+  color: var(--df-muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.datenfluss-pflanze {
+  width: 190px;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.datenfluss-pflanze svg {
+  display: block;
+  width: 100%;
+}
+
+.datenfluss-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 285px;
+  align-items: stretch;
+  gap: 18px;
+}
+
+.datenfluss-karte {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #304438;
+  border-radius: 21px;
+  background:
+    radial-gradient(ellipse at 40% 10%, #20392975, transparent 65%), #101e17;
+}
+
+.datenfluss-kartenkopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 22px 24px 0;
+}
+
+.datenfluss-kartenkopf > span:first-child {
+  color: #b8c7ba;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.datenfluss-badge {
+  padding: 6px 10px;
+  border: 1px solid #476344;
+  border-radius: 30px;
+  color: #c5dbab;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.datenfluss-scroll {
+  overflow-x: auto;
+}
+
+.datenfluss-svg {
+  display: block;
+  width: 100%;
+  min-width: 590px;
+  height: auto;
+}
+
+.datenfluss-mobilhinweis {
+  display: none;
+}
+
+.datenfluss-verbindung {
+  fill: none;
+  stroke: #355242;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 5;
+}
+
+.datenfluss-verbindung.besucht {
+  stroke: #739368;
+  stroke-dasharray: none;
+}
+
+.datenfluss-verbindung.aktiv {
+  stroke: var(--df-lime);
+  stroke-dasharray: none;
+}
+
+.datenfluss-kantenlabel {
+  fill: #98ac9c;
+  font-size: 10px;
+  letter-spacing: 0.3px;
+}
+
+.datenfluss-station {
+  cursor: pointer;
+  outline: none;
+}
+
+.datenfluss-stationsbox {
+  fill: #14271e;
+  stroke: #462105;
+  stroke-width: 1;
+  transition:
+    fill 0.3s,
+    stroke 0.3s;
+}
+
+.datenfluss-station.besucht .datenfluss-stationsbox {
+  stroke: #6a8658;
+}
+
+.datenfluss-station:hover .datenfluss-stationsbox,
+.datenfluss-station:focus-visible .datenfluss-stationsbox {
+  fill: #24412e;
+  stroke: #c7e5ad;
+  stroke-width: 2;
+}
+
+.datenfluss-station.aktiv .datenfluss-stationsbox {
+  fill: #253e29;
+  stroke: var(--df-lime);
+  stroke-width: 2;
+}
+
+.datenfluss-nummer {
+  fill: #8da391;
+  font-family: monospace;
+  font-size: 10px;
+}
+
+.datenfluss-station.aktiv .datenfluss-nummer {
+  fill: var(--df-lime);
+}
+
+.datenfluss-stationstitel {
+  fill: var(--df-text);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.datenfluss-stationsuntertitel {
+  fill: #a5b9aa;
+  font-size: 10px;
+}
+
+.datenfluss-symbol {
+  fill: none;
+  stroke: #80cbb4;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.datenfluss-station.aktiv .datenfluss-symbol {
+  stroke: var(--df-lime);
+}
+
+.datenfluss-grafiktext {
+  fill: #c6d6ba;
+  font-size: 12px;
+}
+
+.datenfluss-paket {
+  fill: var(--df-lime);
+  filter: drop-shadow(0 0 5px #cef58b);
+  offset-rotate: 0deg;
+  pointer-events: none;
+  animation: datenfluss-paket-reise 2.8s linear infinite;
+}
+
+@keyframes datenfluss-paket-reise {
+  from {
+    offset-distance: 0%;
+  }
+
+  to {
+    offset-distance: 100%;
+  }
+}
+
+.datenfluss-legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  padding: 0 24px 16px;
+  color: #a4b5a1;
+  font-size: 10px;
+}
+
+.datenfluss-legende i {
+  display: inline-block;
+  width: 15px;
+  height: 2px;
+  margin-right: 5px;
+  background: var(--df-lime);
+  vertical-align: middle;
+}
+
+.datenfluss-steuerung {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  padding: 16px 22px;
+  border-top: 1px solid #ffffff0e;
+}
+
+.datenfluss-steuerung button {
+  padding: 10px 13px;
+  border: 1px solid #42543f;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--df-text);
+  font-size: 12px;
+}
+
+.datenfluss-steuerung button:hover {
+  background: #2c402c;
+}
+
+.datenfluss-steuerung .datenfluss-start {
+  min-width: 107px;
+  border-color: var(--df-lime);
+  background: var(--df-lime);
+  color: #152313;
+  font-weight: 750;
+}
+
+.datenfluss-steuerung .datenfluss-start:hover {
+  background: #e0ffac;
+}
+
+.datenfluss-tempo {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  color: var(--df-muted);
+  font-size: 11px;
+}
+
+.datenfluss-tempo select {
+  padding: 7px;
+  border: 1px solid #42543f;
+  border-radius: 7px;
+  background: #17291d;
+  color: var(--df-text);
+}
+
+.datenfluss-detail {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid #304438;
+  border-radius: 21px;
+  background: #14231a;
+}
+
+.datenfluss-detailkopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.datenfluss-detailkopf > span:first-child {
+  color: var(--df-lime);
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.datenfluss-detailkopf > span:last-child {
+  color: var(--df-muted);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.datenfluss-erklaerung h2 {
+  margin: 28px 0 12px;
+  color: var(--df-text);
+  font-size: 27px;
+  font-weight: 550;
+  line-height: 1.12;
+  letter-spacing: -0.8px;
+}
+
+.datenfluss-erklaerung p {
+  margin: 0;
+  color: #bac8bb;
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.datenfluss-messwert {
+  margin-top: 24px;
+  padding: 17px;
+  border: 1px solid #385039;
+  border-radius: 12px;
+  background: #0c1b12;
+}
+
+.datenfluss-messwertlabel {
+  margin-bottom: 14px;
+  color: #9db491;
+  font-size: 9px;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+}
+
+.datenfluss-wert {
+  color: var(--df-lime);
+  font-size: 36px;
+  font-weight: 500;
+  letter-spacing: -1px;
+}
+
+.datenfluss-wert small {
+  font-size: 17px;
+}
+
+.datenfluss-messgroesse {
+  margin-top: 3px;
+  color: #c2d0bd;
+  font-size: 11px;
+}
+
+.datenfluss-messwert dl {
+  margin: 0;
+}
+
+.datenfluss-messwert dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #ffffff12;
+  font-size: 10px;
+}
+
+.datenfluss-messwert dt {
+  color: #a0b5a2;
+}
+
+.datenfluss-messwert dd {
+  margin: 0;
+  color: #dae5d3;
+  text-align: right;
+}
+
+.datenfluss-hinweis {
+  margin: auto 0 0;
+  padding-top: 22px;
+  color: #a1b39e;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.datenfluss-fortschritt {
+  display: flex;
+  gap: 5px;
+  margin-top: 20px;
+}
+
+.datenfluss-fortschritt span {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: #354937;
+}
+
+.datenfluss-fortschritt span.gefuellt {
+  background: var(--df-lime);
+}
+
+.datenfluss-fakten {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 30px;
+  margin: 27px 0 36px;
+}
+
+.datenfluss-fakten article {
+  display: flex;
+  gap: 13px;
+}
+
+.datenfluss-fakten article > span {
+  padding-top: 2px;
+  color: #9bb18f;
+  font-family: monospace;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.datenfluss-fakten h3 {
+  margin: 0 0 6px;
+  color: var(--df-text);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.datenfluss-fakten p {
+  margin: 0;
+  color: var(--df-muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.datenfluss-fuss {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 0 26px;
+  border-top: 1px solid #ffffff15;
+  color: #9bad98;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+@media (max-width: 1000px) {
+  .datenfluss-container {
+    padding: 0 22px;
+  }
+
+  .datenfluss-layout {
+    grid-template-columns: minmax(0, 1fr) 245px;
+  }
+
+  .datenfluss-detail {
+    padding: 20px;
+  }
+
+  .datenfluss-pflanze {
+    width: 130px;
+  }
+
+  .datenfluss-kartenkopf {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 780px) {
+  .datenfluss-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .datenfluss-pflanze {
+    display: none;
+  }
+
+  .datenfluss-hero {
+    padding-top: 34px;
+  }
+
+  .datenfluss-hero h1 {
+    letter-spacing: -1.5px;
+  }
+
+  .datenfluss-detail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 25px;
+  }
+
+  .datenfluss-detailkopf,
+  .datenfluss-hinweis,
+  .datenfluss-fortschritt {
+    grid-column: 1 / -1;
+  }
+
+  .datenfluss-erklaerung {
+    grid-column: 1;
+  }
+
+  .datenfluss-erklaerung h2 {
+    margin-top: 18px;
+  }
+
+  .datenfluss-messwert {
+    grid-column: 2;
+    grid-row: 2;
+    margin-top: 18px;
+  }
+
+  .datenfluss-fakten {
+    gap: 17px;
+  }
+}
+
+@media (max-width: 620px) {
+  .datenfluss-mobilhinweis {
+    display: block;
+    margin: 13px 16px 0;
+    color: var(--df-muted);
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .datenfluss-container {
+    padding: 0 14px;
+  }
+
+  .datenfluss-kopf {
+    gap: 12px;
+  }
+
+  .datenfluss-marke {
+    gap: 7px;
+    font-size: 19px;
+  }
+
+  .datenfluss-zurueck {
+    max-width: 110px;
+    font-size: 11px;
+    line-height: 1.6;
+    text-align: right;
+  }
+
+  .datenfluss-hero {
+    padding-bottom: 23px;
+  }
+
+  .datenfluss-einleitung {
+    font-size: 13px;
+  }
+
+  .datenfluss-detail {
+    display: block;
+  }
+
+  .datenfluss-steuerung {
+    padding: 14px 12px;
+  }
+
+  .datenfluss-tempo {
+    margin-left: 0;
+  }
+
+  .datenfluss-kartenkopf {
+    padding: 19px 15px 0;
+  }
+
+  .datenfluss-kartenkopf > span:first-child {
+    font-size: 10px;
+  }
+
+  .datenfluss-fakten {
+    grid-template-columns: 1fr;
+    gap: 19px;
+  }
+
+  .datenfluss-fuss {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .datenfluss-paket {
+    animation: none;
+    offset-distance: 50%;
+  }
+
+  .datenfluss-stationsbox {
+    transition: none;
+  }
+}
+
+
+/* braune rahmen für alle stationen */
+.datenfluss-stationsbox,
+.datenfluss-stationsbox,
+.datenfluss-station.aktiv .datenfluss-stationsbox,
+.datenfluss-station:hover .datenfluss-stationsbox,
+.datenfluss-station:focus-visible .datenfluss-stationsbox {
+  stroke: #304438;
+}
+
+/* aktive station etwas stärker hervorheben */
+.datenfluss-station.aktiv .datenfluss-stationsbox {
+  stroke-width: 2;
+}

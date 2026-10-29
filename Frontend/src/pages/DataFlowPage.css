@@ -199,7 +199,7 @@
 
 .datenfluss-stationsbox {
   fill: #14271e;
-  stroke: #38503e;
+  stroke: #462105;
   stroke-width: 1;
   transition:
     fill 0.3s,
@@ -669,4 +669,19 @@
   .datenfluss-stationsbox {
     transition: none;
   }
+}
+
+
+/* braune rahmen für alle stationen */
+.datenfluss-stationsbox,
+.datenfluss-stationsbox,
+.datenfluss-station.aktiv .datenfluss-stationsbox,
+.datenfluss-station:hover .datenfluss-stationsbox,
+.datenfluss-station:focus-visible .datenfluss-stationsbox {
+  stroke: #304438;
+}
+
+/* aktive station etwas stärker hervorheben */
+.datenfluss-station.aktiv .datenfluss-stationsbox {
+  stroke-width: 2;
 }

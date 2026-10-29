@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
 import "./DataFlowPage.css";
-import sproutIcon from "../assets/sprout.svg";
 import "./LandingPage.css";
+
+import sproutIcon from "../assets/sprout.svg";
+import sensorIcon from "../assets/dataflow-sensor.svg";
+import lorawanIcon from "../assets/dataflow-lorawan.svg";
+import brokerIcon from "../assets/dataflow-broker.svg";
+import filterIcon from "../assets/dataflow-filter.svg";
+import databaseIcon from "../assets/dataflow-database.svg";
+import grafanaIcon from "../assets/dataflow-grafana.svg";
+import apiIcon from "../assets/dataflow-api.svg";
+import dashboardIcon from "../assets/dataflow-dashboard.svg";
 
 type DataFlowPageProps = {
   onZurueck: () => void;
@@ -23,7 +32,7 @@ const stationen = [
     paket: "Unser Beispielmesswert",
     x: 37,
     y: 57,
-    icon: "sensor",
+    icon: sensorIcon,
   },
   {
     name: "LoRaWAN",
@@ -40,7 +49,7 @@ const stationen = [
     paket: "Unterwegs per LoRaWAN",
     x: 342,
     y: 57,
-    icon: "funk",
+    icon: lorawanIcon,
   },
   {
     name: "MQTT-Broker",
@@ -57,7 +66,7 @@ const stationen = [
     paket: "Nachricht beim Broker",
     x: 647,
     y: 57,
-    icon: "broker",
+    icon: brokerIcon,
   },
   {
     name: "Telegraf",
@@ -74,7 +83,7 @@ const stationen = [
     paket: "Bereit zum Speichern",
     x: 647,
     y: 242,
-    icon: "filter",
+    icon: filterIcon,
   },
   {
     name: "InfluxDB",
@@ -91,7 +100,7 @@ const stationen = [
     paket: "In der Zeitreihe gespeichert",
     x: 342,
     y: 242,
-    icon: "datenbank",
+    icon: databaseIcon,
   },
   {
     name: "Grafana",
@@ -108,7 +117,7 @@ const stationen = [
     paket: "In Grafana verfügbar",
     x: 37,
     y: 242,
-    icon: "diagramm",
+    icon: grafanaIcon,
   },
   {
     name: "FastAPI",
@@ -125,7 +134,7 @@ const stationen = [
     paket: "Für die API-Antwort geladen",
     x: 342,
     y: 427,
-    icon: "api",
+    icon: apiIcon,
   },
   {
     name: "Dashboard",
@@ -142,7 +151,7 @@ const stationen = [
     paket: "Im Dashboard angekommen",
     x: 647,
     y: 427,
-    icon: "bildschirm",
+    icon: dashboardIcon,
   },
 ];
 
@@ -259,7 +268,6 @@ export function DataFlowPage({ onZurueck }: DataFlowPageProps) {
     };
   }, []);
 
-  // Bei einem ausgeblendeten Browser-Tab pausieren.
   useEffect(() => {
     const sichtbarkeitGeaendert = () => {
       if (document.hidden) {
@@ -274,7 +282,6 @@ export function DataFlowPage({ onZurueck }: DataFlowPageProps) {
     };
   }, []);
 
-  // Jeder Schritt bleibt entsprechend dem gewählten Tempo sichtbar.
   useEffect(() => {
     if (!laeuft) {
       return;
@@ -407,43 +414,6 @@ export function DataFlowPage({ onZurueck }: DataFlowPageProps) {
                         strokeWidth="1.5"
                       />
                     </marker>
-
-                    <g id="df-icon-sensor">
-                      <path d="M0 0h18v24H0zM5 24v9M13 24v9M5 7h8M5 12h8" />
-                      <path d="M23 2q8 6 0 12m5-16q13 10 0 20" />
-                    </g>
-
-                    <g id="df-icon-funk">
-                      <path d="M8 12v23m-8 0h16M1 35l7-17 7 17M-1 5q-9 9 0 18m18-18q9 9 0 18M3 9q-5 5 0 10m10-10q5 5 0 10" />
-                      <circle cx="8" cy="14" r="2" />
-                    </g>
-
-                    <g id="df-icon-broker">
-                      <rect x="3" y="7" width="21" height="18" rx="3" />
-                      <path d="M-4 16h7m21 0h8M13 0v7m0 18v7M9 13h9m-9 6h9" />
-                    </g>
-
-                    <g id="df-icon-filter">
-                      <path d="M-2 1h31L17 17v13l-7-4v-9Z" />
-                    </g>
-
-                    <g id="df-icon-datenbank">
-                      <ellipse cx="13" cy="5" rx="15" ry="5" />
-                      <path d="M-2 5v22c0 7 30 7 30 0V5M-2 16c0 7 30 7 30 0" />
-                    </g>
-
-                    <g id="df-icon-diagramm">
-                      <path d="M-2 0v29h32M3 22l8-9 7 4 11-15" />
-                    </g>
-
-                    <g id="df-icon-api">
-                      <path d="m7 4-11 10L7 24m13-20 11 10-11 10M17 0l-7 28" />
-                    </g>
-
-                    <g id="df-icon-bildschirm">
-                      <rect x="-3" y="0" width="34" height="25" rx="3" />
-                      <path d="M14 25v7m-9 0h18M3 18V9m7 9V5m7 13v-7m7 7V7" />
-                    </g>
                   </defs>
 
                   {verbindungen.map((verbindung) => (
@@ -502,7 +472,7 @@ export function DataFlowPage({ onZurueck }: DataFlowPageProps) {
                       </text>
 
                       <use
-                        href={`#df-icon-${eintrag.icon}`}
+                        href={`${eintrag.icon}#icon`}
                         className="datenfluss-symbol"
                         x="23"
                         y="15"
@@ -639,7 +609,7 @@ export function DataFlowPage({ onZurueck }: DataFlowPageProps) {
                   </div>
                   <div>
                     <dt>Messzeit · Beispiel</dt>
-                    <dd>24.10.26 · 12:00</dd>
+                    <dd>28.10.26 · 12:00</dd>
                   </div>
                 </dl>
               </div>

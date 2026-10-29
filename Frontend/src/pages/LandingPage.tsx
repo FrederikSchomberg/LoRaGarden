@@ -1,4 +1,4 @@
-import "../styles/LandingPage.css";
+import "../styles/pages/landing-page.css";
 import boaseBild from "../assets/boase.jpg";
 import botanischerGartenBild from "../assets/botanischer_garten.jpg";
 import chinesischerGartenBild from "../assets/chinesischer_garten.jpg";

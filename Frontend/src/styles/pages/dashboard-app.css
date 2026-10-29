@@ -1,0 +1,9 @@
+/* Dashboard-CSS-Einstiegspunkt: Detailregeln sind nach Verantwortlichkeit aufgeteilt. */
+@import "./dashboard/dashboard-layout.css";
+@import "./dashboard/dashboard-effects.css";
+@import "./dashboard/dashboard-header.css";
+@import "./dashboard/dashboard-summary.css";
+@import "./dashboard/dashboard-beds.css";
+@import "./dashboard/dashboard-comparison.css";
+@import "./dashboard/dashboard-navigation.css";
+@import "./dashboard/dashboard-responsive.css";

@@ -1,0 +1,455 @@
+/* Grundlayout und allgemeine Dashboard-Bereiche */
+
+/* Globale Design-Tokens sind in tokens.css definiert. */
+
+.app {
+  width: 100%;
+  max-width: 1800px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.punkt.aus {
+  background: #c75d52;
+}
+
+.btn-abmelden {
+  padding: 6px 12px !important;
+  font-size: 0.82rem !important;
+  background: rgba(255, 255, 255, 0.22) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+}
+
+.btn-abmelden:hover {
+  background: rgba(255, 255, 255, 0.35) !important;
+}
+
+.hinweis {
+  margin-top: 15px;
+  padding: 13px 15px;
+  border: 1px solid #dfc97e;
+  border-radius: 6px;
+  background: #fff8df;
+  color: #67551e;
+}
+
+.beet-grid {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+th,
+td {
+  padding: 13px;
+  border-bottom: 1px solid var(--gradient-purple);
+  text-align: left;
+}
+
+thead th {
+  background: #edf2ee;
+  color: var(--dunkel);
+}
+
+tbody th {
+  width: 180px;
+  color: #465048;
+}
+
+tbody td strong {
+  margin-bottom: 5px;
+  color: var(--grau);
+}
+
+tbody td span {
+  margin-top: 2px;
+  color: var(--grau);
+  font-size: 0.75rem;
+}
+
+.fuss {
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-top: 16px;
+  padding: 12px 15px;
+  /* border: 1px solid var(--linie); */
+  /* border-radius: 6px; */
+  /* background: #edf0ed; */
+  color: var(--grau);
+  font-size: 0.8rem;
+  background: linear-gradient(var(--gruenDunkel), var(--gruenDunkel)) padding-box,
+              linear-gradient(to bottom, var(--gradient-pink), var(--gradient-purple)) border-box;
+  border-radius: 16px;
+  border: 4px solid transparent;
+}
+
+.fuss div {
+  gap: 6px;
+}
+
+.historische-auswahl {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 230px;
+}
+
+.historische-auswahl label {
+  font-size: 16px;
+  font-weight: 600;
+  color: Black;
+  text-align: center;
+}
+
+.historische-auswahl select {
+  appearance: none;
+  width: 100%;
+  padding: 12px 40px 12px 15px;
+
+  border: 1px solid #d0d0d0;
+  border-radius: 10px;
+
+  background-color: #fff;
+
+  font-size: 16px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  box-shadow: 0 15px 40px var(--shadow);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.historische-auswahl select:hover {
+  border-color: var(--gradient-purple);
+   box-shadow: 0 15px 40px var(--shadow);
+}
+
+.historische-auswahl select:focus {
+  outline: none;
+  border-color: var(--gradient-purple);
+  box-shadow: 0 15px 40px var(--shadow);
+}
+
+.historische-auswahl select:active {
+  transform: translateY(1px);
+}
+
+.historische-date {
+  margin-top: 10px;
+  padding: 0;
+
+  background: transparent;
+  box-shadow: none;
+
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.historische-filter-gruppe select {
+  min-width: 180px;
+
+  padding: 10px 14px;
+
+  border: 1px solid var(--gradient-purple);
+  border-radius: 8px;
+
+  background: rgb(255, 255, 255);
+
+  color: var(--dunkel);
+
+  font: inherit;
+  font-size: 0.85rem;
+
+  cursor: pointer;
+  
+}
+
+.historische-filter {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  justify-content: center;
+  align-items: center;
+
+  gap: 10px;
+  flex-wrap: wrap;
+
+  margin-bottom: 35px;
+  padding: 10px;
+
+  background: linear-gradient(var(--gruenDunkel), var(--gruenDunkel)) padding-box,
+              linear-gradient(to bottom, var(--gradient-pink), var(--gradient-purple)) border-box;
+  border-radius: 16px;
+  border: 4px solid transparent;
+}
+
+.historische-filter-gruppe:nth-child(3) {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.historische-filter-gruppe:nth-child(3) .historische-auswahl {
+  width: 250px;
+  max-width: 100%;
+}
+
+.historische-bereich {
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+  flex-wrap: wrap;
+
+  margin-bottom: 35px;
+  padding: 10px;
+  
+  background: linear-gradient(var(--gruenDunkel), var(--gruenDunkel)) padding-box,
+              linear-gradient(to bottom, var(--gradient-pink), var(--gradient-purple)) border-box;
+  border-radius: 16px;
+  border: 4px solid transparent;
+}
+
+.historische-bereich-header h2 {
+  margin: 0;
+
+  color: white;
+
+  font-size: 1.4rem;
+}
+
+.historische-bereich-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  width: fit-content;
+  margin: 0 auto;
+
+  min-height: 32px;
+  box-sizing: border-box;
+
+  font-family: Inter, system-ui, Arial, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.historische-filter-gruppe h2 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+    margin: 0 0 10px;
+}
+
+.historische-daten-laden {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+
+  width: fit-content;
+  max-width: 100%;
+  margin: 30px auto;
+  padding: 15px 15px;
+
+  box-sizing: border-box;
+  background: linear-gradient(var(--gruenDunkel), var(--gruenDunkel)) padding-box,
+              linear-gradient(to bottom, var(--gradient-pink), var(--gradient-purple)) border-box;
+  border-radius: 16px;
+  border: 4px solid transparent;
+
+  color: #fff;
+  font-family: Inter, system-ui, Arial, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  box-shadow: 0 15px 40px var(--shadow);
+}
+
+.lade-spinner {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+
+  border: 3px solid rgb(255 255 255 / 30%);
+  border-top-color: #fff;
+  border-right-color: #fff;
+  border-radius: 50%;
+
+  animation: historische-ladebewegung 0.8s linear infinite;
+}
+
+/* Animation bei reduzierter Bewegung deaktivieren */
+@media (prefers-reduced-motion: reduce) {
+  .lade-spinner {
+    animation: none;
+    border-top-color: #fff;
+  }
+}
+
+.historische-checkboxen {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.historische-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  width: 180px;
+  box-sizing: border-box;
+
+  padding: 8px 12px;
+  border-radius: 8px;
+
+  background: rgb(255, 255, 255);
+  color: var(--dunkel);
+
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.historische-leerzustand, .historische-übersichtNeu{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  margin: 30px auto;
+  padding: 7px;
+  text-align: center;
+  font-weight: 400;
+  
+  background: linear-gradient(var(--gruenDunkel), var(--gruenDunkel)) padding-box,
+              linear-gradient(to bottom, var(--gradient-pink), var(--gradient-purple)) border-box;
+  border-radius: 16px;
+  border: 4px solid transparent;
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  box-shadow: 0 15px 40px var(--shadow);
+
+  color: white;
+}
+
+.weather-attribution{
+  justify-content: start;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-top: 16px;
+  padding: 12px 15px;
+  color: var(--grau);
+  font-size: 0.8rem;
+
+  background: linear-gradient(var(--gruenDunkel), var(--gruenDunkel)) padding-box,
+              linear-gradient(to bottom, var(--gradient-pink), var(--gradient-purple)) border-box;
+  border-radius: 16px;
+  border: 4px solid transparent;
+}
+
+.historische-checkbox:hover {
+  background: #f5faf7;
+  border-color: var(--gradient-purple);
+}
+
+.historische-checkbox input {
+  accent-color: var(--gradient-purple);
+}
+
+.historische-checkbox-farbe {
+  width: 9px;
+  height: 9px;
+
+  border-radius: 50%;
+}
+
+.historische-charts {
+  display: grid;
+
+  grid-template-columns: 1fr;
+
+  gap: 20px;
+}
+
+.historische-chart {
+  padding: 22px;
+
+  border-radius: 12px;
+
+  background: rgba(248, 251, 249, 0.95);
+
+  border: 1px solid var(--gradient-purple);
+
+  box-shadow: 0 6px 20px var(--shadow);
+}
+
+.historische-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 10px;
+}
+
+.historische-chart-header h3 {
+  margin: 0;
+
+  color: var(--dunkel);
+
+  font-size: 1.05rem;
+}
+
+.historische-chart-einheit {
+  color: var(--grau);
+
+  font-size: 0.8rem;
+}
+
+.weather-attribution {
+  font-size: 0.75rem;
+  color: var(--grau);;
+  margin-top: 8px;
+}
+
+.weather-attribution a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.dashboard-page {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+
+  background: linear-gradient(
+    135deg,
+    #0d1f17 0%,
+    #11281d 40%,
+    #0f241a 70%,
+    #0b1b14 100%
+  );
+}
+
+/* dashboard liegt darüber */
+.app {
+  position: relative;
+  z-index: 2;
+}

@@ -1,0 +1,47 @@
+/* Kennzahlen und Zusammenfassungskarten */
+
+.oben-klein,
+.karten-label {
+  margin: 0 0 7px;
+  color: var(--gruen);
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.kurz-grid,
+.beet-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.kurz-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin: 18px 0;
+}
+
+.kurz-grid article {
+  display: flex;
+  min-height: 105px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 18px 20px;
+}
+
+.kurz-grid span {
+  margin-bottom: 6px;
+  color: var(--grau);
+  font-size: 0.78rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.kurz-grid strong {
+  color: var(--dunkel);
+  font-size: 1.45rem;
+}
+
+.kurz-grid small {
+  margin-top: 4px;
+  color: var(--grau);
+}

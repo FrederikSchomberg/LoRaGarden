@@ -242,7 +242,7 @@ function HistoryChart({
                   strokeWidth={2}
                   dot={false}
                   activeDot={{ r: 5 }}
-                  isAnimationActive={true}
+                  isAnimationActive={false}
                   connectNulls={true}
                 />
               ))}
@@ -256,7 +256,7 @@ function HistoryChart({
                   strokeDasharray="6 4"
                   dot={false}
                   connectNulls={true}
-                  isAnimationActive={true}
+                  isAnimationActive={false}
                 />
               )}
             </LineChart>

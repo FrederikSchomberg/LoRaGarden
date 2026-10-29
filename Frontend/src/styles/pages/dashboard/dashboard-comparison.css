@@ -1,0 +1,58 @@
+/* Vergleichsbereich und Tabellen */
+
+.kurz-grid article,
+.beet-karte,
+.vergleich {
+  border: 1px solid rgba(255, 255, 255, 0.4);
+
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.93);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  box-shadow: 0 15px 40px var(--shadow);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.beet-kopf,
+.messstelle,
+.vergleich-kopf,
+.fuss,
+.fuss div {
+  display: flex;
+  align-items: center;
+}
+
+.beet-kopf h2,
+.vergleich-kopf h2 {
+  margin: 0;
+  color: var(--dunkel);
+}
+
+.vergleich {
+  margin-top: 20px;
+  padding: 21px;
+}
+
+.vergleich-kopf {
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 16px;
+}
+
+.vergleich-kopf h2 {
+  font-size: 1.4rem;
+}
+
+.vergleich-kopf > p {
+  margin: 0;
+  color: var(--grau);
+  font-size: 0.8rem;
+}

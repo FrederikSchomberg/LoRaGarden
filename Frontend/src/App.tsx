@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import "./styles/App.css";
+import "./styles/pages/dashboard-app.css";
 import { getCurrentUser, holeDashboard, logoutUser } from "./api";
 import { BedCard } from "./components/BedCard";
 import { ComparisonTable } from "./components/ComparisonTable";

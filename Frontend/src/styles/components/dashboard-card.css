@@ -13,7 +13,7 @@
 .dashboard-karte.vergleich,
 .kurz-grid article.dashboard-karte {
   color: var(--dunkel);
-  box-shadow: 0 10px 30px #00000026;
+  box-shadow: var(--shadow-card);
 
 
   background: linear-gradient(var(--gruenDunkel), var(--gruenDunkel)) padding-box,

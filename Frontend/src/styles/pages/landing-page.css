@@ -127,7 +127,7 @@ html {
       rgba(0, 15, 9, 0.62) 35%,
       rgba(0, 15, 9, 0.12) 70%
     ),
-    url("../assets/title_pic.png") center 55% / cover no-repeat;
+    url("../../assets/title_pic.png") center 55% / cover no-repeat;
 }
 
 .landingpage-hero-text {
@@ -213,8 +213,8 @@ html {
   z-index: -1;
   inset: 0;
   background:
-    url("../assets/leafes_left.png") left center / auto 95% no-repeat,
-    url("../assets/leafes_right.png") right center / auto 95% no-repeat;
+    url("../../assets/leafes_left.png") left center / auto 95% no-repeat,
+    url("../../assets/leafes_right.png") right center / auto 95% no-repeat;
   opacity: 0.22;
   pointer-events: none;
   content: "";
@@ -353,7 +353,7 @@ html {
   border-bottom: 1px solid #203c2f;
   background:
     linear-gradient(#041b14d9, #031710ed),
-    url("../assets/bottom_leafes.png") center / cover no-repeat;
+    url("../../assets/bottom_leafes.png") center / cover no-repeat;
 }
 
 .standort-grid {
@@ -445,7 +445,7 @@ html {
   border-bottom: 1px solid #294a39;
   background:
     linear-gradient(#041b1480, #03170fa6),
-    url("../assets/bottom_leafes.png") center / cover no-repeat;
+    url("../../assets/bottom_leafes.png") center / cover no-repeat;
 }
 
 .ablauf-container {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import "./DataFlowPage.css";
-import "./LandingPage.css";
+import "../styles/pages/data-flow-page.css";
+import "../styles/pages/landing-page.css";
 
 import sproutIcon from "../assets/sprout.svg";
 import sensorIcon from "../assets/dataflow-sensor.svg";

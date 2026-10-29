@@ -1,0 +1,57 @@
+/* Responsive Regeln und Media Queries */
+
+@media (max-width: 600px) {
+  .app {
+    padding: 12px;
+  }
+
+  .kopf {
+    padding: 21px;
+  }
+
+  .kopf-rechts {
+    text-align: left;
+  }
+
+  .kopf-aktionen {
+    justify-content: flex-start;
+  }
+
+  .beet-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .beet-karte,
+  .vergleich {
+    padding: 17px;
+  }
+}
+
+@media (max-width: 700px) {
+  .historische-filter-gruppe {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 10px;
+
+    min-width: 200px;
+  }
+
+  .historische-filter-gruppe h2 {
+    margin: 0 0 5px;
+
+    color: white;
+
+    font-size: 1.05rem;
+  }
+
+  .historische-filter {
+    padding: 0.75rem;
+  }
+
+  .historische-bereich-header {
+    height: auto;
+    min-height: 0px;
+  }
+}

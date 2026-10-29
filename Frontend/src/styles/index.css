@@ -1,0 +1,7 @@
+/*
+ * Globaler CSS-Einstiegspunkt.
+ * Reihenfolge: Tokens -> globale Basis -> seiten-/komponentenspezifische Imports
+ * in den jeweiligen React-Modulen.
+ */
+@import "./tokens.css";
+@import "./base.css";

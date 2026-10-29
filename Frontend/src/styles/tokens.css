@@ -1,0 +1,53 @@
+/*
+ * LoRaGarden design tokens
+ * Werte aus dem vorhandenen CSS übernommen; keine neue visuelle Gestaltung.
+ */
+:root {
+  /* Bestehende Projektfarben (Legacy-Namen bleiben für Kompatibilität erhalten). */
+  --dunkel: #183d2c;
+  --linie: #d8dfd9;
+  --gruen: #3ec54b;
+  --gruenHell: #b4e656;
+  --gruenDunkel: #183d2c;
+  --gruenDunkel2: #13291a;
+  --gradient-pink: #C53E74;
+  --gradient-purple: #8F3EC5;
+  --rot: #ae5190;
+  --rotHell: #ae5190;
+  --rotDunkel: #b04f90;
+  --grau: #bcb0b3;
+  --grauHell: #e2e2e2;
+  --grauDunkel: #3c2f52;
+  --shadow: rgba(0, 0, 0, 0.15);
+
+  /* Semantische Aliase für neue und schrittweise migrierte Regeln. */
+  --color-brand: var(--gruenDunkel);
+  --color-brand-strong: var(--gruenDunkel2);
+  --color-accent: var(--gruen);
+  --color-accent-soft: var(--gruenHell);
+  --color-border: var(--linie);
+  --color-text: #172018;
+  --color-text-muted: #647067;
+  --color-page-background: #f4f7f2;
+  --color-surface: #ffffff;
+  --color-success: var(--gruen);
+  --color-warning: #d7a62e;
+  --color-error: #c75d52;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* Shared component geometry */
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --shadow-card: 0 10px 30px #00000026;
+
+  /* Typography */
+  --font-family-base: Inter, system-ui, Arial, sans-serif;
+}

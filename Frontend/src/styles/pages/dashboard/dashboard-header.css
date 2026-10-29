@@ -1,0 +1,173 @@
+/* Kopfbereich, Status und Aktionen */
+
+.kopf {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  padding: 16px;
+
+  border-radius: 16px;
+
+  background: var(--gruenDunkel);
+
+  border: 1px solid var(--gradient-purple);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  box-shadow: 0 15px 40px var(--shadow);
+
+  color: white;
+}
+
+.kopf-text {
+  flex: 3 1 600px;
+}
+
+.kopf-rechts {
+  flex: 1 1 220px;
+  text-align: right;
+}
+
+.oben-klein {
+  color: #1ae066;
+}
+
+.kopf h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.3rem);
+  line-height: 1.1;
+}
+
+.kopf-beschreibung {
+  max-width: 700px;
+  margin: 14px 0 0;
+  color: #e7f0ea;
+  line-height: 1.5;
+}
+
+.kopf-rechts p {
+  margin: 10px 0 14px;
+  color: #e7f0ea;
+  font-size: 0.87rem;
+}
+
+.kopf-status {
+  display: flex;
+  justify-content: flex-end;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.kopf-status button,
+.kopf-status .daten-status {
+  box-sizing: border-box;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.daten-status {
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 5px;
+  background: white;
+  color: var(--dunkel);
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.daten-status span,
+.punkt {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.daten-status.live span,
+.punkt.an {
+  background: var(--gruen);
+}
+
+.daten-status.demo span {
+  background: #d7a62e;
+}
+
+.kopf button {
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 5px;
+  background: white;
+  color: var(--dunkel);
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.kopf button:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.kopf button:disabled {
+  opacity: 0.65;
+}
+
+.kopf-aktionen {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.kopf-aktionen {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.kopf-benutzer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: #e7f0ea;
+}
+
+.kopf-benutzer-name {
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 5px 9px;
+  border-radius: 4px;
+}
+
+/* dashboard header */
+.kopf {
+  background: linear-gradient(var(--gruenDunkel), var(--gruenDunkel)) padding-box,
+              linear-gradient(to bottom, var(--gradient-pink), var(--gradient-purple)) border-box;
+  border-radius: 16px;
+  border: 4px solid transparent;
+  color: #edf4ef;
+  box-shadow: 0 15px 40px var(--shadow);
+}
+
+/* logo im dashboard header */
+.kopf .kopf-marke {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: #edf4ef;
+  font-size: clamp(1.5rem, 3vw, 1.9rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.kopf-marke img {
+  display: block;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+}

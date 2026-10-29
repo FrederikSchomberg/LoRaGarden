@@ -5,8 +5,8 @@ import {
   mittelwert,
 } from "../dashboardUtils";
 import type { BeetDaten, SensorPosition } from "../types/dashboard";
-import "./DashboardCard.css";
-import "./BedCard.css";
+import "../styles/components/dashboard-card.css";
+import "../styles/components/bed-card.css";
 
 type BedCardProps = {
   beet: BeetDaten;

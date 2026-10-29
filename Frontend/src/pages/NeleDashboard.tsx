@@ -1,4 +1,4 @@
-import "./NeleDashboard.css";
+import "../styles/pages/nele-dashboard.css";
 
 type NeleDashboardProps = {
   onZurueck: () => void;

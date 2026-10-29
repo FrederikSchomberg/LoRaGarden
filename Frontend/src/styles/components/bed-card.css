@@ -1,19 +1,15 @@
-.dashboard-karte.beet-karte {
-  border-top: 3px solid #538568;
-}
-
 /* Angabe zum Substrat oben rechts */
 .dashboard-karte .beet-kopf > span {
   background: #193e2c;
   color: #93e9b2;
-  border: 1px solid #355c43;
+  border: 1px solid var(--gradient-purple);
   border-radius: 6px;
 }
 
 /* Bodenfeuchtigkeit */
 .dashboard-karte .feuchte-block {
   background: linear-gradient(135deg, #193e2c, #10291e);
-  border: 1px solid #355c43;
+  border: 1px solid var(--gradient-purple);
 }
 
 .dashboard-karte .feuchte-block strong {
@@ -31,8 +27,9 @@
 
 /* Temperatur, Boden-EC und Batterie */
 .dashboard-karte .mini-werte > div {
-  background: var(--karten-innen);
+  background: #294a39;
   border-radius: 7px;
+  border: 1px solid var(--gradient-purple);
 }
 
 /* Sensor-IDs */

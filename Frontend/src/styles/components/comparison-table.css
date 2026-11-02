@@ -1,5 +1,5 @@
 .dashboard-karte.vergleich thead th {
-  background: #193e2c;
+  background: var(--erde-dunkel);
   color: #edf4ef;
 }
 

@@ -178,6 +178,7 @@ type HistoryChartProps = {
   showOutsideTemperature: boolean;
 };
 
+
 function HistoryChart({
   title,
   unit,
@@ -185,6 +186,8 @@ function HistoryChart({
   selectedBeds,
   showOutsideTemperature,
 }: HistoryChartProps) {
+  const chartWidth = Math.max(550, data.length * 20);
+
   return (
     <section className="historische-chart">
       <header className="historische-chart-header">
@@ -200,72 +203,82 @@ function HistoryChart({
           Für diese Auswahl wurden keine Messwerte im Zeitraum gefunden.
         </div>
       ) : (
-        <div style={{ width: "100%", height: 360 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={data}
-              margin={{
-                top: 20,
-                right: 25,
-                left: 10,
-                bottom: 10,
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
+        <div className="historische-chart-scroll">
+          <div
+            className="historische-chart-scroll-inner"
+            style={{
+              width: `${chartWidth}px`,
+              height: 360,
+            }}
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={data}
+                margin={{
+                  top: 20,
+                  right: 25,
+                  left: 10,
+                  bottom: 10,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
 
-              <XAxis
-                dataKey="timestamp"
-                tickFormatter={formatDate}
-                minTickGap={30}
-              />
-
-              <YAxis
-                width={60}
-                tickFormatter={(value: number) =>
-                  value.toLocaleString("de-DE")
-                }
-              />
-
-              <Tooltip
-                content={<CustomTooltip unit={unit} />}
-              />
-
-              <Legend />
-
-              {selectedBeds.map((bed) => (
-                <Line
-                  key={bed}
-                  type="linear"
-                  dataKey={bed}
-                  name={bed}
-                  stroke={BED_COLORS[bed] ?? "#64748b"}
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 5 }}
-                  isAnimationActive={false}
-                  connectNulls={true}
+                <XAxis
+                  dataKey="timestamp"
+                  tickFormatter={formatDate}
+                  minTickGap={30}
                 />
-              ))}
-              {showOutsideTemperature && (
-                <Line
-                  type="monotone"
-                  dataKey="outsideTemperature"
-                  name="Außentemperatur (stündlich)"
-                  stroke="#111827"
-                  strokeWidth={2}
-                  strokeDasharray="6 4"
-                  dot={false}
-                  connectNulls={true}
-                  isAnimationActive={false}
+
+                <YAxis
+                  width={60}
+                  tickFormatter={(value: number) =>
+                    value.toLocaleString("de-DE")
+                  }
                 />
-              )}
-            </LineChart>
-          </ResponsiveContainer>
+
+                <Tooltip
+                  content={<CustomTooltip unit={unit} />}
+                />
+
+                <Legend />
+
+                {selectedBeds.map((bed) => (
+                  <Line
+                    key={bed}
+                    type="linear"
+                    dataKey={bed}
+                    name={bed}
+                    stroke={BED_COLORS[bed] ?? "#64748b"}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 5 }}
+                    isAnimationActive={false}
+                    connectNulls={true}
+                  />
+                ))}
+
+                {showOutsideTemperature && (
+                  <Line
+                    type="monotone"
+                    dataKey="outsideTemperature"
+                    name="Außentemperatur (stündlich)"
+                    stroke="#111827"
+                    strokeWidth={2}
+                    strokeDasharray="6 4"
+                    dot={false}
+                    connectNulls={true}
+                    isAnimationActive={false}
+                  />
+                )}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
     </section>
   );
 }
+
 
 function formatDateForApi(date: Date): string {
   const year = date.getFullYear();
@@ -616,7 +629,7 @@ export default function HistorischeDaten({
           className="historische-fehler"
           role="alert"
         >
-          Hinweis: {weatherError}
+          Hinweis: {weatherError}{" "}
           Die Sensordaten werden weiterhin angezeigt.
         </p>
       )}

@@ -21,6 +21,7 @@
   background: rgba(255, 255, 255, 0.22) !important;
   color: white !important;
   border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  min-width: 90px !important;
 }
 
 .btn-abmelden:hover {
@@ -153,6 +154,28 @@ tbody td span {
   -webkit-backdrop-filter: none;
 }
 
+.historische-filter-gruppe {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.historische-Checkboxen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.historische-Checkboxen button {
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  white-space: normal;
+}
+
 .historische-filter-gruppe select {
   min-width: 180px;
 
@@ -173,7 +196,7 @@ tbody td span {
 
 .historische-filter {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   justify-content: center;
   align-items: center;
 
@@ -189,6 +212,9 @@ tbody td span {
       border-box;
   border-radius: 16px;
   border: 2px solid transparent;
+
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .historische-filter-gruppe:nth-child(3) {
@@ -206,9 +232,7 @@ tbody td span {
 .historische-bereich {
   display: flex;
   flex-direction: column;
-
   gap: 10px;
-  flex-wrap: wrap;
 
   margin-bottom: 35px;
   padding: 10px;
@@ -217,8 +241,12 @@ tbody td span {
     linear-gradient(var(--gruenDunkel), var(--gruenDunkel)) padding-box,
     linear-gradient(to bottom, var(--gradient-pink), var(--gradient-purple))
       border-box;
+
   border-radius: 16px;
   border: 2px solid transparent;
+
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .historische-bereich-header h2 {
@@ -334,6 +362,7 @@ tbody td span {
 }
 
 .historische-leerzustand,
+.historische-fehler,
 .historische-übersichtNeu {
   display: flex;
   flex-wrap: wrap;
@@ -395,44 +424,53 @@ tbody td span {
 
 .historische-charts {
   display: grid;
-
-  grid-template-columns: 1fr;
-
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
+  min-width: 0;
 }
 
 .historische-chart {
-  padding: 22px;
-
+  padding: 12px;
   border-radius: 12px;
 
   background: rgba(248, 251, 249, 0.95);
-
   border: 1px solid var(--gradient-purple);
-
   box-shadow: 0 6px 20px var(--shadow);
+
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .historische-chart-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
+  gap: 8px;
   margin-bottom: 10px;
+  flex-wrap: wrap;
 }
 
 .historische-chart-header h3 {
   margin: 0;
-
   color: var(--dunkel);
-
   font-size: 1.05rem;
 }
 
 .historische-chart-einheit {
   color: var(--grau);
-
   font-size: 0.8rem;
+}
+
+.historische-chart-scroll {
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.historische-chart-scroll-inner {
+  width: 100% !important;
+  min-width: 0;
 }
 
 .weather-attribution {

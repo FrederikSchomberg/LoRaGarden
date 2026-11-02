@@ -116,13 +116,6 @@
 
 .kopf-aktionen {
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.kopf-aktionen {
-  display: flex;
   flex-direction: column;
   gap: 10px;
   align-items: flex-end;
@@ -170,4 +163,10 @@
   width: 42px;
   height: 42px;
   flex-shrink: 0;
+}
+
+.kopf-rechts p {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }

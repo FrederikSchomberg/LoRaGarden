@@ -10,6 +10,8 @@ import "../styles/components/comparison-table.css";
 
 type ComparisonTableProps = {
   beete: BeetDaten[];
+  untertitel?: string;
+  positionen?: { key: string; label: string }[];
 };
 
 type Vergleichszeile = {
@@ -46,13 +48,22 @@ const zeilen: Vergleichszeile[] = [
   },
 ];
 
-export function ComparisonTable({ beete }: ComparisonTableProps) {
+const standardPositionen = [
+  { key: "oben", label: "oben" },
+  { key: "unten", label: "unten" },
+];
+
+export function ComparisonTable({
+  beete,
+  untertitel = "Oben und unten getrennt",
+  positionen = standardPositionen,
+}: ComparisonTableProps) {
   return (
     <section className="vergleich dashboard-karte">
       <div className="vergleich-kopf">
         <div>
           <p className="karten-label">Direkter Vergleich</p>
-          <h2>Oben und unten getrennt</h2>
+          <h2>{untertitel}</h2>
         </div>
 
         <p>Ø = Durchschnitt der vorhandenen Messstellen</p>
@@ -86,23 +97,16 @@ export function ComparisonTable({ beete }: ComparisonTableProps) {
                       )}
                     </strong>
 
-                    <span>
-                      oben:{" "}
-                      {formatiereZahl(
-                        einzelwert(beet, "oben", zeile.feld),
-                        zeile.einheit,
-                        zeile.stellen,
-                      )}
-                    </span>
-
-                    <span>
-                      unten:{" "}
-                      {formatiereZahl(
-                        einzelwert(beet, "unten", zeile.feld),
-                        zeile.einheit,
-                        zeile.stellen,
-                      )}
-                    </span>
+                    {positionen.map((pos) => (
+                      <span key={pos.key}>
+                        {pos.label}:{" "}
+                        {formatiereZahl(
+                          einzelwert(beet, pos.key, zeile.feld),
+                          zeile.einheit,
+                          zeile.stellen,
+                        )}
+                      </span>
+                    ))}
                   </td>
                 ))}
               </tr>

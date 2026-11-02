@@ -30,22 +30,9 @@ type HistorischeDatenProps = {
   setSelectedMeasurements: Dispatch<SetStateAction<string[]>>;
   zeitraum: string;
   setZeitraum: Dispatch<SetStateAction<string>>;
+  bedNames?: string[];
+  bedColors?: Record<string, string>;
 };
-
-const BED_COLORS: Record<string, string> = {
-  Carla: "#2563eb",
-  Berta: "#16a34a",
-  Ilse: "#ea0c0c",
-};
-
-const BED_NAMES = ["Carla", "Berta", "Ilse"];
-
-const MEASUREMENTS = [
-  { key: "temperature", label: "Temperatur" },
-  { key: "soil_moisture", label: "Bodenfeuchtigkeit" },
-  { key: "conductivity", label: "Leitfähigkeit" },
-  // { key: "battery_voltage", label: "Batteriespannung" },
-];
 
 const MEASUREMENT_CONFIG: Record<
   string,
@@ -68,6 +55,441 @@ const MEASUREMENT_CONFIG: Record<
   //   unit: "V",
   // },
 };
+
+const MOCK_DATA: Record<string, any> = {
+  Carla: {
+    temperature: {
+      oben: [
+        { timestamp: "2026-09-25T08:00:00", value: 21.4 },
+        { timestamp: "2026-09-25T12:00:00", value: 23.1 },
+        { timestamp: "2026-09-25T16:00:00", value: 24.3 },
+        { timestamp: "2026-09-26T08:00:00", value: 20.8 },
+        { timestamp: "2026-09-26T12:00:00", value: 22.7 },
+        { timestamp: "2026-09-26T16:00:00", value: 25.1 },
+        { timestamp: "2026-09-27T08:00:00", value: 21.2 },
+        { timestamp: "2026-09-27T12:00:00", value: 24.0 },
+        { timestamp: "2026-09-27T16:00:00", value: 26.2 },
+        { timestamp: "2026-09-28T08:00:00", value: 21.7 },
+        { timestamp: "2026-09-28T12:00:00", value: 23.8 },
+        { timestamp: "2026-09-28T16:00:00", value: 25.7 },
+        { timestamp: "2026-09-29T08:00:00", value: 20.9 },
+        { timestamp: "2026-09-29T12:00:00", value: 23.4 },
+        { timestamp: "2026-09-29T16:00:00", value: 24.9 },
+        { timestamp: "2026-09-30T08:00:00", value: 21.5 },
+        { timestamp: "2026-09-30T12:00:00", value: 24.2 },
+        { timestamp: "2026-09-30T16:00:00", value: 26.0 },
+      ],
+
+      unten: [
+        { timestamp: "2026-09-25T08:00:00", value: 19.8 },
+        { timestamp: "2026-09-25T12:00:00", value: 21.2 },
+        { timestamp: "2026-09-25T16:00:00", value: 22.4 },
+        { timestamp: "2026-09-26T08:00:00", value: 19.3 },
+        { timestamp: "2026-09-26T12:00:00", value: 21.0 },
+        { timestamp: "2026-09-26T16:00:00", value: 23.0 },
+        { timestamp: "2026-09-27T08:00:00", value: 19.6 },
+        { timestamp: "2026-09-27T12:00:00", value: 21.9 },
+        { timestamp: "2026-09-27T16:00:00", value: 23.8 },
+        { timestamp: "2026-09-28T08:00:00", value: 20.0 },
+        { timestamp: "2026-09-28T12:00:00", value: 21.7 },
+        { timestamp: "2026-09-28T16:00:00", value: 23.4 },
+        { timestamp: "2026-09-29T08:00:00", value: 19.5 },
+        { timestamp: "2026-09-29T12:00:00", value: 21.5 },
+        { timestamp: "2026-09-29T16:00:00", value: 22.9 },
+        { timestamp: "2026-09-30T08:00:00", value: 20.1 },
+        { timestamp: "2026-09-30T12:00:00", value: 22.0 },
+        { timestamp: "2026-09-30T16:00:00", value: 24.1 },
+      ],
+    },
+
+    soil_moisture: {
+      oben: [
+        { timestamp: "2026-09-25T08:00:00", value: 42 },
+        { timestamp: "2026-09-25T12:00:00", value: 40 },
+        { timestamp: "2026-09-25T16:00:00", value: 38 },
+        { timestamp: "2026-09-26T08:00:00", value: 43 },
+        { timestamp: "2026-09-26T12:00:00", value: 41 },
+        { timestamp: "2026-09-26T16:00:00", value: 39 },
+        { timestamp: "2026-09-27T08:00:00", value: 44 },
+        { timestamp: "2026-09-27T12:00:00", value: 42 },
+        { timestamp: "2026-09-27T16:00:00", value: 40 },
+        { timestamp: "2026-09-28T08:00:00", value: 45 },
+        { timestamp: "2026-09-28T12:00:00", value: 43 },
+        { timestamp: "2026-09-28T16:00:00", value: 41 },
+        { timestamp: "2026-09-29T08:00:00", value: 46 },
+        { timestamp: "2026-09-29T12:00:00", value: 44 },
+        { timestamp: "2026-09-29T16:00:00", value: 42 },
+        { timestamp: "2026-09-30T08:00:00", value: 45 },
+        { timestamp: "2026-09-30T12:00:00", value: 43 },
+        { timestamp: "2026-09-30T16:00:00", value: 41 },
+      ],
+
+      unten: [
+        { timestamp: "2026-09-25T08:00:00", value: 48 },
+        { timestamp: "2026-09-25T12:00:00", value: 46 },
+        { timestamp: "2026-09-25T16:00:00", value: 44 },
+        { timestamp: "2026-09-26T08:00:00", value: 49 },
+        { timestamp: "2026-09-26T12:00:00", value: 47 },
+        { timestamp: "2026-09-26T16:00:00", value: 45 },
+        { timestamp: "2026-09-27T08:00:00", value: 50 },
+        { timestamp: "2026-09-27T12:00:00", value: 48 },
+        { timestamp: "2026-09-27T16:00:00", value: 46 },
+        { timestamp: "2026-09-28T08:00:00", value: 51 },
+        { timestamp: "2026-09-28T12:00:00", value: 49 },
+        { timestamp: "2026-09-28T16:00:00", value: 47 },
+        { timestamp: "2026-09-29T08:00:00", value: 52 },
+        { timestamp: "2026-09-29T12:00:00", value: 50 },
+        { timestamp: "2026-09-29T16:00:00", value: 48 },
+        { timestamp: "2026-09-30T08:00:00", value: 51 },
+        { timestamp: "2026-09-30T12:00:00", value: 49 },
+        { timestamp: "2026-09-30T16:00:00", value: 47 },
+      ],
+    },
+
+    conductivity: {
+      oben: [
+        { timestamp: "2026-09-25T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-25T12:00:00", value: 1.3 },
+        { timestamp: "2026-09-25T16:00:00", value: 1.4 },
+        { timestamp: "2026-09-26T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-26T12:00:00", value: 1.5 },
+        { timestamp: "2026-09-26T16:00:00", value: 1.6 },
+        { timestamp: "2026-09-27T08:00:00", value: 1.3 },
+        { timestamp: "2026-09-27T12:00:00", value: 1.6 },
+        { timestamp: "2026-09-27T16:00:00", value: 1.7 },
+        { timestamp: "2026-09-28T08:00:00", value: 1.4 },
+        { timestamp: "2026-09-28T12:00:00", value: 1.7 },
+        { timestamp: "2026-09-28T16:00:00", value: 1.8 },
+        { timestamp: "2026-09-29T08:00:00", value: 1.5 },
+        { timestamp: "2026-09-29T12:00:00", value: 1.8 },
+        { timestamp: "2026-09-29T16:00:00", value: 1.9 },
+        { timestamp: "2026-09-30T08:00:00", value: 1.6 },
+        { timestamp: "2026-09-30T12:00:00", value: 1.9 },
+        { timestamp: "2026-09-30T16:00:00", value: 2.0 },
+      ],
+
+      unten: [
+        { timestamp: "2026-09-25T08:00:00", value: 1.0 },
+        { timestamp: "2026-09-25T12:00:00", value: 1.1 },
+        { timestamp: "2026-09-25T16:00:00", value: 1.2 },
+        { timestamp: "2026-09-26T08:00:00", value: 1.0 },
+        { timestamp: "2026-09-26T12:00:00", value: 1.2 },
+        { timestamp: "2026-09-26T16:00:00", value: 1.3 },
+        { timestamp: "2026-09-27T08:00:00", value: 1.1 },
+        { timestamp: "2026-09-27T12:00:00", value: 1.3 },
+        { timestamp: "2026-09-27T16:00:00", value: 1.4 },
+        { timestamp: "2026-09-28T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-28T12:00:00", value: 1.4 },
+        { timestamp: "2026-09-28T16:00:00", value: 1.5 },
+        { timestamp: "2026-09-29T08:00:00", value: 1.3 },
+        { timestamp: "2026-09-29T12:00:00", value: 1.5 },
+        { timestamp: "2026-09-29T16:00:00", value: 1.6 },
+        { timestamp: "2026-09-30T08:00:00", value: 1.4 },
+        { timestamp: "2026-09-30T12:00:00", value: 1.6 },
+        { timestamp: "2026-09-30T16:00:00", value: 1.7 },
+      ],
+    },
+  },
+
+  Berta: {
+    temperature: {
+      oben: [
+        { timestamp: "2026-09-25T08:00:00", value: 11.4 },
+        { timestamp: "2026-09-25T12:00:00", value: 13.1 },
+        { timestamp: "2026-09-25T16:00:00", value: 14.3 },
+        { timestamp: "2026-09-26T08:00:00", value: 10.8 },
+        { timestamp: "2026-09-26T12:00:00", value: 12.7 },
+        { timestamp: "2026-09-26T16:00:00", value: 15.1 },
+        { timestamp: "2026-09-27T08:00:00", value: 11.2 },
+        { timestamp: "2026-09-27T12:00:00", value: 14.0 },
+        { timestamp: "2026-09-27T16:00:00", value: 16.2 },
+        { timestamp: "2026-09-28T08:00:00", value: 11.7 },
+        { timestamp: "2026-09-28T12:00:00", value: 13.8 },
+        { timestamp: "2026-09-28T16:00:00", value: 15.7 },
+        { timestamp: "2026-09-29T08:00:00", value: 10.9 },
+        { timestamp: "2026-09-29T12:00:00", value: 13.4 },
+        { timestamp: "2026-09-29T16:00:00", value: 14.9 },
+        { timestamp: "2026-09-30T08:00:00", value: 11.5 },
+        { timestamp: "2026-09-30T12:00:00", value: 14.2 },
+        { timestamp: "2026-09-30T16:00:00", value: 16.0 },
+      ],
+
+      unten: [
+        { timestamp: "2026-09-25T08:00:00", value: 11.4 },
+        { timestamp: "2026-09-25T12:00:00", value: 13.1 },
+        { timestamp: "2026-09-25T16:00:00", value: 14.3 },
+        { timestamp: "2026-09-26T08:00:00", value: 10.8 },
+        { timestamp: "2026-09-26T12:00:00", value: 12.7 },
+        { timestamp: "2026-09-26T16:00:00", value: 15.1 },
+        { timestamp: "2026-09-27T08:00:00", value: 11.2 },
+        { timestamp: "2026-09-27T12:00:00", value: 14.0 },
+        { timestamp: "2026-09-27T16:00:00", value: 16.2 },
+        { timestamp: "2026-09-28T08:00:00", value: 11.7 },
+        { timestamp: "2026-09-28T12:00:00", value: 13.8 },
+        { timestamp: "2026-09-28T16:00:00", value: 15.7 },
+        { timestamp: "2026-09-29T08:00:00", value: 10.9 },
+        { timestamp: "2026-09-29T12:00:00", value: 13.4 },
+        { timestamp: "2026-09-29T16:00:00", value: 14.9 },
+        { timestamp: "2026-09-30T08:00:00", value: 11.5 },
+        { timestamp: "2026-09-30T12:00:00", value: 14.2 },
+        { timestamp: "2026-09-30T16:00:00", value: 16.0 },
+      ],
+    },
+
+    soil_moisture: {
+      oben: [
+        { timestamp: "2026-09-25T08:00:00", value: 32 },
+        { timestamp: "2026-09-25T12:00:00", value: 30 },
+        { timestamp: "2026-09-25T16:00:00", value: 28 },
+        { timestamp: "2026-09-26T08:00:00", value: 33 },
+        { timestamp: "2026-09-26T12:00:00", value: 31 },
+        { timestamp: "2026-09-26T16:00:00", value: 29 },
+        { timestamp: "2026-09-27T08:00:00", value: 34 },
+        { timestamp: "2026-09-27T12:00:00", value: 32 },
+        { timestamp: "2026-09-27T16:00:00", value: 30 },
+        { timestamp: "2026-09-28T08:00:00", value: 35 },
+        { timestamp: "2026-09-28T12:00:00", value: 33 },
+        { timestamp: "2026-09-28T16:00:00", value: 31 },
+        { timestamp: "2026-09-29T08:00:00", value: 36 },
+        { timestamp: "2026-09-29T12:00:00", value: 34 },
+        { timestamp: "2026-09-29T16:00:00", value: 32 },
+        { timestamp: "2026-09-30T08:00:00", value: 35 },
+        { timestamp: "2026-09-30T12:00:00", value: 33 },
+        { timestamp: "2026-09-30T16:00:00", value: 31 },
+      ],
+
+      unten: [
+        { timestamp: "2026-09-25T08:00:00", value: 32 },
+        { timestamp: "2026-09-25T12:00:00", value: 30 },
+        { timestamp: "2026-09-25T16:00:00", value: 28 },
+        { timestamp: "2026-09-26T08:00:00", value: 33 },
+        { timestamp: "2026-09-26T12:00:00", value: 31 },
+        { timestamp: "2026-09-26T16:00:00", value: 29 },
+        { timestamp: "2026-09-27T08:00:00", value: 34 },
+        { timestamp: "2026-09-27T12:00:00", value: 32 },
+        { timestamp: "2026-09-27T16:00:00", value: 30 },
+        { timestamp: "2026-09-28T08:00:00", value: 35 },
+        { timestamp: "2026-09-28T12:00:00", value: 33 },
+        { timestamp: "2026-09-28T16:00:00", value: 31 },
+        { timestamp: "2026-09-29T08:00:00", value: 36 },
+        { timestamp: "2026-09-29T12:00:00", value: 34 },
+        { timestamp: "2026-09-29T16:00:00", value: 32 },
+        { timestamp: "2026-09-30T08:00:00", value: 35 },
+        { timestamp: "2026-09-30T12:00:00", value: 33 },
+        { timestamp: "2026-09-30T16:00:00", value: 31 },
+      ],
+    },
+
+    conductivity: {
+      oben: [
+        { timestamp: "2026-09-25T08:00:00", value: 1.1 },
+        { timestamp: "2026-09-25T12:00:00", value: 1.2 },
+        { timestamp: "2026-09-25T16:00:00", value: 1.3 },
+        { timestamp: "2026-09-26T08:00:00", value: 1.1 },
+        { timestamp: "2026-09-26T12:00:00", value: 1.4 },
+        { timestamp: "2026-09-26T16:00:00", value: 1.3 },
+        { timestamp: "2026-09-27T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-27T12:00:00", value: 1.4 },
+        { timestamp: "2026-09-27T16:00:00", value: 1.4 },
+        { timestamp: "2026-09-28T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-28T12:00:00", value: 1.4 },
+        { timestamp: "2026-09-28T16:00:00", value: 1.5 },
+        { timestamp: "2026-09-29T08:00:00", value: 1.3 },
+        { timestamp: "2026-09-29T12:00:00", value: 1.5 },
+        { timestamp: "2026-09-29T16:00:00", value: 1.6 },
+        { timestamp: "2026-09-30T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-30T12:00:00", value: 1.2 },
+        { timestamp: "2026-09-30T16:00:00", value: 2.3 },
+      ],
+
+      unten: [
+        { timestamp: "2026-09-25T08:00:00", value: 1.1 },
+        { timestamp: "2026-09-25T12:00:00", value: 1.2 },
+        { timestamp: "2026-09-25T16:00:00", value: 1.3 },
+        { timestamp: "2026-09-26T08:00:00", value: 1.1 },
+        { timestamp: "2026-09-26T12:00:00", value: 1.4 },
+        { timestamp: "2026-09-26T16:00:00", value: 1.3 },
+        { timestamp: "2026-09-27T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-27T12:00:00", value: 1.4 },
+        { timestamp: "2026-09-27T16:00:00", value: 1.4 },
+        { timestamp: "2026-09-28T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-28T12:00:00", value: 1.4 },
+        { timestamp: "2026-09-28T16:00:00", value: 1.5 },
+        { timestamp: "2026-09-29T08:00:00", value: 1.3 },
+        { timestamp: "2026-09-29T12:00:00", value: 1.5 },
+        { timestamp: "2026-09-29T16:00:00", value: 1.6 },
+        { timestamp: "2026-09-30T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-30T12:00:00", value: 1.2 },
+        { timestamp: "2026-09-30T16:00:00", value: 2.3 },
+      ],
+    },
+  },
+
+  Ilse: {
+    temperature: {
+      oben: [
+        { timestamp: "2026-09-25T08:00:00", value: 16.4 },
+        { timestamp: "2026-09-25T12:00:00", value: 18.1 },
+        { timestamp: "2026-09-25T16:00:00", value: 19.3 },
+        { timestamp: "2026-09-26T08:00:00", value: 15.8 },
+        { timestamp: "2026-09-26T12:00:00", value: 17.7 },
+        { timestamp: "2026-09-26T16:00:00", value: 20.1 },
+        { timestamp: "2026-09-27T08:00:00", value: 16.2 },
+        { timestamp: "2026-09-27T12:00:00", value: 19.0 },
+        { timestamp: "2026-09-27T16:00:00", value: 21.2 },
+        { timestamp: "2026-09-28T08:00:00", value: 16.7 },
+        { timestamp: "2026-09-28T12:00:00", value: 18.8 },
+        { timestamp: "2026-09-28T16:00:00", value: 20.7 },
+        { timestamp: "2026-09-29T08:00:00", value: 15.9 },
+        { timestamp: "2026-09-29T12:00:00", value: 18.4 },
+        { timestamp: "2026-09-29T16:00:00", value: 19.9 },
+        { timestamp: "2026-09-30T08:00:00", value: 16.5 },
+        { timestamp: "2026-09-30T12:00:00", value: 19.2 },
+        { timestamp: "2026-09-30T16:00:00", value: 21.0 },
+      ],
+
+      unten: [
+        { timestamp: "2026-09-25T08:00:00", value: 16.4 },
+        { timestamp: "2026-09-25T12:00:00", value: 18.1 },
+        { timestamp: "2026-09-25T16:00:00", value: 19.3 },
+        { timestamp: "2026-09-26T08:00:00", value: 15.8 },
+        { timestamp: "2026-09-26T12:00:00", value: 17.7 },
+        { timestamp: "2026-09-26T16:00:00", value: 20.1 },
+        { timestamp: "2026-09-27T08:00:00", value: 16.2 },
+        { timestamp: "2026-09-27T12:00:00", value: 19.0 },
+        { timestamp: "2026-09-27T16:00:00", value: 21.2 },
+        { timestamp: "2026-09-28T08:00:00", value: 16.7 },
+        { timestamp: "2026-09-28T12:00:00", value: 18.8 },
+        { timestamp: "2026-09-28T16:00:00", value: 20.7 },
+        { timestamp: "2026-09-29T08:00:00", value: 15.9 },
+        { timestamp: "2026-09-29T12:00:00", value: 18.4 },
+        { timestamp: "2026-09-29T16:00:00", value: 19.9 },
+        { timestamp: "2026-09-30T08:00:00", value: 16.5 },
+        { timestamp: "2026-09-30T12:00:00", value: 19.2 },
+        { timestamp: "2026-09-30T16:00:00", value: 21.0 },
+      ],
+    },
+
+    soil_moisture: {
+      oben: [
+        { timestamp: "2026-09-25T08:00:00", value: 27 },
+        { timestamp: "2026-09-25T12:00:00", value: 25 },
+        { timestamp: "2026-09-25T16:00:00", value: 23 },
+        { timestamp: "2026-09-26T08:00:00", value: 28 },
+        { timestamp: "2026-09-26T12:00:00", value: 26 },
+        { timestamp: "2026-09-26T16:00:00", value: 24 },
+        { timestamp: "2026-09-27T08:00:00", value: 29 },
+        { timestamp: "2026-09-27T12:00:00", value: 27 },
+        { timestamp: "2026-09-27T16:00:00", value: 25 },
+        { timestamp: "2026-09-28T08:00:00", value: 30 },
+        { timestamp: "2026-09-28T12:00:00", value: 28 },
+        { timestamp: "2026-09-28T16:00:00", value: 26 },
+        { timestamp: "2026-09-29T08:00:00", value: 31 },
+        { timestamp: "2026-09-29T12:00:00", value: 29 },
+        { timestamp: "2026-09-29T16:00:00", value: 27 },
+        { timestamp: "2026-09-30T08:00:00", value: 30 },
+        { timestamp: "2026-09-30T12:00:00", value: 28 },
+        { timestamp: "2026-09-30T16:00:00", value: 26 },
+      ],
+
+      unten: [
+        { timestamp: "2026-09-25T08:00:00", value: 27 },
+        { timestamp: "2026-09-25T12:00:00", value: 25 },
+        { timestamp: "2026-09-25T16:00:00", value: 23 },
+        { timestamp: "2026-09-26T08:00:00", value: 28 },
+        { timestamp: "2026-09-26T12:00:00", value: 26 },
+        { timestamp: "2026-09-26T16:00:00", value: 24 },
+        { timestamp: "2026-09-27T08:00:00", value: 29 },
+        { timestamp: "2026-09-27T12:00:00", value: 27 },
+        { timestamp: "2026-09-27T16:00:00", value: 25 },
+        { timestamp: "2026-09-28T08:00:00", value: 30 },
+        { timestamp: "2026-09-28T12:00:00", value: 28 },
+        { timestamp: "2026-09-28T16:00:00", value: 26 },
+        { timestamp: "2026-09-29T08:00:00", value: 31 },
+        { timestamp: "2026-09-29T12:00:00", value: 29 },
+        { timestamp: "2026-09-29T16:00:00", value: 27 },
+        { timestamp: "2026-09-30T08:00:00", value: 30 },
+        { timestamp: "2026-09-30T12:00:00", value: 28 },
+        { timestamp: "2026-09-30T16:00:00", value: 26 },
+      ],
+    },
+
+    conductivity: {
+      oben: [
+        { timestamp: "2026-09-25T08:00:00", value: 1.7 },
+        { timestamp: "2026-09-25T12:00:00", value: 1.2 },
+        { timestamp: "2026-09-25T16:00:00", value: 1.9 },
+        { timestamp: "2026-09-26T08:00:00", value: 1.4 },
+        { timestamp: "2026-09-26T12:00:00", value: 2.1 },
+        { timestamp: "2026-09-26T16:00:00", value: 1.6 },
+        { timestamp: "2026-09-27T08:00:00", value: 1.1 },
+        { timestamp: "2026-09-27T12:00:00", value: 1.8 },
+        { timestamp: "2026-09-27T16:00:00", value: 2.3 },
+        { timestamp: "2026-09-28T08:00:00", value: 1.5 },
+        { timestamp: "2026-09-28T12:00:00", value: 2.0 },
+        { timestamp: "2026-09-28T16:00:00", value: 1.3 },
+        { timestamp: "2026-09-29T08:00:00", value: 1.9 },
+        { timestamp: "2026-09-29T12:00:00", value: 2.4 },
+        { timestamp: "2026-09-29T16:00:00", value: 1.7 },
+        { timestamp: "2026-09-30T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-30T12:00:00", value: 2.2 },
+        { timestamp: "2026-09-30T16:00:00", value: 1.6 },
+      ],
+
+      unten: [
+        { timestamp: "2026-09-25T08:00:00", value: 1.7 },
+        { timestamp: "2026-09-25T12:00:00", value: 1.2 },
+        { timestamp: "2026-09-25T16:00:00", value: 1.9 },
+        { timestamp: "2026-09-26T08:00:00", value: 1.4 },
+        { timestamp: "2026-09-26T12:00:00", value: 2.1 },
+        { timestamp: "2026-09-26T16:00:00", value: 1.6 },
+        { timestamp: "2026-09-27T08:00:00", value: 1.1 },
+        { timestamp: "2026-09-27T12:00:00", value: 1.8 },
+        { timestamp: "2026-09-27T16:00:00", value: 2.3 },
+        { timestamp: "2026-09-28T08:00:00", value: 1.5 },
+        { timestamp: "2026-09-28T12:00:00", value: 2.0 },
+        { timestamp: "2026-09-28T16:00:00", value: 1.3 },
+        { timestamp: "2026-09-29T08:00:00", value: 1.9 },
+        { timestamp: "2026-09-29T12:00:00", value: 2.4 },
+        { timestamp: "2026-09-29T16:00:00", value: 1.7 },
+        { timestamp: "2026-09-30T08:00:00", value: 1.2 },
+        { timestamp: "2026-09-30T12:00:00", value: 2.2 },
+        { timestamp: "2026-09-30T16:00:00", value: 1.6 },
+      ],
+    },
+  },
+};
+
+const BED_COLORS: Record<string, string> = {
+  Carla: "#2563eb",
+  Berta: "#16a34a",
+  Ilse: "#ea580c",
+  "Beet 1": "#2563eb",
+  "Beet 2": "#16a34a",
+  "Beet 3": "#ea580c",
+};
+
+// Aliase für Beet 1, 2, 3 hinzufügen, falls Mockdaten abgefragt werden
+MOCK_DATA["Beet 1"] = MOCK_DATA.Carla;
+MOCK_DATA["Beet 2"] = MOCK_DATA.Berta;
+MOCK_DATA["Beet 3"] = MOCK_DATA.Ilse;
+
+const BED_NAMES: string[] = ["Carla", "Berta", "Ilse"];
+
+const MEASUREMENTS: { key: string; label: string }[] = [
+  {
+    key: "temperature",
+    label: "Temperatur",
+  },
+  {
+    key: "soil_moisture",
+    label: "Bodenfeuchtigkeit",
+  },
+  {
+    key: "conductivity",
+    label: "Leitfähigkeit",
+  },
+];
 
 const ZEITRAEUME = [
   { value: "24h", label: "Letzte 24 Stunden" },
@@ -304,10 +726,11 @@ function addWeatherData(
     const existing = rows.get(weather.timestamp);
 
     rows.set(weather.timestamp, {
-      ...(existing ?? 
-        { timestamp: weather.timestamp,
-          ...Object.fromEntries(selectedBeds.map((bed) => [bed, null]))
-         }),
+      ...(existing ??
+      {
+        timestamp: weather.timestamp,
+        ...Object.fromEntries(selectedBeds.map((bed) => [bed, null]))
+      }),
       outsideTemperature: weather.value,
     } as ChartDataPoint);
   }
@@ -325,6 +748,8 @@ export default function HistorischeDaten({
   setSelectedMeasurements,
   zeitraum,
   setZeitraum,
+  bedNames = BED_NAMES,
+  bedColors = BED_COLORS,
 }: HistorischeDatenProps) {
   const [cacheVersion, setCacheVersion] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -435,10 +860,10 @@ export default function HistorischeDaten({
         );
       });
 
-      return () => {
+    return () => {
       controller.abort();
-        };
-      }, [selectedMeasurements, targetStart, targetEnd]);
+    };
+  }, [selectedMeasurements, targetStart, targetEnd]);
 
   const chartData = useMemo(() => {
     const result: {
@@ -523,7 +948,7 @@ export default function HistorischeDaten({
           <h2>Beete</h2>
 
           <div className="historische-checkboxen">
-            {BED_NAMES.map((bed) => (
+            {bedNames.map((bed) => (
               <label
                 key={bed}
                 className="historische-checkbox"
@@ -537,7 +962,7 @@ export default function HistorischeDaten({
                 <span
                   className="historische-checkbox-farbe"
                   style={{
-                    backgroundColor: BED_COLORS[bed],
+                    backgroundColor: bedColors[bed] || BED_COLORS[bed] || "#2563eb",
                   }}
                 />
 
@@ -623,7 +1048,7 @@ export default function HistorischeDaten({
 
       {/* Diagramme oder Hinweis bei fehlender Auswahl */}
       {selectedBeds.length === 0 ||
-      selectedMeasurements.length === 0 ? (
+        selectedMeasurements.length === 0 ? (
         <div className="historische-leerzustand">
           <p>
             <center>Keine Auswahl</center>
@@ -660,10 +1085,10 @@ export default function HistorischeDaten({
 
                   const data = showOutsideTemperature
                     ? addWeatherData(
-                        baseData,
-                        weatherData,
-                        selectedBeds
-                      )
+                      baseData,
+                      weatherData,
+                      selectedBeds
+                    )
                     : baseData;
 
                   return (
@@ -682,15 +1107,15 @@ export default function HistorischeDaten({
           ))}
         </>
       )}
-      
+
       <footer className="weather-attribution">
         Externe Wetterdaten (Außentemperatur) von&nbsp;
         <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">
-            Open-Meteo.com&nbsp;
+          Open-Meteo.com&nbsp;
         </a>
         •&nbsp;
         <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">
-            CC BY 4.0
+          CC BY 4.0
         </a>
       </footer>
     </section>

@@ -1,7 +1,7 @@
 import type { AuthResponse, LoginPayload, User } from "./types/auth";
 import type { DashboardHistoryResponse, DashboardResponse } from "./types/dashboard";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8001";
+const API_URL = import.meta.env.VITE_API_URL || "http://sr-labor.ddns.net:8001";
 
 async function extrahiereFehlermeldung(res: Response, standard: string): Promise<string> {
   try {
@@ -27,6 +27,18 @@ export async function holeDashboard(): Promise<DashboardResponse> {
 
   if (!antwort.ok) {
     throw new Error("Dashboard konnte nicht geladen werden");
+  }
+
+  const daten = await antwort.json();
+  return daten;
+}
+
+// Hole Beete für das Nele-Dashboard (9 Sensoren in 3 Beeten)
+export async function holeNeleDashboard(): Promise<DashboardResponse> {
+  const antwort = await fetch(`${API_URL}/api/nele/dashboard`);
+
+  if (!antwort.ok) {
+    throw new Error("Nele-Dashboard konnte nicht geladen werden");
   }
 
   const daten = await antwort.json();

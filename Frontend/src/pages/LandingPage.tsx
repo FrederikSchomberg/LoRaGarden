@@ -21,6 +21,7 @@ type LandingPageProps = {
   user?: User | null;
   onLoginOeffnen?: () => void;
   onLogout?: () => void;
+  onInternOeffnen?: () => void;
 };
 
 export function LandingPage({
@@ -28,6 +29,7 @@ export function LandingPage({
   user,
   onLoginOeffnen,
   onLogout,
+  onInternOeffnen,
 }: LandingPageProps) {
   return (
     <div className="landingpage">
@@ -65,7 +67,15 @@ export function LandingPage({
 
           {user ? (
             <>
-              <span className="landingpage-user-badge">👤 {user.name}</span>
+              <button
+                type="button"
+                className="landingpage-user-badge"
+                onClick={onInternOeffnen}
+                title="Zur internen Seite"
+                aria-label={`Angemeldet als ${user.name} – Zur internen Seite wechseln`}
+              >
+                👤 {user.name}
+              </button>
               {onLogout && (
                 <button
                   type="button"

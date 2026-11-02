@@ -27,10 +27,10 @@ try:
         # legt die .venv für das backend an
         subprocess.check_call([sys.executable, "-m", "venv", ".venv"], cwd=backend)
 
-    # backend pakete installieren
-    print("backend pakete isntallieren...")
-    #installiert alles aus requirements.txt
-    subprocess.check_call([str(python_exe), "-m", "pip", "install", "-r", "requirements.txt"], cwd=backend)
+        # backend pakete installieren
+        print("backend pakete isntallieren...")
+        #installiert alles aus requirements.txt
+        subprocess.check_call([str(python_exe), "-m", "pip", "install", "-r", "requirements.txt"], cwd=backend)
 
     # frontend pakete installieren falls die fehlen
     if not (frontend / "node_modules").exists():
@@ -38,13 +38,14 @@ try:
         #installiert die npm pakete aus der package.json
         subprocess.check_call([npm, "install"], cwd=frontend)
 
-    # backend starten
-    print("starte backend...")
-    backend_process = subprocess.Popen(
-        [
-            str(python_exe),
-            "-m",
-            "uvicorn",
+    if False:
+        # backend starten
+        print("starte backend...")
+        backend_process = subprocess.Popen(
+            [
+                str(python_exe),
+                "-m",
+                "uvicorn",
             "main:app",
             "--reload",
             "--host",
@@ -53,7 +54,7 @@ try:
             "8001",
         ],
         cwd=backend,
-    )
+        )
 
     # frontend starten
     print("starte frontend...")

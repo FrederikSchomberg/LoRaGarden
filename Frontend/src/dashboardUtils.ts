@@ -32,12 +32,18 @@ export function mittelwert(beet: BeetDaten, feld: keyof Messwerte) {
 
 // sucht sensor über seine position im beet
 export function findeSensor(beet: BeetDaten, position: SensorPosition) {
-  // geht sensoren im beet nachenander durch
-  for (const sensor of beet.sensors) {
-    const gespeichertePosition = sensor.bed_position.toLowerCase();
+  const normPosition = position.toLowerCase().trim();
 
-    // prüft ob die positionen übereinstimmen
-    if (gespeichertePosition === position) {
+  // geht sensoren im beet nacheinander durch
+  for (const sensor of beet.sensors) {
+    const gespeichertePosition = sensor.bed_position.toLowerCase().trim();
+
+    // prüft ob die positionen übereinstimmen (z. B. "oben", "unten", "1", "2", "3")
+    if (
+      gespeichertePosition === normPosition ||
+      gespeichertePosition === `sensor ${normPosition}` ||
+      `sensor ${gespeichertePosition}` === normPosition
+    ) {
       return sensor;
     }
   }

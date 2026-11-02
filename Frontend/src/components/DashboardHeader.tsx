@@ -11,6 +11,7 @@ type DashboardHeaderProps = {
   onLogout?: () => void;
   onLoginOeffnen?: () => void;
   onStartseiteOeffnen?: () => void;
+  onInternOeffnen?: () => void;
 };
 
 export function DashboardHeader({
@@ -22,6 +23,7 @@ export function DashboardHeader({
   onLogout,
   onLoginOeffnen,
   onStartseiteOeffnen,
+  onInternOeffnen,
 }: DashboardHeaderProps) {
   return (
     <header className="kopf">
@@ -54,7 +56,15 @@ export function DashboardHeader({
         <div className="kopf-aktionen">
           {user ? (
             <div className="kopf-benutzer">
-              <span className="kopf-benutzer-name">👤 {user.name}</span>
+              <button
+                type="button"
+                className="kopf-benutzer-name"
+                onClick={onInternOeffnen}
+                title="Zur internen Seite"
+                aria-label={`Angemeldet als ${user.name} – Zur internen Seite wechseln`}
+              >
+                👤 {user.name}
+              </button>
 
               {onLogout && (
                 <button

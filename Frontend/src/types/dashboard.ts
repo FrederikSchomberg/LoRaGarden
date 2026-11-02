@@ -5,13 +5,15 @@ export type Messwerte = {
   battery_voltage: number | null;
 };
 
+export type SensorPosition = "oben" | "unten" | "1" | "2" | "3" | string;
+
 export type SensorDaten = {
   sensor_id: string;
   city: string;
   area: string;
   place: string;
   bed: string;
-  bed_position: "Oben" | "Unten";
+  bed_position: "Oben" | "Unten" | "1" | "2" | "3" | string;
   substrate: string;
   values: Messwerte;
   updated_at: string | null;
@@ -30,8 +32,6 @@ export type DashboardResponse = {
   };
   beds: BeetDaten[];
 };
-
-export type SensorPosition = "oben" | "unten";
 
 export type HistoricalSensorPoint = {
   timestamp: string;

@@ -23,6 +23,7 @@ type DashboardProps = {
   onLogout: () => void;
   onLoginOeffnen: () => void;
   onStartseiteOeffnen: () => void;
+  onInternOeffnen: () => void;
 };
 
 function Dashboard({
@@ -30,6 +31,7 @@ function Dashboard({
   onLogout,
   onLoginOeffnen,
   onStartseiteOeffnen,
+  onInternOeffnen,
 }: DashboardProps) {
   // damit wir wieder oben landen wenn wir das dashboard über den link öffnen
   useEffect(() => {
@@ -131,6 +133,7 @@ function Dashboard({
           onLogout={onLogout}
           onLoginOeffnen={onLoginOeffnen}
           onStartseiteOeffnen={onStartseiteOeffnen}
+          onInternOeffnen={onInternOeffnen}
         />
 
         {/* Navigation zwischen aktuellem und historischem Dashboard */}
@@ -348,7 +351,13 @@ function App() {
   }
 
   if (seite === "nele") {
-    return <NeleDashboard onZurueck={internOeffnen} />;
+    return (
+      <NeleDashboard
+        onZurueck={internOeffnen}
+        user={user}
+        onLogout={abmelden}
+      />
+    );
   }
 
   if (seite === "datenfluss") {
@@ -362,6 +371,7 @@ function App() {
         user={user}
         onLoginOeffnen={loginOeffnen}
         onLogout={abmelden}
+        onInternOeffnen={internOeffnen}
       />
     );
   }
@@ -372,6 +382,7 @@ function App() {
       onLogout={abmelden}
       onLoginOeffnen={loginOeffnen}
       onStartseiteOeffnen={startseiteOeffnen}
+      onInternOeffnen={internOeffnen}
     />
   );
 }

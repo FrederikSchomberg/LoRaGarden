@@ -9,9 +9,13 @@ import "../styles/components/summary-cards.css";
 
 type SummaryCardsProps = {
   beete: BeetDaten[];
+  messstellenBeschreibung?: string;
 };
 
-export function SummaryCards({ beete }: SummaryCardsProps) {
+export function SummaryCards({
+  beete,
+  messstellenBeschreibung = "jeweils oben und unten im Beet",
+}: SummaryCardsProps) {
   let trockenesBeet: BeetDaten | null = null;
   let trockenWert: number | null = null;
   let warmesBeet: BeetDaten | null = null;
@@ -54,7 +58,7 @@ export function SummaryCards({ beete }: SummaryCardsProps) {
       <article className="dashboard-karte">
         <span>Messstellen</span>
         <strong>{sensorAnzahl} Sensoren</strong>
-        <small>jeweils oben und unten im Beet</small>
+        <small>{messstellenBeschreibung}</small>
       </article>
     </section>
   );

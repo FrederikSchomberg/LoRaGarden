@@ -137,10 +137,31 @@
 }
 
 .kopf-benutzer-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-weight: 600;
-  background: rgba(0, 0, 0, 0.15);
-  padding: 5px 9px;
-  border-radius: 4px;
+  font-family: inherit;
+  font-size: inherit;
+  color: #e7f0ea;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.kopf-benutzer-name:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.kopf-benutzer-name:active {
+  transform: translateY(0);
 }
 
 /* dashboard header */

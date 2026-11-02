@@ -11,17 +11,24 @@ import "../styles/components/bed-card.css";
 type BedCardProps = {
   beet: BeetDaten;
   demo: boolean;
+  positionen?: SensorPosition[];
 };
 
-const positionen: SensorPosition[] = ["oben", "unten"];
+const standardPositionen: SensorPosition[] = ["oben", "unten"];
 
-export function BedCard({ beet, demo }: BedCardProps) {
+export function BedCard({ beet, demo, positionen: customPositionen }: BedCardProps) {
   const feuchte = mittelwert(beet, "soil_moisture");
   const temperatur = mittelwert(beet, "soil_temperature");
   const ec = mittelwert(beet, "soil_ec");
   const batterie = mittelwert(beet, "battery_voltage");
 
   const balken = feuchte === null ? 0 : Math.min(100, Math.max(0, feuchte));
+
+  const positionen =
+    customPositionen ??
+    (beet.sensors.length > 0
+      ? beet.sensors.map((s) => s.bed_position)
+      : standardPositionen);
 
   return (
     <article className="beet-karte dashboard-karte">
@@ -74,14 +81,23 @@ export function BedCard({ beet, demo }: BedCardProps) {
               <small>
                 {demo
                   ? "Beispieldaten"
-                  : new Date().toLocaleString("de-DE", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      second: "2-digit",
-                    })}
+                  : sensor?.updated_at
+                    ? new Date(sensor.updated_at).toLocaleString("de-DE", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      })
+                    : new Date().toLocaleString("de-DE", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      })}
               </small>
             </div>
           );

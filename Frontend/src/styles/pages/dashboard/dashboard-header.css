@@ -148,7 +148,7 @@
   background: linear-gradient(var(--gruenDunkel), var(--gruenDunkel)) padding-box,
               linear-gradient(to bottom, var(--gradient-pink), var(--gradient-purple)) border-box;
   border-radius: 16px;
-  border: 4px solid transparent;
+  border: 2px solid transparent;
   color: #edf4ef;
   box-shadow: 0 15px 40px var(--shadow);
 }

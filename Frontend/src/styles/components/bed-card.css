@@ -1,7 +1,7 @@
 /* Angabe zum Substrat oben rechts */
 .dashboard-karte .beet-kopf > span {
-  background: #193e2c;
-  color: #93e9b2;
+  background: var(--erde-dunkel);
+  color: var(--erde-hell);
   border: 1px solid var(--gradient-purple);
   border-radius: 6px;
 }
@@ -27,9 +27,13 @@
 
 /* Temperatur, Boden-EC und Batterie */
 .dashboard-karte .mini-werte > div {
-  background: #294a39;
+  background: var(--erde-dunkel);
   border-radius: 7px;
   border: 1px solid var(--gradient-purple);
+}
+
+.dashboard-karte .mini-werte span {
+  color: var(--erde-hell);
 }
 
 /* Sensor-IDs */

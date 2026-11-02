@@ -1,5 +1,5 @@
 .kurz-grid .dashboard-karte > span {
-  color: #a0b2a6;
+  color: var(--erde-hell);
   letter-spacing: 0.04em;
 }
 

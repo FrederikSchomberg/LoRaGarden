@@ -178,7 +178,7 @@ export function formatiereZeit(zeit: string | null) {
   };
 
   // formatiert das datum in die deutsche darstellung
-  const formatierteZeit = datum.toLocaleString("de-DE", optionen);
+  const formatierteZeit = datum.toLocaleString("de-DE", optionen).replace(/(\d{2}\.\d{2})\./, "$1");
 
   return formatierteZeit;
 }

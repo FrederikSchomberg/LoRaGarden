@@ -28,6 +28,10 @@
 }
 
 @media (max-width: 700px) {
+  .historische-filter {
+    padding: 0.75rem;
+  }
+
   .historische-filter-gruppe {
     display: flex;
     flex-direction: column;
@@ -46,12 +50,34 @@
     font-size: 1.05rem;
   }
 
-  .historische-filter {
-    padding: 0.75rem;
-  }
-
   .historische-bereich-header {
     height: auto;
     min-height: 0px;
   }
+
+  .historische-checkbox {
+    max-width: 150px;
+  }
+
+  @media (max-width: 600px) {
+  .historische-filter {
+    grid-template-columns: 1fr;
+  }
+
+  .historische-filter-gruppe:nth-child(3) {
+    grid-column: 1;
+  }
+
+   .historische-chart-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .historische-chart-scroll-inner {
+    width: 550px !important;
+    min-width: 550px;
+  }
+}
 }

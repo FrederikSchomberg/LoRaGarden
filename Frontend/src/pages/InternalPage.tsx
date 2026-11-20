@@ -3,6 +3,7 @@ import grafanaIcon from "../assets/grafana_icon.svg";
 import monitorIcon from "../assets/monitor-up.svg";
 import soilSensorIcon from "../assets/soil-sensor.svg";
 import sproutIcon from "../assets/sprout.svg";
+import { SensorIntervalControl } from "../components/SensorIntervalControl";
 
 type InternalPageProps = {
   onDashboardOeffnen: () => void;
@@ -90,6 +91,8 @@ export function InternalPage({
               Dashboard öffnen
             </button>
           </article>
+
+          <SensorIntervalControl />
         </section>
       </main>
 

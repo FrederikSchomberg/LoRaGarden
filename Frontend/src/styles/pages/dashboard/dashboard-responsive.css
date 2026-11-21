@@ -79,5 +79,17 @@
     width: 550px !important;
     min-width: 550px;
   }
+
+  .historische-laden-button {
+    margin-top: 18px;
+  }
+
+  .historische-laden-button button {
+    max-width: 248px;
+    min-height: 30px;
+    padding: 14px 20px !important;
+    font-size: 1.05rem;
+    border-radius: 10px;
+  }
 }
 }

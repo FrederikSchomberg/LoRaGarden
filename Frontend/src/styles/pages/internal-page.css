@@ -249,3 +249,8 @@
   color: #a9e9bb;
   font-size: 0.85rem;
 }
+
+/* fehlermeldung bei der sensorsteuerung */
+.intern-karte .intern-sensor-fehler {
+  color: #ff9999;
+}

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { beispielDaten } from "../data/mockData";
+import { setzeSensorIntervall } from "../api";
 import radioTowerIcon from "../assets/radio-tower.svg";
 
-// sensoren aus den bereits vorhandenen beispieldaten übernehmen
 const sensoren = beispielDaten.beds.flatMap((beet) =>
   beet.sensors.map((sensor) => ({
     id: sensor.sensor_id,
@@ -15,15 +15,42 @@ const intervalle = [5, 10, 15, 20, 25, 30];
 export function SensorIntervalControl() {
   const [sensorId, setSensorId] = useState("0060294A");
   const [intervall, setIntervall] = useState(5);
+  const [sendet, setSendet] = useState(false);
   const [hinweis, setHinweis] = useState("");
+  const [fehler, setFehler] = useState(false);
 
-  const auswahlVorbereiten = () => {
+  const intervallSenden = async () => {
     const sensor = sensoren.find((eintrag) => eintrag.id === sensorId);
+    const name = sensor?.name ?? sensorId;
 
-    // erstmal nur die auswahl anzeigen, noch nichts an mqtt senden
-    setHinweis(
-      `${sensor?.name ?? sensorId}: ${intervall} Minuten ausgewählt. Noch kein Downlink gesendet.`,
-    );
+    if (
+      !window.confirm(
+        `${name}: Sendeintervall auf ${intervall} Minuten ändern?`,
+      )
+    ) {
+      return;
+    }
+
+    setSendet(true);
+    setHinweis("");
+    setFehler(false);
+
+    try {
+      await setzeSensorIntervall(sensorId, intervall);
+
+      setHinweis(
+        `Downlink für ${name} (${intervall} Min.) an MQTT übergeben. ` +
+          "Bitte in Grafana prüfen, ob der Sensor das neue Intervall übernommen hat.",
+      );
+    } catch (error) {
+      setFehler(true);
+
+      setHinweis(
+        error instanceof Error ? error.message : "Downlink fehlgeschlagen.",
+      );
+    } finally {
+      setSendet(false);
+    }
   };
 
   return (
@@ -34,9 +61,7 @@ export function SensorIntervalControl() {
 
       <h3>Sensorsteuerung</h3>
 
-      <p>
-        Sendeintervall eines Sensors auswählen und für den Downlink vorbereiten.
-      </p>
+      <p>Sendeintervall eines Sensors per LoRaWAN-Downlink ändern.</p>
 
       <div className="intern-sensor-felder">
         <label htmlFor="intern-sensor">Sensor auswählen</label>
@@ -44,6 +69,7 @@ export function SensorIntervalControl() {
         <select
           id="intern-sensor"
           value={sensorId}
+          disabled={sendet}
           onChange={(e) => {
             setSensorId(e.target.value);
             setHinweis("");
@@ -61,6 +87,7 @@ export function SensorIntervalControl() {
         <select
           id="intern-intervall"
           value={intervall}
+          disabled={sendet}
           onChange={(e) => {
             setIntervall(Number(e.target.value));
             setHinweis("");
@@ -74,12 +101,21 @@ export function SensorIntervalControl() {
         </select>
       </div>
 
-      <button type="button" onClick={auswahlVorbereiten}>
-        Intervall vorbereiten
+      <button
+        type="button"
+        disabled={sendet}
+        onClick={() => void intervallSenden()}
+      >
+        {sendet ? "Downlink wird gesendet..." : "Intervall ändern"}
       </button>
 
       {hinweis && (
-        <p className="intern-sensor-hinweis" role="status">
+        <p
+          className={`intern-sensor-hinweis${
+            fehler ? " intern-sensor-fehler" : ""
+          }`}
+          role="status"
+        >
           {hinweis}
         </p>
       )}

@@ -766,32 +766,52 @@ export default function HistorischeDaten({
 }: HistorischeDatenProps) {
   const [cacheVersion, setCacheVersion] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(
-    null
-  );
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [weatherData, setWeatherData] = useState<WeatherPoint[]>([]);
   const [weatherError, setWeatherError] = useState<string | null>(null);
 
+  // Enthält ausschließlich die Filter, die durch den Button-Klick bestätigt wurden.
+  const [angewendeteFilter, setAngewendeteFilter] = useState<{
+    beds: string[];
+    measurements: string[];
+    zeitraum: string;
+    targetStart: number;
+    targetEnd: number;
+  } | null>(null);
+
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const { targetStart, targetEnd } = useMemo(() => {
-    const end = Date.now();
-
-    return {
-      targetStart: end - getZeitraumMillis(zeitraum),
-      targetEnd: end,
-    };
-  }, [zeitraum]);
-
-  useEffect(() => {
+  const handleDatenLaden = () => {
     if (
       selectedBeds.length === 0 ||
-      selectedMeasurements.length === 0
+      selectedMeasurements.length === 0 ||
+      !zeitraum ||
+      loading
     ) {
-      setLoading(false);
-      setErrorMessage(null);
       return;
     }
+
+    const targetEnd = Date.now();
+    const targetStart = targetEnd - getZeitraumMillis(zeitraum);
+
+    setErrorMessage(null);
+    setWeatherError(null);
+    setAngewendeteFilter({
+      beds: [...selectedBeds],
+      measurements: [...selectedMeasurements],
+      zeitraum,
+      targetStart,
+      targetEnd,
+    });
+  };
+
+  // Sensordaten werden ausschließlich nach Bestätigung der Filter geladen.
+  useEffect(() => {
+    if (!angewendeteFilter) {
+      return;
+    }
+
+    const { beds, measurements, targetStart, targetEnd } = angewendeteFilter;
 
     abortControllerRef.current?.abort();
 
@@ -803,8 +823,8 @@ export default function HistorischeDaten({
 
     historyCache
       .fetchMissingData(
-        selectedBeds,
-        selectedMeasurements,
+        beds,
+        measurements,
         targetStart,
         targetEnd,
         () => {
@@ -833,31 +853,32 @@ export default function HistorischeDaten({
     return () => {
       controller.abort();
     };
-  }, [
-    selectedBeds,
-    selectedMeasurements,
-    targetStart,
-    targetEnd,
-  ]);
+  }, [angewendeteFilter]);
 
+  // Wetterdaten werden ebenfalls erst nach dem Klick geladen.
   useEffect(() => {
-    if (!selectedMeasurements.includes("temperature")) {
+    if (!angewendeteFilter) {
+      setWeatherData([]);
+      setWeatherError(null);
+      return;
+    }
+
+    const { measurements, targetStart, targetEnd } = angewendeteFilter;
+
+    if (!measurements.includes("temperature")) {
       setWeatherData([]);
       setWeatherError(null);
       return;
     }
 
     const controller = new AbortController();
-
     setWeatherError(null);
 
-    getWeatherData(
-      targetStart,
-      targetEnd,
-      controller.signal
-    )
+    getWeatherData(targetStart, targetEnd, controller.signal)
       .then((data) => {
-        setWeatherData(data);
+        if (!controller.signal.aborted) {
+          setWeatherData(data);
+        }
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted) {
@@ -876,7 +897,12 @@ export default function HistorischeDaten({
     return () => {
       controller.abort();
     };
-  }, [selectedMeasurements, targetStart, targetEnd]);
+  }, [angewendeteFilter]);
+
+  const aktiveBeds = angewendeteFilter?.beds ?? [];
+  const aktiveMeasurements = angewendeteFilter?.measurements ?? [];
+  const targetStart = angewendeteFilter?.targetStart ?? 0;
+  const targetEnd = angewendeteFilter?.targetEnd ?? 0;
 
   const chartData = useMemo(() => {
     const result: {
@@ -887,13 +913,19 @@ export default function HistorischeDaten({
       unten: {},
     };
 
-    const seriesKeys = selectedBeds.map((bed) => {
+    if (!angewendeteFilter) {
+      return result;
+    }
+
+    const beds = angewendeteFilter.beds;
+    const measurements = angewendeteFilter.measurements;
+    const seriesKeys = beds.map((bed) => {
       return bed.charAt(0).toUpperCase() + bed.slice(1);
     });
 
-    for (const measurement of selectedMeasurements) {
+    for (const measurement of measurements) {
       const obenData = historyCache.getChartData(
-        selectedBeds,
+        beds,
         measurement,
         "oben",
         targetStart,
@@ -901,7 +933,7 @@ export default function HistorischeDaten({
       );
 
       const untenData = historyCache.getChartData(
-        selectedBeds,
+        beds,
         measurement,
         "unten",
         targetStart,
@@ -922,13 +954,7 @@ export default function HistorischeDaten({
     }
 
     return result;
-  }, [
-    selectedBeds,
-    selectedMeasurements,
-    targetStart,
-    targetEnd,
-    cacheVersion,
-  ]);
+  }, [angewendeteFilter, cacheVersion, targetStart, targetEnd]);
 
   const toggleBed = (bed: string) => {
     setSelectedBeds((current) =>
@@ -962,10 +988,7 @@ export default function HistorischeDaten({
 
           <div className="historische-checkboxen">
             {bedNames.map((bed) => (
-              <label
-                key={bed}
-                className="historische-checkbox"
-              >
+              <label key={bed} className="historische-checkbox">
                 <input
                   type="checkbox"
                   checked={selectedBeds.includes(bed)}
@@ -975,7 +998,8 @@ export default function HistorischeDaten({
                 <span
                   className="historische-checkbox-farbe"
                   style={{
-                    backgroundColor: bedColors[bed] || BED_COLORS[bed] || "#2563eb",
+                    backgroundColor:
+                      bedColors[bed] || BED_COLORS[bed] || "#2563eb",
                   }}
                 />
 
@@ -996,12 +1020,8 @@ export default function HistorischeDaten({
               >
                 <input
                   type="checkbox"
-                  checked={selectedMeasurements.includes(
-                    measurement.key
-                  )}
-                  onChange={() =>
-                    toggleMeasurement(measurement.key)
-                  }
+                  checked={selectedMeasurements.includes(measurement.key)}
+                  onChange={() => toggleMeasurement(measurement.key)}
                 />
 
                 <span>{measurement.label}</span>
@@ -1016,19 +1036,31 @@ export default function HistorischeDaten({
           <select
             className="historische-auswahl"
             value={zeitraum}
-            onChange={(
-              event: ChangeEvent<HTMLSelectElement>
-            ) => setZeitraum(event.target.value)}
+            onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+              setZeitraum(event.target.value)
+            }
           >
             {ZEITRAEUME.map((option) => (
-              <option
-                key={option.value}
-                value={option.value}
-              >
+              <option key={option.value} value={option.value}>
                 {option.label}
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="historische-filter-gruppe historische-laden-button">
+          <button
+            type="button"
+            onClick={handleDatenLaden}
+            disabled={
+              selectedBeds.length === 0 ||
+              selectedMeasurements.length === 0 ||
+              !zeitraum ||
+              loading
+            }
+          >
+            {loading ? "Daten werden geladen ..." : "Daten laden"}
+          </button>
         </div>
       </section>
 
@@ -1041,67 +1073,48 @@ export default function HistorischeDaten({
       )}
 
       {errorMessage && (
-        <p
-          className="historische-fehler"
-          role="alert"
-        >
+        <p className="historische-fehler" role="alert">
           Fehler beim Laden: {errorMessage}
         </p>
       )}
 
       {weatherError && (
-        <p
-          className="historische-fehler"
-          role="alert"
-        >
-          Hinweis: {weatherError}{" "}
-          Die Sensordaten werden weiterhin angezeigt.
+        <p className="historische-fehler" role="alert">
+          Hinweis: {weatherError} Die Sensordaten werden weiterhin angezeigt.
         </p>
       )}
 
-      {/* Diagramme oder Hinweis bei fehlender Auswahl */}
-      {selectedBeds.length === 0 ||
-        selectedMeasurements.length === 0 ? (
+      {/* Diagramme erst nach bestätigter Auswahl anzeigen */}
+      {!angewendeteFilter ? (
         <div className="historische-leerzustand">
           <p>
-            <center>Keine Auswahl</center>
-            Bitte wähle mindestens ein Beet und einen Messwert aus.
+            <center>Keine Daten geladen</center>
+            Bitte wähle mindestens ein Beet, einen Messwert und einen Zeitraum
+            aus und klicke anschließend auf „Daten laden“.
           </p>
         </div>
       ) : (
         <>
           {(["oben", "unten"] as const).map((position) => (
-            <section
-              className="historische-bereich"
-              key={position}
-            >
+            <section className="historische-bereich" key={position}>
               <div className="historische-bereich-header">
-                <h2>
-                  {position === "oben" ? "Oben" : "Unten"}
-                </h2>
+                <h2>{position === "oben" ? "Oben" : "Unten"}</h2>
               </div>
 
               <div className="historische-charts">
-                {selectedMeasurements.map((measurement) => {
+                {aktiveMeasurements.map((measurement) => {
                   const config = MEASUREMENT_CONFIG[measurement];
 
                   if (!config) {
                     return null;
                   }
 
-                  const baseData =
-                    chartData[position][measurement] ?? [];
-
+                  const baseData = chartData[position][measurement] ?? [];
                   const showOutsideTemperature =
-                    measurement === "temperature" &&
-                    weatherData.length > 0;
+                    measurement === "temperature" && weatherData.length > 0;
 
                   const data = showOutsideTemperature
-                    ? addWeatherData(
-                      baseData,
-                      weatherData,
-                      selectedBeds
-                    )
+                    ? addWeatherData(baseData, weatherData, aktiveBeds)
                     : baseData;
 
                   return (
@@ -1110,7 +1123,7 @@ export default function HistorischeDaten({
                       title={config.label}
                       unit={config.unit}
                       data={data}
-                      selectedBeds={selectedBeds}
+                      selectedBeds={aktiveBeds}
                       showOutsideTemperature={showOutsideTemperature}
                     />
                   );
@@ -1123,11 +1136,19 @@ export default function HistorischeDaten({
 
       <footer className="weather-attribution">
         Externe Wetterdaten (Außentemperatur) von&nbsp;
-        <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">
+        <a
+          href="https://open-meteo.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Open-Meteo.com&nbsp;
         </a>
         •&nbsp;
-        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">
+        <a
+          href="https://creativecommons.org/licenses/by/4.0/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           CC BY 4.0
         </a>
       </footer>

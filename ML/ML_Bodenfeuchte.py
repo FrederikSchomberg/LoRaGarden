@@ -1,414 +1,257 @@
 """
-Bodenfeuchte-Vorhersage für drei versuchsbeete (Carla 10 %, Berta 5 %, Ilse 0 % pflanzenkohle).
-
-Das skript lädt die sensordaten aus dem grafana-export, hängt das wetter von
-open-meteo an und vergleicht pro sensor einen random forest mit einer baseline.
-
-pip install requests pandas numpy scikit-learn
+Bodenfeuchte-Modell mit Gießbefehl: ein Modell für alle Beete.
+Ablauf: Daten einlesen -> Gießzeiten raten -> Feuchte in 24 h vorhersagen -> Gießbefehl.
+Nötig: "Alle Beete-data.csv" im selben Ordner (Grafana-Export), die Wetterdateien entstehen selbst.
+Installieren: pip install pandas numpy scikit-learn requests
 """
 
-from pathlib import Path
-import requests
-import numpy as np
-import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
-
-
-# ---------------------------------------------------------------------------
-# EINSTELLUNGEN
-# Alle werte, die man ändern kann, stehen hier. Angaben bei den features
-# sind schritte, ein schritt = 2h.
-# ---------------------------------------------------------------------------
-SKRIPT_ORDNER = Path(__file__).resolve().parent   # dateien liegen neben dem skript
-CSV_PATH = SKRIPT_ORDNER / "Alle_Beete-data.csv"
-
-BEDS = {"Carla": "10 % Kohle", "Berta": "5 % Kohle", "Ilse": "0 % Kohle"}
-POSITIONEN = ["Oben", "Unten"]   # groß geschrieben wie in der csv
-SENSOR = ["bed", "position"]     # ein sensor = beet + position
-RESAMPLE = "2h"                  # der export ist schon auf 2h runtergerechnet
-
-WETTER_URL = "https://archive-api.open-meteo.com/v1/archive"
-WETTER_LAT, WETTER_LON = 51.445, 7.262   # ungefähr campus RUB / botanischer garten
-WETTER_ZEITZONE = "Europe/Berlin"        # die csv-zeiten sind deutsche ortszeit
-WETTER_VORLAUF_TAGE = 3                  # vorlauf, damit die 48h-regensumme von anfang an stimmt
-WETTER_CACHE = SKRIPT_ORDNER / "wetter_cache.csv"
-WETTER_SPALTEN = ["aussentemp", "luftfeuchte", "regen_2h", "regen_6h", "regen_12h", "regen_48h"]
-
-HORIZONT = 6         # 12h voraus vorhersagen
-LAG_KURZ = 1         # feuchte vor 2h
-LAG_LANG = 12        # feuchte vor 24h
-TREND_SCHRITTE = 6   # änderung über die letzten 12h
-
-N_BAEUME = 200       # bäume im random forest
-ZUFALLSWERT = 0      # gleicher wert = gleiches ergebnis bei jedem lauf
-
-MERKMALE = ["moisture", "temperature", "ec", "feuchte_lag_kurz", "feuchte_lag_lang",
-            "feuchte_trend", "stunde_sin", "stunde_cos"] + WETTER_SPALTEN
-
-
-# ---------------------------------------------------------------------------
-# 1) SENSORDATEN LADEN UND AUFBEREITEN
-# Aus dem grafana-export wird eine saubere tabelle im 2h-raster. Lücken werden
-# nur kurz gefüllt, längere ausfälle trennen die daten in blöcke.
-# ---------------------------------------------------------------------------
-def lade_daten_csv():
-    """Liest den export und formt ihn um: statt einer spalte pro sensor und
-    messgröße gibt es eine zeile pro sensor und zeitpunkt."""
-    df = pd.read_csv(CSV_PATH)
-    df["Time"] = pd.to_datetime(df["Time"])
-    teile = [pd.DataFrame({
-        "time": df["Time"],
-        "bed": bed,
-        "position": position.lower(),
-        "moisture": df[f"{bed} {position} Bodenfeuchtigkeit"],
-        "temperature": df[f"{bed} {position} Tempertaur"],   # im export wirklich so geschrieben
-        "ec": df[f"{bed} {position} Leitwert"],
-    }) for bed in BEDS for position in POSITIONEN]
-    return pd.concat(teile, ignore_index=True)
-
-
-def aufbereiten(df):
-    """Legt pro sensor ein lückenloses 2h-raster an (mittelwert pro fenster)
-    und füllt lücken bis 6h mit einer geraden linie."""
-    teile = []
-    for (bed, position), g in df.groupby(SENSOR):
-        g = g.set_index("time").sort_index()[["moisture", "temperature", "ec"]]
-        g = g.resample(RESAMPLE).mean().interpolate(limit=3)
-        teile.append(g.assign(bed=bed, position=position))
-    df = pd.concat(teile).reset_index()
-    return df[["time", "bed", "position", "moisture", "temperature", "ec"]]
-
-
-def leeren_anfang_abschneiden(df):
-    """Entfernt alle zeilen vor der ersten echten messung, weil der export
-    früher beginnt als die sensoren daten liefern."""
-    erster_wert = df.dropna(subset=["moisture"])["time"].min()
-    vorher = len(df)
-    df = df[df["time"] >= erster_wert].copy()
-    print(f"leeren anfang abgeschnitten: {vorher - len(df)} zeilen raus, "
-          f"daten starten jetzt bei {erster_wert}")
-    return df
-
-
-def bloecke_markieren(df, min_laenge=24):
-    """Teilt jeden sensor an seinen lücken in zusammenhängende blöcke, damit
-    lag-features nie über einen ausfall springen. Blöcke unter 48h fliegen raus."""
-    teile = []
-    for (bed, position), g in df.groupby(SENSOR):
-        g = g.sort_values("time").reset_index(drop=True)
-        hat_wert = g["moisture"].notna()
-        # jede leere zeile erhöht den zähler, alles zwischen zwei lücken ist ein block
-        g["block"] = f"{bed}_{position}_" + (~hat_wert).cumsum().astype(str)
-        g = g[hat_wert]
-        teile.append(g[g.groupby("block")["block"].transform("size") >= min_laenge])
-    return pd.concat(teile, ignore_index=True)
-
-
-def zeige_ueberblick(df):
-    """Kontrollausgabe: form, zeitraum, punkte pro sensor, fehlende werte und
-    wertebereiche der feuchte."""
-    print("\n--- Form der tabelle ---")
-    print(df.shape)
-    print("\n--- Erste zeilen ---")
-    print(df.head())
-    print("\n--- Zeitraum ---")
-    print(df["time"].min(), "bis", df["time"].max())
-    print("\n--- Datenpunkte pro sensor ---")
-    print(df.groupby(SENSOR).size())
-    print("\n--- Fehlende werte pro spalte ---")
-    print(df.isna().sum())
-    print("\n--- Wertebereiche ---")
-    print(df.groupby(SENSOR)["moisture"].agg(["min", "max", "mean"]).round(2))
-
-
-def zeige_bloecke(df):
-    """Kontrollausgabe: welche blöcke pro sensor übrig geblieben sind."""
-    print("\n--- Nutzbare bloecke ---")
-    for (bed, position), g in df.groupby(SENSOR):
-        print(f"{bed} {position}:")
-        for _, b in g.groupby("block"):
-            dauer = b["time"].max() - b["time"].min()
-            print(f"    {b['time'].min()} bis {b['time'].max()}  "
-                  f"({len(b)} punkte, {dauer.days} tage)")
-
-
-# ---------------------------------------------------------------------------
-# 2) WETTER VON OPEN-METEO
-# Stündliches wetter wird geladen, auf das 2h-raster gebracht und über den
-# zeitstempel an die sensordaten gehängt.
-# ---------------------------------------------------------------------------
-def lade_wetter(start, ende):
-    """Holt stündlich außentemperatur, luftfeuchte und regen für den zeitraum
-    der sensordaten. Ein vollständiger cache wird wiederverwendet."""
-    start_tag = (start - pd.Timedelta(days=WETTER_VORLAUF_TAGE)).normalize()
-    ende_tag = ende.normalize()
-
-    if WETTER_CACHE.exists():
-        w = pd.read_csv(WETTER_CACHE, parse_dates=["time"])
-        komplett = w[["aussentemp", "luftfeuchte", "regen"]].notna().all().all()
-        if komplett and w["time"].min() <= start_tag and w["time"].max() >= ende_tag:
-            print("wetter aus cache geladen:", WETTER_CACHE.name)
-            return w
-
-    params = {
-        "latitude": WETTER_LAT,
-        "longitude": WETTER_LON,
-        "start_date": start_tag.strftime("%Y-%m-%d"),
-        "end_date": ende_tag.strftime("%Y-%m-%d"),
-        "hourly": "temperature_2m,relative_humidity_2m,precipitation",
-        "timezone": WETTER_ZEITZONE,
-    }
-    antwort = requests.get(WETTER_URL, params=params, timeout=30)
-    if antwort.status_code != 200:
-        print("wetter-api fehler:", antwort.status_code, antwort.text)   # open-meteo nennt den grund
-    antwort.raise_for_status()
-
-    daten = antwort.json()["hourly"]
-    w = pd.DataFrame({
-        "time": pd.to_datetime(daten["time"]),
-        "aussentemp": daten["temperature_2m"],
-        "luftfeuchte": daten["relative_humidity_2m"],
-        "regen": daten["precipitation"],
-    })
-    w.to_csv(WETTER_CACHE, index=False)
-    print(f"wetter geladen: {len(w)} stunden, {w['time'].min()} bis {w['time'].max()}")
-    return w
-
-
-def wetter_aufbereiten(w):
-    """Bringt das wetter auf das 2h-raster (temperatur und luftfeuchte gemittelt,
-    regen summiert) und bildet regensummen über 6h, 12h und 48h."""
-    w = w.set_index("time").sort_index()
-    # open-meteo meldet den regen der stunde davor, deshalb eine stunde zurückschieben
-    regen_stunde = w["regen"].shift(-1)
-    w2 = pd.DataFrame({
-        "aussentemp": w["aussentemp"].resample(RESAMPLE).mean(),
-        "luftfeuchte": w["luftfeuchte"].resample(RESAMPLE).mean(),
-        # min_count=2: fehlt eine stunde, bleibt das fenster leer statt 0 mm
-        "regen_2h": regen_stunde.resample(RESAMPLE).sum(min_count=2),
-    })
-    for name, fenster in {"regen_6h": 3, "regen_12h": 6, "regen_48h": 24}.items():
-        w2[name] = w2["regen_2h"].rolling(fenster).sum()
-    return w2.reset_index()
-
-
-def wetter_zuordnen(df, w2):
-    """Hängt das wetter über den zeitstempel an die sensordaten."""
-    df = df.merge(w2, on="time", how="left")
-    fehlt = df[WETTER_SPALTEN].isna().any(axis=1).sum()
-    print(f"wetter zugeordnet: bei {fehlt} von {len(df)} zeilen fehlt das wetter")
-    return df
-
-
-def zeige_wetter(df):
-    """Kontrollausgabe: wertebereiche und regen, jedes zeitfenster nur einmal gezählt."""
-    print("\n--- Wetter: wertebereiche ---")
-    print(df[WETTER_SPALTEN].agg(["min", "max", "mean"]).round(2))
-    fenster = df.drop_duplicates("time")
-    print(f"\nzeitfenster mit regen: {(fenster['regen_2h'] > 0).sum()} von {len(fenster)}")
-    print(f"regen gesamt in diesen fenstern: {fenster['regen_2h'].sum():.1f} mm")
-
-
-def pruefe_zeitversatz(df, w2):
-    """Grobe kontrolle der zeitzone: korreliert den feuchte-anstieg der oberen sensoren
-    mit dem um k fenster verschobenen regen. Passt sie, liegt der höchstwert bei k = 1 oder später."""
-    d = df[df["position"] == "oben"].copy()
-    d["aenderung"] = d.groupby("block")["moisture"].diff()
-    regen = w2.set_index("time")["regen_2h"]
-
-    print("\n--- Zeitversatz-Check: regen und feuchte-anstieg (obere sensoren) ---")
-    print("k = 1: regen im fenster davor | k = 0: regen im selben fenster")
-    korrelationen = {}
-    for k in range(-2, 4):
-        korrelationen[k] = d["aenderung"].corr(d["time"].map(regen.shift(k)))
-        print(f"  k = {k:+d}: korrelation {korrelationen[k]:.3f}")
-
-    beste = max(korrelationen, key=korrelationen.get)
-    if beste >= 1:
-        print(f"hoechste korrelation bei k = {beste:+d}: passt zur annahme, dass die csv in ortszeit ist")
-    else:
-        print(f"ACHTUNG: hoechste korrelation bei k = {beste:+d}: die csv-zeiten sind "
-              "evtl. zu frueh (z.b. UTC statt ortszeit), WETTER_ZEITZONE pruefen")
-
-
-# ---------------------------------------------------------------------------
-# 3) FEATURES UND ZIELGRÖSSE
-# Aus verlauf, uhrzeit und wetter werden die eingaben fürs modell. Das modell
-# lernt die änderung der feuchte in 12h.
-# ---------------------------------------------------------------------------
-def features_bauen(df):
-    """Baut pro block lags, trend und uhrzeit sowie die zielgröße: die änderung der
-    feuchte in 12h statt des absoluten werts, weil baummodelle nicht extrapolieren können."""
-    df = df.sort_values(["block", "time"]).copy()
-    feuchte = df.groupby("block")["moisture"]   # shift pro block, nie über eine lücke
-
-    df["feuchte_lag_kurz"] = feuchte.shift(LAG_KURZ)
-    df["feuchte_lag_lang"] = feuchte.shift(LAG_LANG)
-    df["feuchte_trend"] = df["moisture"] - feuchte.shift(TREND_SCHRITTE)
-    stunde = df["time"].dt.hour   # uhrzeit als kreis: 23 und 0 uhr liegen nebeneinander
-    df["stunde_sin"] = np.sin(2 * np.pi * stunde / 24)
-    df["stunde_cos"] = np.cos(2 * np.pi * stunde / 24)
-    df["ziel_absolut"] = feuchte.shift(-HORIZONT)
-    df["ziel"] = df["ziel_absolut"] - df["moisture"]
-
-    # am blockanfang fehlen die lags, am blockende das ziel
-    vorher = len(df)
-    df = df.dropna(subset=MERKMALE + ["ziel"]).reset_index(drop=True)
-    print(f"features gebaut: {vorher - len(df)} zeilen am blockrand entfernt, "
-          f"{len(df)} uebrig")
-    return df
-
-
-def zeige_features(df):
-    """Kontrollausgabe: erste zeilen, zeilen pro sensor und spannweite der zielgröße."""
-    print("\n--- Features: erste zeilen ---")
-    spalten = ["time", "block", "moisture", "feuchte_lag_kurz",
-               "feuchte_lag_lang", "feuchte_trend", "ziel_absolut", "ziel"]
-    print(df[spalten].head().round({c: 2 for c in spalten[2:]}).to_string())
-    print("\n--- Zeilen pro sensor nach den features ---")
-    print(df.groupby(SENSOR).size())
-    print("\n--- Zielgroesse (aenderung in 12h): spannweite ---")
-    print(df.groupby(SENSOR)["ziel"].agg(["min", "max", "std"]).round(2))
-
-
-# ---------------------------------------------------------------------------
-# 4) SPLIT, BASELINE UND MODELL
-# Training und test werden zeitlich getrennt. Der random forest muss die baseline
-# "feuchte bleibt wie jetzt" schlagen, sonst bringt er nichts.
-# ---------------------------------------------------------------------------
-def zeitlich_teilen(df):
-    """Pro sensor ist der letzte block der test, alle davor das training. Die lücke
-    dazwischen verhindert, dass testdaten ins training rutschen."""
-    train_teile, test_teile = [], []
-    for (bed, position), g in df.groupby(SENSOR):
-        bloecke = g.groupby("block")["time"].min().sort_values().index
-        if len(bloecke) < 2:
-            print(f"{bed} {position}: nur ein block, kein split moeglich, uebersprungen")
-            continue
-        ist_test = g["block"] == bloecke[-1]
-        train_teile.append(g[~ist_test])
-        test_teile.append(g[ist_test])
-    return pd.concat(train_teile, ignore_index=True), pd.concat(test_teile, ignore_index=True)
-
-
-def zeige_split(train, test):
-    """Kontrollausgabe: zeilen und zeitraum pro sensor, plus prüfung der zeitlichen trennung."""
-    print("\n--- Split: training und test pro sensor ---")
-    sauber = True
-    for (bed, position), t in test.groupby(SENSOR):
-        tr = train[(train["bed"] == bed) & (train["position"] == position)]
-        sauber = sauber and tr["time"].max() < t["time"].min()
-        print(f"{bed} {position}: "
-              f"train {len(tr)} ({tr['time'].min():%d.%m.} bis {tr['time'].max():%d.%m.}) | "
-              f"test {len(t)} ({t['time'].min():%d.%m.} bis {t['time'].max():%d.%m.})")
-    print(f"\ngesamt: train {len(train)}, test {len(test)}")
-    print("zeitlich sauber getrennt:", "ja" if sauber else "NEIN, bitte pruefen")
-
-
-def fehler_mae_rmse(echt, vorhersage):
-    """MAE = mittlerer abstand, RMSE = wie MAE, aber große fehler zählen stärker."""
-    fehler = echt - vorhersage
-    return fehler.abs().mean(), np.sqrt((fehler ** 2).mean())
-
-
-def baseline_berechnen(test):
-    """Baseline "die feuchte in 12h ist so wie jetzt", gemessen auf den testdaten in %-punkten."""
-    zeilen = []
-    for (bed, position), g in test.groupby(SENSOR):
-        mae, rmse = fehler_mae_rmse(g["ziel_absolut"], g["moisture"])
-        zeilen.append({"bed": bed, "position": position, "kohle": BEDS[bed],
-                       "n_test": len(g), "baseline_mae": mae, "baseline_rmse": rmse})
-    return pd.DataFrame(zeilen)
-
-
-def zeige_baseline(baseline, test):
-    """Kontrollausgabe: baseline pro sensor und für alle testzeilen zusammen."""
-    print("\n--- Baseline: feuchte in 12h = feuchte jetzt (auf den testdaten) ---")
-    print(baseline.round(3).to_string(index=False))
-    mae, rmse = fehler_mae_rmse(test["ziel_absolut"], test["moisture"])
-    print(f"\nalle sensoren zusammen: MAE {mae:.3f}, RMSE {rmse:.3f}  (in %-punkten)")
-    print("das modell muss unter diesen werten liegen, sonst bringt es nichts")
-
-
-def modelle_trainieren(train):
-    """Trainiert pro sensor einen random forest, der aus den MERKMALE die änderung der
-    feuchte in 12h lernt. Standardeinstellungen, damit nicht auf den test hin optimiert wird."""
-    modelle = {}
-    for (bed, position), g in train.groupby(SENSOR):
-        modell = RandomForestRegressor(n_estimators=N_BAEUME, random_state=ZUFALLSWERT)
-        modelle[(bed, position)] = modell.fit(g[MERKMALE], g["ziel"])
-        print(f"trainiert: {bed} {position} auf {len(g)} zeilen")
-    return modelle
-
-
-def modelle_auswerten(modelle, test):
-    """Vergleicht jedes modell auf den testdaten mit der baseline. Die vorhergesagte
-    änderung wird dafür zurückgerechnet: feuchte jetzt + änderung."""
-    zeilen = []
-    for (bed, position), g in test.groupby(SENSOR):
-        vorhersage = g["moisture"] + modelle[(bed, position)].predict(g[MERKMALE])
-        mae, rmse = fehler_mae_rmse(g["ziel_absolut"], vorhersage)
-        base_mae, base_rmse = fehler_mae_rmse(g["ziel_absolut"], g["moisture"])
-        zeilen.append({
-            "bed": bed, "position": position, "kohle": BEDS[bed], "n_test": len(g),
-            "modell_mae": mae, "baseline_mae": base_mae,
-            "modell_rmse": rmse, "baseline_rmse": base_rmse,
-            "besser": "ja" if mae < base_mae else "nein",
-            "verbesserung_%": (1 - mae / base_mae) * 100,
-        })
-    return pd.DataFrame(zeilen)
-
-
-def zeige_ergebnis(ergebnis):
-    """Kontrollausgabe: modell und baseline nebeneinander, gesamt nach testzeilen gewichtet."""
-    print("\n--- Ergebnis: random forest gegen baseline (testdaten, in %-punkten) ---")
-    print(ergebnis.drop(columns="n_test").round(3).to_string(index=False))
-    n = ergebnis["n_test"]
-    print(f"\nalle sensoren zusammen: modell MAE {np.average(ergebnis['modell_mae'], weights=n):.3f}"
-          f" | baseline MAE {np.average(ergebnis['baseline_mae'], weights=n):.3f}")
-    besser = (ergebnis["besser"] == "ja").sum()
-    print(f"das modell schlaegt die baseline bei {besser} von {len(ergebnis)} sensoren")
-    print("verbesserung_%: positiv = modell besser als baseline, negativ = schlechter")
-
-
-def zeige_wichtigkeit(modelle):
-    """Kontrollausgabe: wie stark jede eingabe das modell beeinflusst, pro sensor summe 1."""
-    tabelle = pd.DataFrame({
-        f"{bed} {position}": pd.Series(modell.feature_importances_, index=MERKMALE)
-        for (bed, position), modell in modelle.items()
-    })
-    print("\n--- Feature Importance (pro sensor, summe = 1) ---")
-    print(tabelle.round(2).to_string())
-
-
-# ---------------------------------------------------------------------------
-# HAUPTPROGRAMM
-# Ruft alle schritte nacheinander auf, jeder schritt arbeitet mit dem ergebnis
-# des vorherigen.
-# ---------------------------------------------------------------------------
-if __name__ == "__main__":
-    roh = lade_daten_csv()
-    print("roh geladen:", roh.shape)
-    df = aufbereiten(roh)
-    print("nach resample:", df.shape)
-    df = leeren_anfang_abschneiden(df)
-    df = bloecke_markieren(df)
-    print("nach block-aufteilung:", df.shape)
-    zeige_ueberblick(df)
-    zeige_bloecke(df)
-
-    wetter = wetter_aufbereiten(lade_wetter(df["time"].min(), df["time"].max()))
-    df = wetter_zuordnen(df, wetter)
-    zeige_wetter(df)
-    pruefe_zeitversatz(df, wetter)
-
-    df = features_bauen(df)
-    zeige_features(df)
-
-    train, test = zeitlich_teilen(df)
-    zeige_split(train, test)
-    zeige_baseline(baseline_berechnen(test), test)
-
-    modelle = modelle_trainieren(train)
-    zeige_ergebnis(modelle_auswerten(modelle, test))
-    zeige_wichtigkeit(modelle)
+# 1) BIBLIOTHEKEN UND EINSTELLUNGEN
+from pathlib import Path                                                    # Dateipfade, die auf jedem Rechner gehen
+import numpy as np                                                          # Rechnen mit Zahlenreihen
+import pandas as pd                                                         # Tabellen: das Hauptwerkzeug für Zeitreihen
+import requests                                                             # Holt Daten aus dem Internet
+from sklearn.ensemble import ExtraTreesRegressor                            # Das Modell: viele Bäume, Antworten gemittelt
+
+ORDNER = Path(__file__).resolve().parent                                    # Ordner des Skripts: Alle Dateien liegen hier
+BEETE = ["Berta", "Carla", "Ilse"]                                          # Beetnamen wie in den CSV-Spalten
+ORT = {"latitude": 51.445, "longitude": 7.262}                              # Bochum: Das Wetter muss vom Ort kommen
+GEWICHT_OBEN = 0.5                                                          # Oben und unten zählen gleich
+P_PFLANZE = 0.5                                                             # Wie viel Wasser darf fehlen, bevor gegossen wird
+# Ein Zeitschritt = 2 Stunden. Also: 1 Schritt = 2 h, 3 = 6 h, 6 = 12 h, 12 = 24 h.
+
+# 2) HILFSFUNKTIONEN
+def open_meteo(url, hourly, start, ende):                                   # Holt stündliches Wetter von Open-Meteo
+    # Ort, Zeitraum und gewünschte Werte
+    anfrage = {**ORT, "start_date": f"{start:%Y-%m-%d}", "end_date": f"{ende:%Y-%m-%d}", "hourly": hourly}
+    antwort = requests.get(url, params=anfrage, timeout=60)                 # Anfrage ins Internet schicken
+    antwort.raise_for_status()                                              # Bei Fehler der Seite sofort anhalten
+    return pd.DataFrame(antwort.json()["hourly"])                           # Antwort als Tabelle zurückgeben
+
+
+def luecken_fuellen(s):                                                     # Füllt kleine Lücken, große Ausfälle bleiben leer
+    laenge = s.isna().groupby(s.notna().cumsum()).transform("sum")          # Länge der Lücke, in der die Zeile liegt
+    # Gerade Linie bis 3 Schritte (6 h), längere bleiben leer
+    return s.interpolate(limit_area="inside").mask(s.isna() & (laenge > 3))
+
+
+# Frisches Modell: Test und Empfehlung nutzen dasselbe
+def neues_modell():
+    # 200 Bäume; Blatt ab 10 Zeilen + halbe Eingaben = keine Einzeltage merken; random_state = gleiches Ergebnis
+    return ExtraTreesRegressor(n_estimators=200, min_samples_leaf=10, max_features=0.5, random_state=0)
+
+
+def uhrzeit(index):                                                         # Weltzeit -> unsere Uhrzeit, gut lesbar
+    # z. B. "03.11. 09:00"
+    return index.tz_localize("UTC").tz_convert("Europe/Berlin").strftime("%d.%m. %H:%M")
+
+# 3) SENSORDATEN LADEN
+roh = pd.read_csv(ORDNER / "Alle Beete-data.csv", parse_dates=["Time"])     # Sensordatei einlesen, "Time" als Uhrzeit
+# Am 25.10. Uhr zurückgestellt: Eine Uhrzeit kommt doppelt vor
+zweites_mal = roh["Time"].duplicated()
+# Deutsche Zeit mit Sommer-/Winterzeit versehen (zweites Mal = Winterzeit)
+zeit = roh["Time"].dt.tz_localize("Europe/Berlin", ambiguous=(~zweites_mal).to_numpy())
+# Auf Weltzeit (UTC) umstellen, damit es zum Wetter passt
+roh["Time"] = zeit.dt.tz_convert("UTC").dt.tz_localize(None)
+roh = roh.set_index("Time")                                                 # Uhrzeit wird Zeilenname: leicht nach Zeit rechnen
+
+# 4) WETTER UND REGENVORHERSAGE
+WETTER = ORDNER / "wetter_cache_utc.csv"                                    # Gespeichertes Wetter: nicht jedes Mal neu holen
+PROGNOSE = ORDNER / "wetter_vorhersage_cache_utc.csv"                       # Gespeicherte Regenvorhersage
+# Wetter ab 2 Tage vor dem ersten Messwert (48-h-Regensumme)
+von = (roh.index.min() - pd.Timedelta(days=2)).normalize()
+if not WETTER.exists():                                                     # Gibt es die Wetterdatei noch nicht, ...
+    # Open-Meteo-Namen -> unsere Namen
+    namen = {"temperature_2m": "aussentemp", "relative_humidity_2m": "luftfeuchte", "precipitation": "regen",
+             "et0_fao_evapotranspiration": "et0", "shortwave_radiation": "einstrahlung"}
+    # ... Wetter holen ...
+    wetter_neu = open_meteo("https://archive-api.open-meteo.com/v1/archive", ",".join(namen), von, roh.index.max())
+    wetter_neu.rename(columns=namen).to_csv(WETTER, index=False)            # ... umbenennen und speichern
+w = pd.read_csv(WETTER, parse_dates=["time"], index_col="time")             # Wetter einlesen, Uhrzeit wird Zeilenname
+if w.index.min() > von or w.index.max() < roh.index.max().floor("h"):       # Deckt das Wetter alle Sensordaten ab?
+    # Sonst anhalten, damit keine Zeilen still verloren gehen
+    raise SystemExit("Wetterdatei zu kurz: bitte wetter_cache_utc.csv löschen und neu starten.")
+
+# Temperatur, Luftfeuchte (Trocknung), Sonne (1 h nach vorn)
+wetter = pd.DataFrame({"aussentemp": w["aussentemp"], "luftfeuchte": w["luftfeuchte"],
+                       "einstrahlung": w["einstrahlung"].shift(-1)})
+# Pro Eintrag: neuer Name, Quelle, Stunden
+for name, spalte, stunden in [("regen_jetzt", "regen", 2), ("regen_6h", "regen", 6), ("regen_12h", "regen", 12),
+                              ("regen_48h", "regen", 48), ("et0_24h", "et0", 24)]:
+    # Summe der letzten N Stunden bis zum Zeitschritt-Ende (Open-Meteo zählt die Stunde davor)
+    wetter[name] = w[spalte].rolling(stunden).sum().shift(-2)
+
+# Echter Regen der nächsten 24 h: geschummelt, nur Obergrenze
+prognose = pd.DataFrame({"regen_echt_24h": w["regen"].rolling(24).sum().shift(-26)})
+prognose_da = True                                                          # Merker: Gibt es die Vorhersage?
+# Vorhersage holen; scheitert es, läuft das Skript ohne sie
+try:
+    if not PROGNOSE.exists():                                               # Nur holen, wenn die Datei fehlt
+        # Vorhersage von gestern ("previous_day1") holen
+        alt = open_meteo("https://previous-runs-api.open-meteo.com/v1/forecast", "precipitation_previous_day1",
+                         roh.index.min(), roh.index.max() + pd.Timedelta(days=2))
+        # Nur Zeit und Regen speichern
+        alt[["time", "precipitation_previous_day1"]].to_csv(PROGNOSE, index=False)
+    # Vorhersage einlesen (erste Spalte = Regen in mm)
+    p = pd.read_csv(PROGNOSE, parse_dates=["time"], index_col="time").iloc[:, 0]
+    # Datei fast leer oder zu kurz?
+    if p.notna().mean() < 0.9 or p.index.max() < roh.index.max().floor("h"):
+        # Dann als Fehler behandeln
+        raise ValueError("Datei leer oder zu kurz, bitte wetter_vorhersage_cache_utc.csv löschen")
+    # Vorhergesagter Regen der nächsten 24 h, wie der echte berechnet
+    prognose["regen_prog_24h"] = p.rolling(24).sum().shift(-26)
+# Fehler im Internet, im Namen oder in den Werten abfangen
+except (requests.RequestException, KeyError, ValueError) as fehler:
+    # Sagen, was schiefging
+    print(f"Hinweis: Regenvorhersage nicht verfügbar ({type(fehler).__name__}: {str(fehler)[:100]}).",
+          "Es läuft ohne sie weiter.\n")
+    prognose_da = False                                                     # Ab jetzt ohne Vorhersage weiterrechnen
+
+# 5) PRO BEET: SENSORFUSION, GIESSSCHWELLE, GIESSZEITEN RATEN, EINGABEN FÜRS MODELL
+# Alle Eingaben, die nur Vergangenes nutzen
+basis = ["lag_kurz", "lag_lang", "trend", "stunde_sin", "stunde_cos"] + list(wetter.columns)
+# Sammelplätze: fertige Beet-Tabellen und schnelle Anstiege
+beete, anstiege = [], []
+for beet in BEETE:                                                          # Für jedes Beet einmal dasselbe
+    sensor = {}                                                             # Hier landen die Werte von oben und unten
+    for pos in ["Oben", "Unten"]:                                           # Beide Sensoren des Beetes
+        spalte = f"{beet} {pos} Bodenfeuchtigkeit"                          # Spaltenname, z. B. "Carla Oben Bodenfeuchtigkeit"
+        # Zwei Spalten pro Sensor: Die zweite füllt die Lücken der ersten
+        feuchte = roh[spalte].combine_first(roh[spalte + ".1"])
+        sensor[pos] = luecken_fuellen(feuchte.resample("2h").mean())        # Ein Wert alle 2 h, kleine Lücken füllen
+    # Sensorfusion: Mittel aus oben und unten (fehlt einer, bleibt es leer)
+    f = GEWICHT_OBEN * sensor["Oben"] + (1 - GEWICHT_OBEN) * sensor["Unten"]
+
+    # Boden = Tank: "voll" = obere 5 %, "leer" = untere 5 % der Werte
+    voll, leer = f.quantile(0.95), f.quantile(0.05)
+    # Gießschwelle (FAO): voll minus erlaubter Wasserverlust
+    schwelle = voll - P_PFLANZE * (voll - leer)
+    # Tabelle des Beetes: Name, Feuchte oben, Beet-Feuchte, Schwelle
+    g = pd.DataFrame({"bed": beet, "oben": sensor["Oben"], "feuchte": f, "schwelle": schwelle})
+    g = g.join(wetter).join(prognose)                                       # Dazu Wetter und Regen der Zukunft (nach Uhrzeit)
+
+    anstieg = g["oben"].diff(1)                                             # Anstieg der Feuchte oben pro Zeitschritt (2 h)
+    # Schneller Anstieg (ab 0,5) nach 6 h Ruhe: gegossen oder Regen
+    beginn = (anstieg >= 0.5) & (anstieg.shift(1).rolling(3).max() < 0.5)
+    # Regen der letzten 6 h: <0,2 mm gegossen, ab 2 mm Regen
+    g["einstufung"] = pd.cut(g["regen_6h"], [-np.inf, 0.2, 2, np.inf],
+                             labels=["vermutlich gegossen", "unklar", "Regen"], right=False)
+    anstiege.append(g[beginn].assign(anstieg=anstieg[beginn]))              # Anstiege samt Stärke für die Liste merken
+
+    g["lag_kurz"] = f.shift(1)                                              # Eingabe: Feuchte einen Zeitschritt davor
+    g["lag_lang"] = f.shift(12)                                             # Eingabe: Feuchte vor 24 h
+    g["trend"] = f - f.shift(6)                                             # Eingabe: Änderung der letzten 12 h
+    # Eingabe: Uhrzeit als Kreis (Teil 1): 23 Uhr nah bei 0 Uhr
+    g["stunde_sin"] = np.sin(2 * np.pi * g.index.hour / 24)
+    g["stunde_cos"] = np.cos(2 * np.pi * g.index.hour / 24)                 # Eingabe: Uhrzeit als Kreis (Teil 2)
+    g["ziel"] = f.shift(-12) - f                                            # Ziel: Änderung der Feuchte in 24 h
+    # Zeilen ohne Eingaben weglassen (letzte 24 h ohne Ziel bleiben)
+    beete.append(g.dropna(subset=basis))
+daten = pd.concat(beete)                                                    # Alle Beete zu einer großen Tabelle
+
+# Was weiß das Modell vom künftigen Regen? Variante 1: nichts
+VARIANTEN = {"nur vergangenes Wetter": basis}
+if prognose_da:                                                             # Variante 2 nur, wenn die Vorhersage geholt wurde
+    # Variante 2: dazu die Vorhersage (im Betrieb möglich)
+    VARIANTEN["mit Regenvorhersage von gestern"] = basis + ["regen_prog_24h"]
+# Variante 3: dazu der echte Regen (nur zum Vergleich)
+VARIANTEN["mit echtem Regen (geschummelt)"] = basis + ["regen_echt_24h"]
+# Alltags-Variante: Vorhersage, sonst nur Vergangenes
+HAUPT = list(VARIANTEN)[-2]
+# Alle Regenspalten, die bekannt sein müssen
+regen_spalten = ["regen_echt_24h"] + (["regen_prog_24h"] if prognose_da else [])
+# Nur Zeilen mit Ergebnis UND allen Regenspalten: Varianten vergleichbar
+lernbar = daten.dropna(subset=["ziel"] + regen_spalten)
+# Zur Kontrolle ausgeben
+print("Gießschwelle pro Beet in %:", daten.groupby("bed")["schwelle"].first().round(1).to_dict(), "\n")
+
+# Geratene Gießzeiten: Anstiege aller Beete, nach Zeit sortiert
+liste = pd.concat(anstiege).sort_index(kind="stable")
+liste.insert(0, "uhrzeit", uhrzeit(liste.index))                            # Spalte mit unserer Uhrzeit vorn einfügen
+# Nur wichtige Spalten, eine Stelle
+liste = liste[["uhrzeit", "bed", "anstieg", "regen_6h", "einstufung"]].round(1)
+# Liste ausgeben
+print("Schnelle Anstiege oben und was wir daraus raten:\n", liste.to_string(index=False), "\n", sep="")
+liste.to_csv(ORDNER / "giessen_geraten.csv", index=False)                   # Liste als Datei speichern
+
+# 6) TESTEN: Wie gut ist das Modell gegenüber "die Feuchte bleibt wie jetzt" (Baseline)?
+# Letzte 30 Tage in 6 Zeiträume zu je 5 Tagen
+FENSTER = pd.date_range(end=roh.index.max().ceil("D"), periods=7, freq="5D")
+
+
+# Prüft in allen 6 Zeiträumen (neues_beet=True: Modell lernt ohne das geprüfte Beet)
+def pruefen(neues_beet, merkmale):
+    ergebnisse = []                                                         # Ergebnisse der einzelnen Zeiträume
+    for start, ende in zip(FENSTER[:-1], FENSTER[1:]):                      # Für jeden Zeitraum: Beginn und Ende
+        # Bei "neues Beet" einmal pro Beet, sonst einmal für alle
+        for beet in (BEETE if neues_beet else [None]):
+            # Lernstoff: nur bis 24 h vor dem Zeitraum (Sicherheitsabstand)
+            train = lernbar[lernbar.index <= start - pd.Timedelta(hours=24)]
+            # Prüfungsaufgaben: Zeilen des Zeitraums
+            test = lernbar[(lernbar.index >= start) & (lernbar.index < ende)]
+            if beet:                                                        # Beim Test mit neuem Beet ...
+                # ... lernt das Modell ohne dieses Beet und wird nur darauf geprüft
+                train, test = train[train["bed"] != beet], test[test["bed"] == beet]
+            if test.empty:                                                  # Keine Zeilen im Zeitraum (z. B. Sensorausfall)?
+                continue                                                    # Dann überspringen
+            # Lernen (fit), dann vorhersagen (predict)
+            vorhersage = neues_modell().fit(train[merkmale], train["ziel"]).predict(test[merkmale])
+            # Merken: Vorhersage, Fehler der Baseline (= echte Änderung), Fehler des Modells
+            ergebnisse.append(test.assign(vorhersage=vorhersage, fenster=start, baseline=test["ziel"].abs(),
+                                          modell=(test["ziel"] - vorhersage).abs()))
+    return pd.concat(ergebnisse)                                            # Alle Zeiträume zu einer Tabelle
+
+
+# Zeigt den mittleren Fehler und prüft den Gießbefehl
+def auswerten(erg, titel):
+    je_fenster = erg.groupby("fenster")[["baseline", "modell"]].mean()      # Mittlerer Fehler pro Zeitraum
+    # Überschrift und Fehler pro Beet
+    print(f"\n=== {titel} ===", erg.groupby("bed")[["baseline", "modell"]].mean().round(3), sep="\n")
+    gewonnen = (je_fenster["modell"] < je_fenster["baseline"]).sum()        # In wie vielen Zeiträumen ist das Modell besser?
+    # Gesamtfehler und gewonnene Zeiträume
+    print(f"alle zusammen: Baseline {erg['baseline'].mean():.3f} | Modell {erg['modell'].mean():.3f}, "
+          f"das Modell ist in {gewonnen} von {len(je_fenster)} Testzeiträumen besser\n")
+    # Wahrheit: War es nach 24 h wirklich unter der Schwelle?
+    echt = erg["feuchte"] + erg["ziel"] < erg["schwelle"]
+    baseline_sagt = erg["feuchte"] < erg["schwelle"]                        # Baseline: gießen, wenn es schon trocken ist
+    modell_sagt = erg["feuchte"] + erg["vorhersage"] < erg["schwelle"]      # Modell: gießen, wenn es in 24 h trocken sein wird
+    # Jetzt noch feucht genug, später trocken: Hier hilft eine Vorwarnung
+    neu = echt & ~baseline_sagt
+    # Zählt: richtig erkannt, davon Vorwarnung, Fehlalarm
+    zaehlen = lambda sagt: [(sagt & echt).sum(), (sagt & neu).sum(), (sagt & ~echt).sum()]
+    # Kleine Tabelle: Baseline gegen Modell
+    tabelle = pd.DataFrame({"Baseline": zaehlen(baseline_sagt), "Modell": zaehlen(modell_sagt)},
+                           index=[f"trockene Fälle erkannt (von {echt.sum()})",
+                                  f"davon Vorwarnung (von {neu.sum()})", "Fehlalarme"])
+    print(tabelle)                                                          # Tabelle ausgeben
+
+# Jede Variante in beiden Tests: (a) Beete bekannt, (b) Beet neu
+ergebnis = {name: (pruefen(False, m), pruefen(True, m)) for name, m in VARIANTEN.items()}
+# Überschrift mit Baseline-Fehler
+print(f"Vergleich der Wetter-Varianten (Baseline 'es ändert sich nichts': {ergebnis[HAUPT][0]['baseline'].mean():.3f})")
+print(f"{'':34s} (a) Beete bekannt | (b) Beet neu")                         # Spaltenköpfe
+for name, (a, b) in ergebnis.items():                                       # Pro Variante eine Zeile
+    # Fehler des Modells in Test (a) und (b)
+    print(f"{name:34s} {a['modell'].mean():16.3f} | {b['modell'].mean():11.3f}")
+# Details zu Test (a)
+auswerten(ergebnis[HAUPT][0], f"Test (a): Modell kennt alle Beete, die Zeit ist neu ({HAUPT})")
+# Details zu Test (b)
+auswerten(ergebnis[HAUPT][1], f"Test (b): Modell hat das Beet NIE gesehen ({HAUPT})")
+
+# 7) AKTUELLE EMPFEHLUNG: Soll jetzt gegossen werden?
+merkmale = VARIANTEN[HAUPT]                                                 # Eingaben der Alltags-Variante
+# Pro Beet die letzte vollständige Zeile = aktueller Stand
+jetzt = daten.dropna(subset=merkmale).groupby("bed").tail(1)
+# Mit allen Daten lernen, Änderung in 24 h vorhersagen
+aenderung = neues_modell().fit(lernbar[merkmale], lernbar["ziel"]).predict(jetzt[merkmale])
+# Tabelle: Beet, Feuchte jetzt, Schwelle
+e = jetzt[["bed", "feuchte", "schwelle"]].rename(columns={"feuchte": "feuchte_jetzt"})
+e["aenderung_24h"] = aenderung                                              # Dazu die vorhergesagte Änderung
+e["erwartet_24h"] = e["feuchte_jetzt"] + e["aenderung_24h"]                 # Erwartete Feuchte in 24 h = jetzt + Änderung
+# Gießbefehl: unter der Schwelle = gießen
+e["befehl"] = np.where(e["erwartet_24h"] < e["schwelle"], "GIESSEN", "noch nicht gießen")
+e.insert(0, "stand", uhrzeit(e.index))                                      # Zeitpunkt des letzten Messwerts vorn einfügen
+e = e.round(1).reset_index(drop=True)                                       # Eine Stelle, Zeilen neu nummerieren
+e["aenderung_24h"] += 0.0                                                   # Verhindert die Anzeige "-0.0"
+# Empfehlung ausgeben
+print(f"\nAktuelle Empfehlung (Feuchte in %, Variante: {HAUPT}):", e.to_string(), sep="\n")
+e.to_csv(ORDNER / "giessempfehlung.csv", index=False)                       # Empfehlung als Datei speichern

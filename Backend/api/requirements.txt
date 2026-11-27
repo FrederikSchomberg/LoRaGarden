@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-paho-mqtt
+paho-mqtt>=2.0,<3
 python-dotenv
 influxdb-client
 passlib

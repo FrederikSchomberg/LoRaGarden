@@ -1,9 +1,15 @@
 import type { AuthResponse, LoginPayload, User } from "./types/auth";
-import type { DashboardHistoryResponse, DashboardResponse } from "./types/dashboard";
+import type {
+  DashboardHistoryResponse,
+  DashboardResponse,
+} from "./types/dashboard";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://sr-labor.ddns.net:8001";
 
-async function extrahiereFehlermeldung(res: Response, standard: string): Promise<string> {
+async function extrahiereFehlermeldung(
+  res: Response,
+  standard: string,
+): Promise<string> {
   try {
     const daten = await res.json();
     if (typeof daten?.detail === "string") {
@@ -46,9 +52,12 @@ export async function holeNeleDashboard(): Promise<DashboardResponse> {
 }
 
 // Hole historische Daten für das gesamte Dashboard
-export async function holeDashboardHistorie(timeRange = "5d"): Promise<DashboardHistoryResponse> {
+export async function holeDashboardHistorie(
+  timeRange = "5d",
+): Promise<DashboardHistoryResponse> {
   const antwort = await fetch(
-    `${API_URL}/api/dashboard/history?time_range=${encodeURIComponent(timeRange)}`);
+    `${API_URL}/api/dashboard/history?time_range=${encodeURIComponent(timeRange)}`,
+  );
 
   if (!antwort.ok) {
     const fehler = await extrahiereFehlermeldung(
@@ -61,7 +70,6 @@ export async function holeDashboardHistorie(timeRange = "5d"): Promise<Dashboard
   const daten = await antwort.json();
   return daten;
 }
-
 
 /*
  * =========================================================
@@ -81,7 +89,6 @@ const CHUNK_THRESHOLD_DAYS = 30;
 // Maximale Chunk-Größe in Tagen (≈ 1 Monat)
 const CHUNK_SIZE_DAYS = 30;
 
-
 export type ChunkInfo = {
   /** 0-basierter Index des aktuellen Chunks */
   chunkIndex: number;
@@ -97,7 +104,6 @@ export type ChunkedHistoryCallback = (
   data: DashboardHistoryResponse,
   chunk: ChunkInfo,
 ) => void;
-
 
 /**
  * Berechnet, wie viele Tage ein Zeitraum-String wie "5d", "2w" etc. enthält.
@@ -123,7 +129,6 @@ export type ChunkedHistoryCallback = (
 //   }
 // }
 
-
 function zeitraumZuTagen(zeitraum: string): number {
   const clean = zeitraum.replace(/^-/, "").trim();
   const match = clean.match(/^(\d+)(s|m|h|d|w|M|mo|y)$/);
@@ -134,35 +139,45 @@ function zeitraumZuTagen(zeitraum: string): number {
   const einheit = match[2];
 
   switch (einheit) {
-    case "s":  return wert / 86400;
-    case "m":  return wert / 1440;
-    case "h":  return wert / 24;
-    case "d":  return wert;
-    case "w":  return wert * 7;
+    case "s":
+      return wert / 86400;
+    case "m":
+      return wert / 1440;
+    case "h":
+      return wert / 24;
+    case "d":
+      return wert;
+    case "w":
+      return wert * 7;
     case "M":
-    case "mo": return wert * 30;
-    case "y":  return wert * 365;
-    default:   return 7;
+    case "mo":
+      return wert * 30;
+    case "y":
+      return wert * 365;
+    default:
+      return 7;
   }
 }
-
-
 
 /**
  * Teilt einen Zeitraum in Monats-Chunks auf.
  * Gibt ein Array von { start, end } ISO-Strings zurück.
  */
-export function berechneChunks(zeitraum: string): { start: string; end: string }[] {
+export function berechneChunks(
+  zeitraum: string,
+): { start: string; end: string }[] {
   const tage = zeitraumZuTagen(zeitraum);
   const jetzt = new Date();
   const startDatum = new Date(jetzt.getTime() - tage * 24 * 60 * 60 * 1000);
 
   // Wenn der Zeitraum unter der Schwelle liegt, ein einziger Chunk
   if (tage < CHUNK_THRESHOLD_DAYS) {
-    return [{
-      start: startDatum.toISOString(),
-      end: jetzt.toISOString(),
-    }];
+    return [
+      {
+        start: startDatum.toISOString(),
+        end: jetzt.toISOString(),
+      },
+    ];
   }
 
   const chunks: { start: string; end: string }[] = [];
@@ -186,7 +201,6 @@ export function berechneChunks(zeitraum: string): { start: string; end: string }
 
   return chunks;
 }
-
 
 /**
  * Fragt einen einzelnen Chunk von der API ab – optional gefiltert nach Beeten und Feldern.
@@ -249,7 +263,6 @@ async function holeHistorieChunk(
     abortSignal,
   );
 }
-
 
 /**
  * Lädt historische Daten progressiv in Chunks.
@@ -370,4 +383,37 @@ export async function getCurrentUser(): Promise<User | null> {
   } catch {
     return null;
   }
+}
+
+// sendeintervall eines sensors per downlink ändern
+export async function setzeSensorIntervall(sensorId: string, minuten: number) {
+  const token = localStorage.getItem("access_token");
+
+  if (!token) {
+    throw new Error("Bitte zuerst anmelden, um Sensoren zu steuern.");
+  }
+
+  const antwort = await fetch(
+    `${API_URL}/api/sensors/${encodeURIComponent(sensorId)}/interval`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+      body: JSON.stringify({ minuten }),
+    },
+  );
+
+  if (!antwort.ok) {
+    const text = await extrahiereFehlermeldung(
+      antwort,
+      "Intervalländerung konnte nicht gesendet werden.",
+    );
+
+    throw new Error(text);
+  }
+
+  return antwort.json();
 }

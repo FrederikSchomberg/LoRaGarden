@@ -3,12 +3,15 @@ from contextlib import asynccontextmanager
 import re
 
 # pyrefly: ignore [missing-import]
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 # pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.concurrency import run_in_threadpool
+from pydantic import BaseModel
 
 from db_connector import DBConnector
-from auth_routes import router as auth_router
+from auth_routes import router as auth_router, _get_current_user
+from mqtt_controller import sende_intervall_downlink, DownlinkFehler
 from auth import create_default_users
 
 
@@ -492,3 +495,61 @@ async def get_dashboard_history_chunk(
         },
         "beds": beds_response,
     }
+
+class IntervallAnfrage(BaseModel):
+    minuten: int
+
+
+@app.post("/api/sensors/{sensor_id}/interval")
+async def setze_intervall(
+    sensor_id: str,
+    anfrage: IntervallAnfrage,
+    request: Request,
+):
+    # für steuerbefehle einen bearer-token verlangen, kein reiner cookie-zugriff
+    if not request.headers.get("authorization", "").startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="Bitte mit gültigem Token anmelden.",
+        )
+
+    # nur projektaccounts dürfen die sensoren umstellen
+    user = _get_current_user(request)
+
+    if user["username"] not in ("admin", "loragarden"):
+        raise HTTPException(
+            status_code=403,
+            detail="Keine Berechtigung für die Sensorsteuerung.",
+        )
+
+    # nur die bereits bekannten sensoren erlauben
+    sensor_id = sensor_id.upper()
+
+    if sensor_id not in SENSORS:
+        raise HTTPException(
+            status_code=404,
+            detail="Sensor nicht bekannt.",
+        )
+
+    # nur intervalle aus unserem frontend erlauben
+    if anfrage.minuten not in (5, 10, 15, 20, 25, 30):
+        raise HTTPException(
+            status_code=400,
+            detail="Erlaubt sind 5, 10, 15, 20, 25 oder 30 Minuten.",
+        )
+
+    try:
+        # mqtt ist blockierend, daher in einen separaten thread auslagern
+        ergebnis = await run_in_threadpool(
+            sende_intervall_downlink,
+            sensor_id,
+            anfrage.minuten,
+        )
+
+    except DownlinkFehler as error:
+        raise HTTPException(
+            status_code=503,
+            detail=str(error),
+        ) from error
+
+    return ergebnis
